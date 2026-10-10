@@ -348,7 +348,11 @@ public final class RemoteRecipeFetcher {
             Map<String, String> internalToDisplay,
             Map<String, String> recipeNameById) {
         Map<String, Map<String, Integer>> wire = new LinkedHashMap<>(byInternal.size());
-        for (Map.Entry<String, Map<String, Integer>> e : byInternal.entrySet()) {
+        // In ID order, so which of two same-named items keeps the plain name never changes between updates
+        // (e.g. FELTHORN_REAPER before STARRED_FELTHORN_REAPER).
+        List<Map.Entry<String, Map<String, Integer>>> entries = new ArrayList<>(byInternal.entrySet());
+        entries.sort(Map.Entry.comparingByKey());
+        for (Map.Entry<String, Map<String, Integer>> e : entries) {
             String outDisplay = internalToDisplay.getOrDefault(e.getKey(), e.getKey());
             // Different items can share a display name (e.g. upgrade stones); keep them apart.
             if (wire.containsKey(outDisplay)) {
