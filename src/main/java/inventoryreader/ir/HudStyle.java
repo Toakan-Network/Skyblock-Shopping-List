@@ -100,6 +100,7 @@ public final class HudStyle {
     // Panel placement is layout, so presets carry it.
     public Placement craftablePlacement = Placement.MAIN_PANEL;
     public Placement forgingPlacement = Placement.MAIN_PANEL;
+    public Placement totalPlacement = Placement.MAIN_PANEL;
 
     private static volatile HudStyle current;
     /** Style drawn instead of the active one on this thread (the Appearance preview), or null. */
@@ -213,6 +214,7 @@ public final class HudStyle {
         if (forgingAlign == null) forgingAlign = Align.CENTRE;
         if (craftablePlacement == null) craftablePlacement = Placement.MAIN_PANEL;
         if (forgingPlacement == null) forgingPlacement = Placement.MAIN_PANEL;
+        if (totalPlacement == null) totalPlacement = Placement.MAIN_PANEL;
         if (font == null || Identifier.tryParse(font) == null) font = DEFAULT_FONT;
         if (amountFormat == null) amountFormat = AmountFormat.REMAINING;
         if (forgeTimes == null) forgeTimes = ForgeTimes.ALL;

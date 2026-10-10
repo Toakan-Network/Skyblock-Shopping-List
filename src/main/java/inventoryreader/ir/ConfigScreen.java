@@ -106,6 +106,8 @@ public final class ConfigScreen {
                 .option(toggle("Total section",
                     "Show a Total at the top of the HUD with every raw material still needed across all recipes.",
                     true, widget::isShowTotal, widget::setShowTotal))
+                .option(placement("Total panel", d.totalPlacement,
+                    s -> s.totalPlacement, (s, v) -> s.totalPlacement = v))
                 .option(Option.<Integer>createBuilder()
                     .name(Component.literal("Total lists"))
                     .description(OptionDescription.of(Component.literal(
@@ -513,8 +515,8 @@ public final class ConfigScreen {
         return styled(Option.<HudStyle.Placement>createBuilder()
             .name(Component.literal(name))
             .description(describe(
-                "Inside main panel: under the shopping list.\nOwn panel: a separate panel you can move and resize "
-                    + "on its own in Move HUD."))
+                "Inside main panel: part of the shopping list panel.\nOwn panel: a separate panel you can move and "
+                    + "resize on its own in Move HUD."))
             .controller(opt -> EnumControllerBuilder.create(opt).enumClass(HudStyle.Placement.class)
                 .formatValue(v -> Component.literal(v == HudStyle.Placement.OWN_PANEL ? "Own panel" : "Inside main panel"))),
             def, get, set);

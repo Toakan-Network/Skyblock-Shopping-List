@@ -5,7 +5,7 @@ Pick the items you want to make, and a HUD shopping list shows what you can alre
 **Coming from Inventory Reader?** This mod grew out of [Inventory Reader](https://github.com/Scholiboi/InventoryReader) by Scholiboi. Remove the old jar before installing; your data is moved to `config/skyblock-shopping-list/` automatically on first launch.
 
 ## Features
-- **Shopping list HUD:** add recipes with an amount and reorder them by priority. A **Total** section lists every raw material still needed (missing items first), followed by one tree per recipe. Your stock is shared between recipes and never counted twice. Each amount is either a total to hold (what you already have counts) or how many more to make. Ingredients you already have enough of drop off the HUD (optional).
+- **Shopping list HUD:** add recipes with an amount and reorder them by priority. A **Total** section lists every raw material still needed (missing items first), or the steps in between, inside the list or in a panel of its own, followed by one tree per recipe. Your stock is shared between recipes and never counted twice. Each amount is either a total to hold (what you already have counts) or how many more to make. Ingredients you already have enough of drop off the HUD (optional).
 - **Easy start:** no need to open every sack. The mod names the sacks your list needs, greys out counts it can't vouch for yet and highlights those sacks in `/sacks`.
 - **Recipe filters:** find recipes by ingredient (*coal* finds Torch), item type (armor, accessory, pet...), rarity, or whether you own the item.
 - **Saved lists:** save the current list under a name (Mining, Foraging, Combat...) and load it back with one click when you switch what you're working on.

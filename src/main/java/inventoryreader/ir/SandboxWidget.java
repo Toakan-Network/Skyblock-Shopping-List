@@ -43,9 +43,10 @@ public class SandboxWidget {
     /** GUI-scaled screen size when the main panel was placed (0 = not recorded yet). */
     private int widgetRefWidth = 0;
     private int widgetRefHeight = 0;
-    /** Craftable / Forging panels, used when Settings puts them in their own panel. */
+    /** Craftable / Forging / Total panels, used when Settings puts them in their own panel. */
     private PanelRect craftablePanel = new PanelRect(270, 40, 180, 150);
     private PanelRect forgingPanel = new PanelRect(270, 200, 180, 120);
+    private PanelRect totalPanel = new PanelRect(270, 330, 180, 150);
     private volatile Map<String, Boolean> expandedNodes = new ConcurrentHashMap<>();
     /**
      * Craftable lines ("3× Refined Diamond"), most first, ready to draw; replaced whole (never cleared and refilled)
@@ -116,6 +117,8 @@ public class SandboxWidget {
     private int currentRowGap = 0;
     private float currentTreeScale = 1.0f;
     private int currentPanelWidth = 250;
+    /** Render thread only: the tree level drawn with no indent (1 in the Total panel, whose rows are level 1). */
+    private int currentBaseLevel = 0;
 
     private SandboxWidget() {
         this.resourcesManager = ResourcesManager.getInstance();
@@ -364,6 +367,7 @@ public class SandboxWidget {
         config.widgetScale = widgetScale;
         config.craftablePanel = craftablePanel;
         config.forgingPanel = forgingPanel;
+        config.totalPanel = totalPanel;
         config.expandedNodes = new HashMap<>(expandedNodes);
         config.showTotal = showTotal;
         config.totalLevel = totalLevel;
@@ -406,6 +410,7 @@ public class SandboxWidget {
         if (config.widgetScale != null) this.widgetScale = clampPanelScale(config.widgetScale);
         if (config.craftablePanel != null) this.craftablePanel = config.craftablePanel;
         if (config.forgingPanel != null) this.forgingPanel = config.forgingPanel;
+        if (config.totalPanel != null) this.totalPanel = config.totalPanel;
         // Before 4.22 the list was kept in widget_config.json: move it to its own file (with the other data
         // that ProfileManager hands to the first SkyBlock profile seen), then drop it from the config.
         if ((config.shoppingList != null || config.selectedRecipe != null) && !FilePathManager.shoppingListJson().exists()) {
@@ -444,6 +449,7 @@ public class SandboxWidget {
         widgetRefHeight = 0;
         craftablePanel = new PanelRect(270, 40, 180, 150);
         forgingPanel = new PanelRect(270, 200, 180, 120);
+        totalPanel = new PanelRect(270, 330, 180, 150);
         expandedNodes = new ConcurrentHashMap<>();
         showTotal = true;
         totalLevel = 0;
@@ -467,6 +473,7 @@ public class SandboxWidget {
         Integer widgetScale;
         PanelRect craftablePanel;
         PanelRect forgingPanel;
+        PanelRect totalPanel;
         Map<String, Boolean> expandedNodes;
         /** Read only: where the list was kept before 4.22 (now shopping_list.json, per profile). */
         List<ShoppingListEntry> shoppingList;
@@ -846,8 +853,8 @@ public class SandboxWidget {
             Component.literal(title).withStyle(ChatFormatting.GOLD), Component.literal(message)));
     }
 
-    /** The HUD panels: the shopping list, and Craftable / Forging when set to their own panel. */
-    public enum Panel { MAIN, CRAFTABLE, FORGING }
+    /** The HUD panels: the shopping list, and Craftable / Forging / Total when set to their own panel. */
+    public enum Panel { MAIN, CRAFTABLE, FORGING, TOTAL }
 
     /**
      * Position (GUI pixels), size (HUD units, before scaling) and scale (percent, on top of the HUD scale) of one
@@ -1011,6 +1018,7 @@ public class SandboxWidget {
             }
             case CRAFTABLE -> craftablePanel;
             case FORGING -> forgingPanel;
+            case TOTAL -> totalPanel;
         };
     }
 
@@ -1036,6 +1044,7 @@ public class SandboxWidget {
             }
             case CRAFTABLE -> craftablePanel = rect;
             case FORGING -> forgingPanel = rect;
+            case TOTAL -> totalPanel = rect;
         }
         saveConfiguration();
     }
@@ -1052,7 +1061,7 @@ public class SandboxWidget {
      * the one the panels were placed at. Render thread only.
      */
     private void recordMissingRefs() {
-        if (widgetRefWidth > 0 && craftablePanel.refWidth > 0 && forgingPanel.refWidth > 0) return;
+        if (widgetRefWidth > 0 && craftablePanel.refWidth > 0 && forgingPanel.refWidth > 0 && totalPanel.refWidth > 0) return;
         synchronized (this) {
             Window window = Minecraft.getInstance().getWindow();
             if (widgetRefWidth <= 0) {
@@ -1062,6 +1071,7 @@ public class SandboxWidget {
             // New copies rather than changing the saved ones in place (the update thread may be saving them).
             if (craftablePanel.refWidth <= 0) craftablePanel = withCurrentRef(craftablePanel);
             if (forgingPanel.refWidth <= 0) forgingPanel = withCurrentRef(forgingPanel);
+            if (totalPanel.refWidth <= 0) totalPanel = withCurrentRef(totalPanel);
             saveConfiguration();
         }
     }
@@ -1081,11 +1091,14 @@ public class SandboxWidget {
             craftablePanel.scalePercent());
         forgingPanel = new PanelRect(sideX, widgetY + Math.round(craftablePanel.height * scaleFactor(Panel.CRAFTABLE)) + 10,
             forgingPanel.width, forgingPanel.height, forgingPanel.scalePercent());
+        totalPanel = new PanelRect(sideX, forgingPanel.y + Math.round(forgingPanel.height * scaleFactor(Panel.FORGING)) + 10,
+            totalPanel.width, totalPanel.height, totalPanel.scalePercent());
         Window window = Minecraft.getInstance().getWindow();
         widgetRefWidth = window.getGuiScaledWidth();
         widgetRefHeight = window.getGuiScaledHeight();
         setRef(craftablePanel);
         setRef(forgingPanel);
+        setRef(totalPanel);
         saveConfiguration();
     }
 
@@ -1097,13 +1110,14 @@ public class SandboxWidget {
         return panel == Panel.MAIN ? 120 : 40;
     }
 
-    /** Panels the current style draws: the main one, plus Craftable / Forging when they have their own. */
+    /** Panels the current style draws: the main one, plus Craftable / Forging / Total when they have their own. */
     public static List<Panel> activePanels() {
         HudStyle style = HudStyle.get();
         List<Panel> panels = new ArrayList<>();
         panels.add(Panel.MAIN);
         if (style.showCraftable && style.craftablePlacement == HudStyle.Placement.OWN_PANEL) panels.add(Panel.CRAFTABLE);
         if (style.showForging && style.forgingPlacement == HudStyle.Placement.OWN_PANEL) panels.add(Panel.FORGING);
+        if (getInstance().isShowTotal() && style.totalPlacement == HudStyle.Placement.OWN_PANEL) panels.add(Panel.TOTAL);
         return panels;
     }
 
@@ -1143,18 +1157,31 @@ public class SandboxWidget {
         List<Section> sections = sectionsFor(panel, style);
         String title;
         int rowsHeight = 0;
+        // The Total, when it is drawn in its own panel rather than as the main panel's first row.
+        RecipeManager.RecipeNode ownTotal = style.totalPlacement == HudStyle.Placement.OWN_PANEL ? totalNode(root) : null;
         switch (panel) {
             case MAIN -> {
                 if (root == null) return 0;
                 title = getTitle();
                 int visibleLines = 0;
-                for (RecipeManager.RecipeNode top : root.ingredients) visibleLines += countVisibleRecipeTreeLines(top, LIST_KEY, 0);
+                for (RecipeManager.RecipeNode top : root.ingredients) {
+                    if (top != ownTotal) visibleLines += countVisibleRecipeTreeLines(top, LIST_KEY, 0);
+                }
                 rowsHeight = 2 + visibleLines * (style.rowHeight + style.rowGap);
+            }
+            case TOTAL -> {
+                title = "Total" + sacksReadTag();
+                int visibleLines = 0;
+                if (ownTotal != null) {
+                    String key = makePathKey(LIST_KEY, ownTotal.name);
+                    for (RecipeManager.RecipeNode child : ownTotal.ingredients) visibleLines += countVisibleRecipeTreeLines(child, key, 1);
+                }
+                if (visibleLines > 0) rowsHeight = 2 + visibleLines * (style.rowHeight + style.rowGap);
             }
             case CRAFTABLE -> title = "Craftable";
             default -> title = "Forging";
         }
-        boolean empty = panel != Panel.MAIN && sections.stream().allMatch(s -> s.lines().isEmpty());
+        boolean empty = panel != Panel.MAIN && rowsHeight == 0 && sections.stream().allMatch(s -> s.lines().isEmpty());
         if (empty && !preview) return 0;
 
         Minecraft client = Minecraft.getInstance();
@@ -1193,13 +1220,24 @@ public class SandboxWidget {
 
         context.enableScissor(0, TITLE_BAR, width, panelHeight - cornerClip);
         int cursorY = TITLE_BAR + 2;
+        currentPanelWidth = width;
+        currentNodeLineHeight = style.rowHeight;
+        currentRowGap = style.rowGap;
+        currentTreeScale = style.rowHeight / 16.0f;
         if (panel == Panel.MAIN) {
-            currentPanelWidth = width;
-            currentNodeLineHeight = style.rowHeight;
-            currentRowGap = style.rowGap;
-            currentTreeScale = style.rowHeight / 16.0f;
             for (RecipeManager.RecipeNode top : root.ingredients) {
-                cursorY = renderRecipeTree(context, top, style.padding, cursorY, 0, LIST_KEY);
+                if (top != ownTotal) cursorY = renderRecipeTree(context, top, style.padding, cursorY, 0, LIST_KEY);
+            }
+        } else if (panel == Panel.TOTAL && ownTotal != null) {
+            // Its rows are drawn like ingredients (level 1), but from the left edge with no line up to a parent.
+            String key = makePathKey(LIST_KEY, ownTotal.name);
+            currentBaseLevel = 1;
+            try {
+                for (RecipeManager.RecipeNode child : ownTotal.ingredients) {
+                    cursorY = renderRecipeTree(context, child, style.padding, cursorY, 1, key);
+                }
+            } finally {
+                currentBaseLevel = 0;
             }
         }
         if (empty) {
@@ -1222,6 +1260,21 @@ public class SandboxWidget {
         }
         context.pose().popMatrix();
         return panelHeight;
+    }
+
+    /** The Total among the top rows (first, when shown), or null when the Total is off or empty. */
+    private static RecipeManager.RecipeNode totalNode(RecipeManager.RecipeNode root) {
+        if (root == null || root.ingredients == null || root.ingredients.isEmpty()) return null;
+        RecipeManager.RecipeNode first = root.ingredients.get(0);
+        return "Total".equals(first.name) ? first : null;
+    }
+
+    /** " (sacks 1/3 read)" while sacks the list needs haven't been opened yet, else empty. */
+    private String sacksReadTag() {
+        List<String> sacksLeft = neededSacks;
+        if (sacksLeft.isEmpty()) return "";
+        int listSackCount = listSacks.size();
+        return " (sacks " + (listSackCount - sacksLeft.size()) + "/" + listSackCount + " read)";
     }
 
     /** The Craftable / Forging blocks this panel shows. */
@@ -1362,7 +1415,7 @@ public class SandboxWidget {
         HudStyle style = HudStyle.get();
         Minecraft client = Minecraft.getInstance();
         int unitIndent = Math.max(2, Math.round(style.indent * currentTreeScale));
-        int indent = level * unitIndent;
+        int indent = (level - currentBaseLevel) * unitIndent;
         boolean hasEnough = node.amount <= 0 && node.toCraft <= 0 && !node.cooking;
         String nodeKey = makePathKey(pathKey, node.name);
         boolean isExpanded = isExpandedForDraw(nodeKey);
@@ -1397,11 +1450,10 @@ public class SandboxWidget {
         String forge = forgeText(node, level);
         Component tag = forge.isEmpty() ? Component.empty() : style.text(forge, nameColor, false);
         int lockWidth = showsLock(node) ? LOCK_WIDTH : 0;
-        List<String> sacksLeft = neededSacks;
-        int listSackCount = listSacks.size();
-        if (level == 0 && "Total".equals(node.name) && !sacksLeft.isEmpty()) {
+        if (level == 0 && "Total".equals(node.name)) {
             // How far the sack scan for this list has got; gone once every needed sack has been opened.
-            tag = style.text(" (sacks " + (listSackCount - sacksLeft.size()) + "/" + listSackCount + " read)", UNCERTAIN_COLOR, false);
+            String sacks = sacksReadTag();
+            if (!sacks.isEmpty()) tag = style.text(sacks, UNCERTAIN_COLOR, false);
         }
         int markWidth = client.font.width(mark);
         int amountWidth = client.font.width(amount);
