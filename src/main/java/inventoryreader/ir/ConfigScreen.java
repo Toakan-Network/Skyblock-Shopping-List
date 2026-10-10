@@ -106,15 +106,16 @@ public final class ConfigScreen {
                 .option(toggle("Total section",
                     "Show a Total at the top of the HUD with every raw material still needed across all recipes.",
                     true, widget::isShowTotal, widget::setShowTotal))
-                .option(Option.<SandboxWidget.TotalMode>createBuilder()
+                .option(Option.<Integer>createBuilder()
                     .name(Component.literal("Total lists"))
                     .description(OptionDescription.of(Component.literal(
-                        "Raw materials: everything down to the basic items (e.g. Titanium).\nRecipe ingredients: "
-                            + "the pieces each recipe on your list takes directly (e.g. Refined Titanium).")))
-                    .binding(SandboxWidget.TotalMode.RAW, widget::getTotalMode, widget::setTotalMode)
-                    .controller(opt -> EnumControllerBuilder.create(opt).enumClass(SandboxWidget.TotalMode.class)
-                        .formatValue(v -> Component.literal(
-                            v == SandboxWidget.TotalMode.INGREDIENTS ? "Recipe ingredients" : "Raw materials")))
+                        "Raw materials: everything down to the basic items (e.g. Titanium).\nLevel 1: the pieces each "
+                            + "recipe on your list takes directly (e.g. Drill Motor, Refined Titanium).\nLevel 2: what "
+                            + "those take, and so on. Raw materials needed above that level are listed as they are.")))
+                    .binding(0, widget::getTotalLevel, widget::setTotalLevel)
+                    .controller(opt -> IntegerSliderControllerBuilder.create(opt)
+                        .range(0, SandboxWidget.MAX_TOTAL_LEVEL).step(1)
+                        .formatValue(v -> Component.literal(v == 0 ? "Raw materials" : "Level " + v)))
                     .build())
                 .option(toggle("Craftable section", "Show what you can craft right now.", d.showCraftable,
                     s -> s.showCraftable, (s, v) -> s.showCraftable = v))

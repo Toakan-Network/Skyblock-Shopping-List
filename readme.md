@@ -56,7 +56,7 @@ Press `V` (or `/ssl menu`) to open the menu. It has five tabs:
   - Panels grow to fit their content up to the height set in Move HUD; anything beyond is cut off and marked with "…" (make the panel taller or collapse rows).
 
 The HUD (`H` to toggle) shows:
-- **Total**: every raw material still needed across all recipes, missing items first. Set **Total lists** to Recipe ingredients to sum the pieces each recipe takes directly (e.g. Refined Titanium) instead. Your stock is shared between recipes, never counted twice (earlier entries get it first).
+- **Total**: every raw material still needed across all recipes, missing items first. Slide **Total lists** to a level to sum the steps in between instead: Level 1 is the pieces each recipe takes directly (e.g. Drill Motor, Refined Titanium), Level 2 what those take, up to Level 5. Raw materials needed above the chosen level are listed as they are. Your stock is shared between recipes, never counted twice (earlier entries get it first).
 - One tree per recipe.
 - **Craftable**: intermediates you can make right now.
 - **Forging**: items cooking in your Dwarven Forge that the list needs, with time left. Updated when you open The Forge.

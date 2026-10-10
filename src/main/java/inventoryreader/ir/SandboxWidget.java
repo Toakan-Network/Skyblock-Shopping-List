@@ -75,9 +75,12 @@ public class SandboxWidget {
     /** Update thread only: a recipe has everything but something in its tree is still cooking in the Forge. */
     private boolean waitingOnForge = false;
     private volatile boolean showTotal = true;
-    /** What the Total adds up: raw materials, or the direct ingredients of each recipe on the list. */
-    public enum TotalMode { RAW, INGREDIENTS }
-    private volatile TotalMode totalMode = TotalMode.RAW;
+    /** Read only: the Total setting before levels (Recipe ingredients is level 1). */
+    private enum TotalMode { RAW, INGREDIENTS }
+    /** Deepest Total level the setting offers. */
+    public static final int MAX_TOTAL_LEVEL = 5;
+    /** What the Total adds up: 0 = raw materials, N = the ingredients N steps below each recipe on the list. */
+    private volatile int totalLevel = 0;
     private volatile boolean notifications = true;
     private volatile boolean autoRemove = true;
     private volatile boolean staleSackWarning = true;
@@ -363,7 +366,7 @@ public class SandboxWidget {
         config.forgingPanel = forgingPanel;
         config.expandedNodes = new HashMap<>(expandedNodes);
         config.showTotal = showTotal;
-        config.totalMode = totalMode;
+        config.totalLevel = totalLevel;
         config.notifications = notifications;
         config.autoRemove = autoRemove;
         config.staleSackWarning = staleSackWarning;
@@ -391,7 +394,8 @@ public class SandboxWidget {
             HudStyle.save();
         }
         if (config.showTotal != null) this.showTotal = config.showTotal;
-        if (config.totalMode != null) this.totalMode = config.totalMode;
+        if (config.totalLevel != null) this.totalLevel = clampTotalLevel(config.totalLevel);
+        else if (config.totalMode == TotalMode.INGREDIENTS) this.totalLevel = 1;
         if (config.notifications != null) this.notifications = config.notifications;
         if (config.autoRemove != null) this.autoRemove = config.autoRemove;
         if (config.staleSackWarning != null) this.staleSackWarning = config.staleSackWarning;
@@ -442,7 +446,7 @@ public class SandboxWidget {
         forgingPanel = new PanelRect(270, 200, 180, 120);
         expandedNodes = new ConcurrentHashMap<>();
         showTotal = true;
-        totalMode = TotalMode.RAW;
+        totalLevel = 0;
         notifications = true;
         autoRemove = true;
         staleSackWarning = true;
@@ -474,6 +478,8 @@ public class SandboxWidget {
         /** Read only, for configs written before Settings > Appearance existed. */
         Boolean showRemaining;
         Boolean showTotal;
+        Integer totalLevel;
+        /** Read only, for configs written before Total levels. */
         TotalMode totalMode;
         Boolean notifications;
         Boolean autoRemove;
@@ -622,7 +628,8 @@ public class SandboxWidget {
         for (RecipeManager.RecipeNode tree : response.trees) setLocks(tree, recipeManager, 0);
 
         List<RecipeManager.RecipeNode> tops = new ArrayList<>();
-        RecipeManager.RecipeNode total = totalMode == TotalMode.INGREDIENTS ? response.ingredientTotal : response.total;
+        int level = totalLevel;
+        RecipeManager.RecipeNode total = level == 0 ? response.total : ResourcesManager.levelTotalOf(response.trees, level);
         if (showTotal && !total.ingredients.isEmpty()) {
             tops.add(total);
             expandedNodes.putIfAbsent(makePathKey(LIST_KEY, total.name), true);
@@ -872,6 +879,10 @@ public class SandboxWidget {
         public int scalePercent() {
             return scale > 0 ? clampPanelScale(scale) : 100;
         }
+    }
+
+    private static int clampTotalLevel(int level) {
+        return Math.max(0, Math.min(MAX_TOTAL_LEVEL, level));
     }
 
     public static final int MIN_PANEL_SCALE = 25;
@@ -1458,9 +1469,9 @@ public class SandboxWidget {
         requestRefresh();
         saveConfiguration();
     }
-    public TotalMode getTotalMode() { return totalMode; }
-    public void setTotalMode(TotalMode totalMode) {
-        this.totalMode = totalMode;
+    public int getTotalLevel() { return totalLevel; }
+    public void setTotalLevel(int totalLevel) {
+        this.totalLevel = clampTotalLevel(totalLevel);
         requestRefresh();
         saveConfiguration();
     }
