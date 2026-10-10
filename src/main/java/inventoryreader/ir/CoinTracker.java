@@ -89,6 +89,7 @@ public final class CoinTracker {
         int value = (int) Math.min(Integer.MAX_VALUE, total);
         if (value != lastWritten) {
             lastWritten = value;
+            InventoryReader.debug("Coins: purse {} + bank {}", purse, bank);
             ResourcesManager.getInstance().setResourceAmount(RemoteRecipeFetcher.COINS_NAME, value);
         }
     }
