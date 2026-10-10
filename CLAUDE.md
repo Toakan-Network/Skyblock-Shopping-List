@@ -40,6 +40,8 @@ Tracking, the HUD and keybinds run only on SkyBlock (`SkyblockDetector`).
 ## Minecraft versions
 One jar covers 26.2 and 26.3 (`"minecraft": ["~26.2", "~26.3"]`). It is built against 26.2, the lower bound.
 - No `org.lwjgl.glfw`: 26.3 moved to SDL, so GLFW is missing there.
+- SkyblockAPI has one build per Minecraft version, each hard-requiring it; both the 26.2 and 26.3 builds are
+  nested in the jar (fetched as plain files, see `build.gradle`) and Fabric loads the matching one.
 - Don't reference `InputConstants` key or mouse codes directly. Their values differ between versions and
   javac inlines them, so read them with `InventoryReaderClient.inputCode("KEY_V")`.
 - Before a release, compile against 26.3 too (swap `minecraft_version`, `fabric_version` and `yacl_version`)
