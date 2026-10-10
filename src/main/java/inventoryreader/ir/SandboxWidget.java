@@ -505,7 +505,7 @@ public class SandboxWidget {
     /** Runs on the update thread. Recomputes only when resources or the selection changed. */
     private void refreshIfStale() {
         try {
-            ForgeSpeed.refreshMayorIfDue();
+            ForgeSpeed.refreshMayor();
             long version = resourcesManager.getVersion();
             long recipes = RecipeManager.getInstance().getVersion();
             // Read before recomputing: a request made while this runs is still seen as new next time.

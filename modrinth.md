@@ -48,7 +48,7 @@ As Hypixel states, every modification is used at your own risk.
 ## Network access
 Recipe Data: recipes and NPC prices are built from the data the bundled SkyblockAPI library already downloads (a copy of the [NotEnoughUpdates-REPO](https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO) and Hypixel's public item list). The mod itself only fetches NEU's small sack list, cached with an ETag.
 
-Mayor Interaction Data: At most once an hour while you're on SkyBlock it reads Hypixel's public election data to know whether Cole's Molten Forge perk is active. With Forge times turned off (Settings > Rows), this data is not read.
+Mayor Interaction Data: whether Cole's Molten Forge perk is active comes from SkyblockAPI, which reads Hypixel's public election data.
 
 SkyblockAPI (bundled library): downloads SkyBlock item and recipe data from `skyblock-api-repo.thatgravyboat.tech` (a daily copy of the NEU repository), cached, only changed files again. Its bazaar and lowest BIN price downloads are blocked, unless another installed mod uses SkyblockAPI too.
 

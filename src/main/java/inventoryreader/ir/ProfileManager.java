@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
+import tech.thatgravyboat.skyblockapi.api.profile.profile.ProfileAPI;
 
 /**
  * Keeps each SkyBlock profile's data apart, in profiles/<account>/<profile>/. Hypixel names the profile in
@@ -72,6 +73,16 @@ public final class ProfileManager {
     /** True once the current server's profile is known, so tracking may book changes to it. */
     public static boolean isReady() {
         return ready;
+    }
+
+    /**
+     * True while SkyblockAPI is on the same profile as this mod, so what it has stored (kept by profile name) is this
+     * profile's. Right after a profile switch it can lag behind for a moment.
+     */
+    public static boolean skyblockApiOnSameProfile() {
+        String id = profileId;
+        UUID theirs = ProfileAPI.INSTANCE.getProfileUuid();
+        return ready && id != null && theirs != null && id.equalsIgnoreCase(theirs.toString());
     }
 
     private static void tick(Minecraft client) {

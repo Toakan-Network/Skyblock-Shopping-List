@@ -3,17 +3,12 @@ package inventoryreader.ir;
 import com.google.gson.reflect.TypeToken;
 import inventoryreader.ir.recipes.RemoteRecipeFetcher;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
-import net.minecraft.world.scores.DisplaySlot;
-import net.minecraft.world.scores.Objective;
-import net.minecraft.world.scores.PlayerScoreEntry;
-import net.minecraft.world.scores.PlayerTeam;
-import net.minecraft.world.scores.Scoreboard;
+import tech.thatgravyboat.skyblockapi.api.profile.currency.CurrencyAPI;
 
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -22,11 +17,10 @@ import java.util.regex.Pattern;
 
 /**
  * Keeps the "Coins" resource equal to purse + bank, so coin costs (shop purchases) show what is left like any
- * other item. The purse is read from the SkyBlock sidebar; the bank balance from the bank menu when the
- * player opens it. Read-only: nothing is sent or clicked.
+ * other item. The purse comes from SkyblockAPI (it reads the SkyBlock sidebar); the bank balance from the bank
+ * menu when the player opens it. Read-only: nothing is sent or clicked.
  */
 public final class CoinTracker {
-    private static final Pattern PURSE = Pattern.compile("(?:Purse|Piggy):\\s*([\\d,]+(?:\\.\\d+)?)");
     private static final Pattern BANK = Pattern.compile("(?:Current balance|Bank balance|Balance):\\s*([\\d,]+(?:\\.\\d+)?)");
     private static final Type MAP_TYPE = new TypeToken<Map<String, Long>>() {}.getType();
     private static final int CHECK_INTERVAL_TICKS = 20;
@@ -43,7 +37,7 @@ public final class CoinTracker {
             if (++ticks < CHECK_INTERVAL_TICKS) return;
             ticks = 0;
             if (!SkyblockDetector.isTracking() || client.level == null) return;
-            long read = readPurse(client);
+            long read = readPurse();
             if (read >= 0) {
                 purse = read;
                 publish();
@@ -78,22 +72,14 @@ public final class CoinTracker {
         lastWritten = -1;
     }
 
-    private static long readPurse(Minecraft client) {
-        Scoreboard scoreboard = client.level.getScoreboard();
-        Objective sidebar = scoreboard.getDisplayObjective(DisplaySlot.SIDEBAR);
-        if (sidebar == null) return -1;
-        for (PlayerScoreEntry entry : scoreboard.listPlayerScores(sidebar)) {
-            Component line = entry.display() != null
-                ? entry.display()
-                : PlayerTeam.formatNameForTeam(scoreboard.getPlayersTeam(entry.owner()), entry.ownerName());
-            Matcher m = PURSE.matcher(ItemNames.clean(line.getString()));
-            if (m.find()) return parse(m.group(1));
-        }
-        return -1;
+    /** The purse SkyblockAPI has for this profile, or -1 while it hasn't caught up with a profile switch. */
+    private static long readPurse() {
+        if (!ProfileManager.skyblockApiOnSameProfile()) return -1;
+        return (long) CurrencyAPI.INSTANCE.getPurse();
     }
 
     private static void publish() {
-        if (purse < 0) return; // wait for the first sidebar read
+        if (purse < 0) return; // wait for the first purse read
         if (bank == null) {
             Map<String, Long> saved = JsonFiles.read(FilePathManager.coinsJson(), MAP_TYPE);
             bank = saved != null && saved.get("bank") != null ? saved.get("bank") : 0L;
