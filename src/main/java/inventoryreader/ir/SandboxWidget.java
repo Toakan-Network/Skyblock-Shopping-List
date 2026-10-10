@@ -238,22 +238,37 @@ public class SandboxWidget {
         toasts.forEach(Runnable::run);
         if (shoppingList.removeIf(e -> recipes.contains(e.recipe))) listChanged();
     }
+    /** What {@link #replaceList} left off: entries over the recipe limit, and Have total entries already done. */
+    public record LoadResult(int dropped, int skipped) {}
+
     /**
      * Replaces the list with a saved one (List tab > Saved lists). Add more entries count from what is held now.
-     * Returns how many entries were left off because the list holds fewer recipes, or -1 if nothing changed.
+     * Have total entries you already hold (finished, not cooking) are left off, so loading doesn't announce and
+     * auto-remove them again every time. Returns what was left off, or null if nothing changed.
      */
-    public synchronized int replaceList(List<ShoppingListEntry> entries) {
-        if (!editable()) return -1;
+    public synchronized LoadResult replaceList(List<ShoppingListEntry> entries) {
+        if (!editable()) return null;
         shoppingList.clear();
+        Map<String, Integer> cooking = cookingCounts();
+        int dropped = 0;
+        int skipped = 0;
         for (ShoppingListEntry e : entries) {
-            if (shoppingList.size() >= maxRecipes) break;
             if (shoppingList.stream().anyMatch(s -> s.recipe.equals(e.recipe))) continue;
-            shoppingList.add(new ShoppingListEntry(e.recipe, Math.max(1, e.amount),
-                resourcesManager.getResourceByName(e.recipe), e.isHaveTotal()));
+            int held = resourcesManager.getResourceByName(e.recipe);
+            int amount = Math.max(1, e.amount);
+            if (e.isHaveTotal() && held - cooking.getOrDefault(ItemNames.normalize(e.recipe), 0) >= amount) {
+                skipped++;
+                continue;
+            }
+            if (shoppingList.size() >= maxRecipes) {
+                dropped++;
+                continue;
+            }
+            shoppingList.add(new ShoppingListEntry(e.recipe, amount, held, e.isHaveTotal()));
             expandedNodes.putIfAbsent(makePathKey(LIST_KEY, e.recipe), true);
         }
         listChanged();
-        return Math.max(0, entries.size() - shoppingList.size());
+        return new LoadResult(dropped, skipped);
     }
     public synchronized void clearList() {
         if (!editable()) return;
