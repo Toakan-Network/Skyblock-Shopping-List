@@ -38,25 +38,47 @@ public final class ConfigScreen {
 
     public static Screen create(Screen parent) {
         SandboxWidget widget = SandboxWidget.getInstance();
-        return YetAnotherConfigLib.createBuilder()
-            .title(Component.literal(InventoryReader.NAME))
-            .category(ConfigCategory.createBuilder()
+        HudStyle style = HudStyle.get();
+        HudStyle d = new HudStyle();
+        List<String> fonts = HudStyle.availableFonts();
+        if (!fonts.contains(style.font)) fonts.add(style.font);
+        // The preview draws a copy that follows every unsaved change; the real look only changes on Save.
+        HudStyle draft = HudStyle.copy();
+        previewDraft = draft;
+        previewImage = new ImageRenderer() {
+            @Override
+            public int render(GuiGraphicsExtractor context, int x, int y, int width, float delta) {
+                return SandboxWidget.getInstance().renderPreview(context, x, y, width, draft);
+            }
+
+            @Override
+            public void close() {
+            }
+        };
+        try {
+            return YetAnotherConfigLib.createBuilder()
+                .title(Component.literal(InventoryReader.NAME))
+                .category(settings(widget, d))
+                .category(appearance(parent, d, fonts))
+                .category(advanced(widget))
+                // Widget setters save the widget config themselves; HudStyle values are written here.
+                .save(HudStyle::save)
+                .build()
+                .generateScreen(parent);
+        } finally {
+            previewDraft = null;
+            previewImage = null;
+        }
+    }
+
+    /** Settings > Settings: what the mod shows and does. Look-only options are under Appearance. */
+    private static ConfigCategory settings(SandboxWidget widget, HudStyle d) {
+        return ConfigCategory.createBuilder()
+            .name(Component.literal("Settings"))
+            .group(OptionGroup.createBuilder()
                 .name(Component.literal("HUD"))
                 .option(toggle("HUD", "Show the shopping list on screen. Also toggled with H.",
                     false, widget::isEnabled, widget::setEnabled))
-                .option(toggle("Total section",
-                    "Show a Total at the top of the HUD with every raw material still needed across all recipes.",
-                    true, widget::isShowTotal, widget::setShowTotal))
-                .option(Option.<SandboxWidget.TotalMode>createBuilder()
-                    .name(Component.literal("Total lists"))
-                    .description(OptionDescription.of(Component.literal(
-                        "Raw materials: everything down to the basic items (e.g. Titanium).\nRecipe ingredients: "
-                            + "the pieces each recipe on your list takes directly (e.g. Refined Titanium).")))
-                    .binding(SandboxWidget.TotalMode.RAW, widget::getTotalMode, widget::setTotalMode)
-                    .controller(opt -> EnumControllerBuilder.create(opt).enumClass(SandboxWidget.TotalMode.class)
-                        .formatValue(v -> Component.literal(
-                            v == SandboxWidget.TotalMode.INGREDIENTS ? "Recipe ingredients" : "Raw materials")))
-                    .build())
                 .option(Option.<Integer>createBuilder()
                     .name(Component.literal("Max recipes"))
                     .description(OptionDescription.of(Component.literal(
@@ -79,75 +101,115 @@ public final class ConfigScreen {
                     .action((screen, button) -> widget.resetPanelPositions())
                     .build())
                 .build())
-            .category(appearance(parent))
-            .category(ConfigCategory.createBuilder()
-                .name(Component.literal("Notifications"))
-                .option(toggle("Pop-ups", "Pop-up when a recipe is ready to craft, and when you have made it.",
-                    true, widget::isNotifications, widget::setNotifications))
+            .group(OptionGroup.createBuilder()
+                .name(Component.literal("Sections"))
+                .option(toggle("Total section",
+                    "Show a Total at the top of the HUD with every raw material still needed across all recipes.",
+                    true, widget::isShowTotal, widget::setShowTotal))
+                .option(Option.<SandboxWidget.TotalMode>createBuilder()
+                    .name(Component.literal("Total lists"))
+                    .description(OptionDescription.of(Component.literal(
+                        "Raw materials: everything down to the basic items (e.g. Titanium).\nRecipe ingredients: "
+                            + "the pieces each recipe on your list takes directly (e.g. Refined Titanium).")))
+                    .binding(SandboxWidget.TotalMode.RAW, widget::getTotalMode, widget::setTotalMode)
+                    .controller(opt -> EnumControllerBuilder.create(opt).enumClass(SandboxWidget.TotalMode.class)
+                        .formatValue(v -> Component.literal(
+                            v == SandboxWidget.TotalMode.INGREDIENTS ? "Recipe ingredients" : "Raw materials")))
+                    .build())
+                .option(toggle("Craftable section", "Show what you can craft right now.", d.showCraftable,
+                    s -> s.showCraftable, (s, v) -> s.showCraftable = v))
+                .option(placement("Craftable panel", d.craftablePlacement,
+                    s -> s.craftablePlacement, (s, v) -> s.craftablePlacement = v))
+                .option(toggle("Forging section", "Show what is cooking in your Forge that the list needs.", d.showForging,
+                    s -> s.showForging, (s, v) -> s.showForging = v))
+                .option(placement("Forging panel", d.forgingPlacement,
+                    s -> s.forgingPlacement, (s, v) -> s.forgingPlacement = v))
+                .option(toggle("NPC price section", "Show at the bottom what every raw material on the list costs to "
+                    + "buy from NPCs, and what NPCs pay for it. Only coin prices; items no NPC sells or buys are left out "
+                    + "(the item count shows how many have a price).", d.showNpcPrice,
+                    s -> s.showNpcPrice, (s, v) -> s.showNpcPrice = v))
+                .build())
+            .group(OptionGroup.createBuilder()
+                .name(Component.literal("Rows"))
+                .option(styled(Option.<HudStyle.AmountFormat>createBuilder()
+                    .name(Component.literal("Amount format"))
+                    .description(describe(
+                        "Remaining: what is still left to get (3×).\nHave / need: what you hold of what is needed "
+                            + "(83/5,120).\nRequired: the full amount the recipes need (6×).\n\nColours: red = none "
+                            + "yet, orange = some, yellow = can craft from what you have, blue = cooking in the Forge, green = done."))
+                    .controller(opt -> EnumControllerBuilder.create(opt).enumClass(HudStyle.AmountFormat.class)
+                        .formatValue(v -> Component.literal(switch (v) {
+                            case REMAINING -> "Remaining";
+                            case HAVE_NEED -> "Have / need";
+                            case REQUIRED -> "Required";
+                        }))),
+                    d.amountFormat, s -> s.amountFormat, (s, v) -> s.amountFormat = v))
+                .option(toggle("Short numbers", "Show big amounts as 5.1k, 512k, 500m or 1.5b instead of the full "
+                    + "number (rounded down).", d.shortNumbers,
+                    s -> s.shortNumbers, (s, v) -> s.shortNumbers = v))
+                .option(styled(Option.<HudStyle.ForgeTimes>createBuilder()
+                    .name(Component.literal("Forge times"))
+                    .description(describe(
+                        "Shows how long the Forge still needs after a row's name, e.g. [25hrs]: every forge craft "
+                            + "still to make for that row, one after another (time × how many, plus its "
+                            + "ingredients). This is the worst case: forging several at once finishes sooner.\n"
+                            + "Items cooking now add the time they have left. Crafts not started yet get Quick Forge "
+                            + "(open Heart of the Mountain once) and Cole's Molten Forge while he is mayor or "
+                            + "minister. Long names are cut short so the time always shows."))
+                    .controller(opt -> EnumControllerBuilder.create(opt).enumClass(HudStyle.ForgeTimes.class)
+                        .formatValue(v -> Component.literal(switch (v) {
+                            case OFF -> "Off";
+                            case TOP_LEVEL -> "Top level only";
+                            case ALL -> "Every row";
+                        }))),
+                    d.forgeTimes, s -> s.forgeTimes, (s, v) -> s.forgeTimes = v))
+                .option(toggle("Recipe locks", "Show a padlock after rows you still need to make whose recipe has to be "
+                    + "unlocked first (a collection, HotM or slayer level), or that has such a row further down. Hover the "
+                    + "row in the List tab to see what it requires. Your own unlocks aren't read, so it shows even when you have them.", d.showRequirements,
+                    s -> s.showRequirements, (s, v) -> s.showRequirements = v))
+                .build())
+            .group(OptionGroup.createBuilder()
+                .name(Component.literal("List"))
                 .option(toggle("Auto-remove",
                     "Take a recipe off the list once you have made the amount you asked for.",
                     true, widget::isAutoRemove, widget::setAutoRemove))
+                .build())
+            .group(OptionGroup.createBuilder()
+                .name(Component.literal("Notifications"))
+                .option(toggle("Pop-ups", "Pop-up when a recipe is ready to craft, and when you have made it.",
+                    true, widget::isNotifications, widget::setNotifications))
                 .option(toggle("Sack reminder",
                     "Chat warning when your sacks haven't been opened for an hour. Between opens, sack counts "
                         + "follow the [Sacks] chat summaries and can drift.",
                     true, widget::isStaleSackWarning, widget::setStaleSackWarning))
                 .build())
-            .category(ConfigCategory.createBuilder()
-                .name(Component.literal("Controls"))
-                .option(ButtonOption.createBuilder()
-                    .name(Component.literal("Key binds..."))
-                    .text(Component.literal("Open"))
-                    .description(OptionDescription.of(Component.literal(
-                        "Rebind keys. This mod's keys are under \"" + InventoryReader.NAME + "\".")))
-                    .action((screen, button) -> Minecraft.getInstance().gui.setScreen(
-                        new KeyBindsScreen(screen, Minecraft.getInstance().options)))
-                    .build())
-                .build())
-            .category(ConfigCategory.createBuilder()
-                .name(Component.literal("Advanced"))
-                .option(Option.<Boolean>createBuilder()
-                    .name(Component.literal("Debug logging"))
-                    .description(OptionDescription.of(Component.literal(
-                        "Write what the mod reads (sack messages, Forge and HOTM menus, recipe downloads) to "
-                            + "latest.log, to help track down a problem. Warnings and errors are always logged.")))
-                    .binding(false, widget::isDebugLogging, widget::setDebugLogging)
-                    .controller(opt -> BooleanControllerBuilder.create(opt).onOffFormatter().coloured(true))
-                    .build())
-                .build())
-            // Widget setters save the widget config themselves; Appearance values are written here.
-            .save(HudStyle::save)
-            .build()
-            .generateScreen(parent);
+            .build();
     }
 
-    /** Settings > Appearance: every {@link HudStyle} value, grouped. */
-    private static ConfigCategory appearance(Screen parent) {
-        HudStyle style = HudStyle.get();
-        HudStyle d = new HudStyle();
-        List<String> fonts = HudStyle.availableFonts();
-        if (!fonts.contains(style.font)) fonts.add(style.font);
-        // The preview draws a copy that follows every unsaved change; the real look only changes on Save.
-        HudStyle draft = HudStyle.copy();
-        previewDraft = draft;
-        previewImage = new ImageRenderer() {
-            @Override
-            public int render(GuiGraphicsExtractor context, int x, int y, int width, float delta) {
-                return SandboxWidget.getInstance().renderPreview(context, x, y, width, draft);
-            }
-
-            @Override
-            public void close() {
-            }
-        };
-        try {
-            return buildAppearance(parent, style, d, fonts);
-        } finally {
-            previewDraft = null;
-            previewImage = null;
-        }
+    private static ConfigCategory advanced(SandboxWidget widget) {
+        return ConfigCategory.createBuilder()
+            .name(Component.literal("Advanced"))
+            .option(ButtonOption.createBuilder()
+                .name(Component.literal("Key binds..."))
+                .text(Component.literal("Open"))
+                .description(OptionDescription.of(Component.literal(
+                    "Rebind keys. This mod's keys are under \"" + InventoryReader.NAME + "\".")))
+                .action((screen, button) -> Minecraft.getInstance().gui.setScreen(
+                    new KeyBindsScreen(screen, Minecraft.getInstance().options)))
+                .build())
+            .option(Option.<Boolean>createBuilder()
+                .name(Component.literal("Debug logging"))
+                .description(OptionDescription.of(Component.literal(
+                    "Write what the mod reads (sack messages, Forge and HOTM menus, recipe downloads) to "
+                        + "latest.log, to help track down a problem. Warnings and errors are always logged.")))
+                .binding(false, widget::isDebugLogging, widget::setDebugLogging)
+                .controller(opt -> BooleanControllerBuilder.create(opt).onOffFormatter().coloured(true))
+                .build())
+            .build();
     }
 
-    private static ConfigCategory buildAppearance(Screen parent, HudStyle style, HudStyle d, List<String> fonts) {
+    /** Settings > Appearance: how the HUD looks, grouped. What it shows is under Settings. */
+    private static ConfigCategory appearance(Screen parent, HudStyle d, List<String> fonts) {
         return ConfigCategory.createBuilder()
             .name(Component.literal("Appearance"))
             .option(ButtonOption.createBuilder()
@@ -161,7 +223,7 @@ public final class ConfigScreen {
                 .name(Component.literal("Reset look to defaults"))
                 .text(Component.literal("Reset"))
                 .description(describe(
-                    "Puts every Appearance setting back to the original look, right away. Your current look is "
+                    "Puts every Appearance setting back to the original look, right away (the Settings tab is kept). Your current look is "
                         + "kept as the preset \"" + HudPresets.BACKUP_NAME + "\"."))
                 .action((screen, button) -> {
                     HudPresets.backup();
@@ -214,55 +276,7 @@ public final class ConfigScreen {
                     s -> s.boldRootNames, (s, v) -> s.boldRootNames = v))
                 .build())
             .group(OptionGroup.createBuilder()
-                .name(Component.literal("Parts"))
-                .option(styled(Option.<HudStyle.AmountFormat>createBuilder()
-                    .name(Component.literal("Amount format"))
-                    .description(describe(
-                        "Remaining: what is still left to get (3×).\nHave / need: what you hold of what is needed "
-                            + "(83/5,120).\nRequired: the full amount the recipes need (6×).\n\nColours: red = none "
-                            + "yet, orange = some, yellow = can craft from what you have, blue = cooking in the Forge, green = done."))
-                    .controller(opt -> EnumControllerBuilder.create(opt).enumClass(HudStyle.AmountFormat.class)
-                        .formatValue(v -> Component.literal(switch (v) {
-                            case REMAINING -> "Remaining";
-                            case HAVE_NEED -> "Have / need";
-                            case REQUIRED -> "Required";
-                        }))),
-                    d.amountFormat, s -> s.amountFormat, (s, v) -> s.amountFormat = v))
-                .option(toggle("Short numbers", "Show big amounts as 5.1k, 512k, 500m or 1.5b instead of the full "
-                    + "number (rounded down).", d.shortNumbers,
-                    s -> s.shortNumbers, (s, v) -> s.shortNumbers = v))
-                .option(toggle("Craftable section", "Show what you can craft right now.", d.showCraftable,
-                    s -> s.showCraftable, (s, v) -> s.showCraftable = v))
-                .option(placement("Craftable panel", d.craftablePlacement,
-                    s -> s.craftablePlacement, (s, v) -> s.craftablePlacement = v))
-                .option(toggle("Forging section", "Show what is cooking in your Forge that the list needs.", d.showForging,
-                    s -> s.showForging, (s, v) -> s.showForging = v))
-                .option(placement("Forging panel", d.forgingPlacement,
-                    s -> s.forgingPlacement, (s, v) -> s.forgingPlacement = v))
-                .option(toggle("Recipe locks", "Show a padlock after rows you still need to make whose recipe has to be "
-                    + "unlocked first (a collection, HotM or slayer level), or that has such a row further down. Hover the "
-                    + "row in the List tab to see what it requires. Your own unlocks aren't read, so it shows even when you have them.", d.showRequirements,
-                    s -> s.showRequirements, (s, v) -> s.showRequirements = v))
-                .option(toggle("NPC price section", "Show at the bottom what every raw material on the list costs to "
-                    + "buy from NPCs, and what NPCs pay for it. Only coin prices; items no NPC sells or buys are left out "
-                    + "(the item count shows how many have a price).", d.showNpcPrice,
-                    s -> s.showNpcPrice, (s, v) -> s.showNpcPrice = v))
-                .option(styled(Option.<HudStyle.ForgeTimes>createBuilder()
-                    .name(Component.literal("Forge times"))
-                    .description(describe(
-                        "Shows how long the Forge still needs after a row's name, e.g. [25hrs]: every forge craft "
-                            + "still to make for that row, one after another (time × how many, plus its "
-                            + "ingredients). This is the worst case: forging several at once finishes sooner.\n"
-                            + "Items cooking now add the time they have left. Crafts not started yet get Quick Forge "
-                            + "(open Heart of the Mountain once) and Cole's Molten Forge while he is mayor or "
-                            + "minister. Long names are cut short so the time always shows."))
-                    .controller(opt -> EnumControllerBuilder.create(opt).enumClass(HudStyle.ForgeTimes.class)
-                        .formatValue(v -> Component.literal(switch (v) {
-                            case OFF -> "Off";
-                            case TOP_LEVEL -> "Top level only";
-                            case ALL -> "Every row";
-                        }))),
-                    d.forgeTimes, s -> s.forgeTimes, (s, v) -> s.forgeTimes = v))
+                .name(Component.literal("Row decoration"))
                 .option(toggle("Tick and cross marks", "Show ✔ or ✖ in front of each row.", d.showMarks,
                     s -> s.showMarks, (s, v) -> s.showMarks = v))
                 .option(toggle("Row boxes", "Draw a background and coloured border behind each row.", d.showRowBoxes,
@@ -350,7 +364,8 @@ public final class ConfigScreen {
         return OptionGroup.createBuilder()
             .name(Component.literal("Presets"))
             .description(describe(
-                "Presets hold the look plus each panel's size and scale. Panel positions are never changed."))
+                "Presets hold the look plus each panel's size, scale and placement. Panel positions and the Settings tab "
+                    + "are never changed."))
             .option(chosen)
             .option(ButtonOption.createBuilder()
                 .name(Component.literal("Load preset"))

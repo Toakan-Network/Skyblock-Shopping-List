@@ -79,10 +79,12 @@ public final class HudStyle {
     public boolean textShadow = false;
     public boolean boldRootNames = true;
 
-    // Parts.
+    // Row decoration.
     public boolean showTreeLines = true;
     public boolean showRowBoxes = true;
     public boolean showMarks = false;
+
+    // Settings tab (what the HUD shows); kept when a preset is loaded, see keepSettings.
     public AmountFormat amountFormat = AmountFormat.REMAINING;
     /** Row amounts as 1.2k / 500m / 1.5b instead of the full number. */
     public boolean shortNumbers = true;
@@ -93,6 +95,7 @@ public final class HudStyle {
     /** A padlock after rows still to make whose recipe needs an unlock (collection, HotM, slayer level). */
     public boolean showRequirements = true;
     public ForgeTimes forgeTimes = ForgeTimes.ALL;
+    // Panel placement is layout, so presets carry it.
     public Placement craftablePlacement = Placement.MAIN_PANEL;
     public Placement forgingPlacement = Placement.MAIN_PANEL;
 
@@ -148,19 +151,39 @@ public final class HudStyle {
         JsonFiles.write(FilePathManager.HUD_STYLE_JSON, style);
     }
 
-    /** Switches to {@code style} (from a preset) and saves. The player's own HUD sizing choice is kept. */
+    /**
+     * Switches to {@code style} (from a preset) and saves. Presets are the look only: the player's HUD sizing and
+     * Settings tab choices are kept.
+     */
     public static void replace(HudStyle style) {
-        style.sizing = get().sizing;
+        style.keepSettings(get());
         style.fontDescription = null;
         style.clamp();
         current = style;
         save();
     }
 
-    /** Puts every look setting back to its default and saves. */
+    /** Puts every look setting back to its default and saves. Settings tab choices are kept. */
     public static void reset() {
-        current = new HudStyle();
+        HudStyle style = new HudStyle();
+        style.keepSettings(get());
+        current = style;
         save();
+    }
+
+    /**
+     * Copies what isn't part of the look from {@code from}: HUD sizing and the Settings tab choices (what the HUD
+     * shows). These live here so the Appearance preview follows them, but presets and Reset leave them alone.
+     */
+    private void keepSettings(HudStyle from) {
+        sizing = from.sizing;
+        amountFormat = from.amountFormat;
+        shortNumbers = from.shortNumbers;
+        showCraftable = from.showCraftable;
+        showForging = from.showForging;
+        showNpcPrice = from.showNpcPrice;
+        showRequirements = from.showRequirements;
+        forgeTimes = from.forgeTimes;
     }
 
     /** Forgets the in-memory copy (after a reset deleted the file). */

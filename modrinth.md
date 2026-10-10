@@ -49,7 +49,7 @@ Recipe Data: On startup the mod downloads the [NotEnoughUpdates-REPO](https://gi
 
 NPC Sell Prices: On startup it reads Hypixel's public item list for NPC sell prices, and only downloads it again when Hypixel has changed it.
 
-Mayor Interaction Data: At most once an hour while you're on SkyBlock it reads Hypixel's public election data to know whether Cole's Molten Forge perk is active. With Forge times turned off (Settings > Appearance), this data is not read.
+Mayor Interaction Data: At most once an hour while you're on SkyBlock it reads Hypixel's public election data to know whether Cole's Molten Forge perk is active. With Forge times turned off (Settings > Rows), this data is not read.
 
 No player data is sent anywhere.
 

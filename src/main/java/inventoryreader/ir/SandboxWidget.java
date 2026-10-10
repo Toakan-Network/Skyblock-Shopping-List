@@ -43,7 +43,7 @@ public class SandboxWidget {
     /** GUI-scaled screen size when the main panel was placed (0 = not recorded yet). */
     private int widgetRefWidth = 0;
     private int widgetRefHeight = 0;
-    /** Craftable / Forging panels, used when Appearance puts them in their own panel. */
+    /** Craftable / Forging panels, used when Settings puts them in their own panel. */
     private PanelRect craftablePanel = new PanelRect(270, 40, 180, 150);
     private PanelRect forgingPanel = new PanelRect(270, 200, 180, 120);
     private volatile Map<String, Boolean> expandedNodes = new ConcurrentHashMap<>();
@@ -1477,7 +1477,7 @@ public class SandboxWidget {
     }
 
     /**
-     * The amount shown next to a node, per Settings > Appearance > Amount format: still to get ("3×"),
+     * The amount shown next to a node, per Settings > Rows > Amount format: still to get ("3×"),
      * held of needed ("83/5,120"), or the full amount the recipe needs ("6×").
      */
     public static String amountText(RecipeManager.RecipeNode node) {
@@ -1499,7 +1499,7 @@ public class SandboxWidget {
     }
 
     /**
-     * Forge time still ahead for a row, per Settings > Appearance > Forge times: "[25hrs]", "[45m]" or
+     * Forge time still ahead for a row, per Settings > Rows > Forge times: "[25hrs]", "[45m]" or
      * "[<1m]"; empty when there is none or the setting hides it for this row (level 0 = the top rows).
      */
     /** Room a padlock takes after a row's text, in font pixels: a gap, the 5 px lock and a pixel after it. */
