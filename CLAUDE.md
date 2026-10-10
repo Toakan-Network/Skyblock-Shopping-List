@@ -18,7 +18,12 @@ Order per change: edit, bump `mod_version`, `./gradlew build`, commit. Bump befo
 - Reuse what exists before writing new code: helpers such as `JsonFiles`, `ItemNames`, `RecipeManager`
   and `ResourcesManager` lookups, and the fetcher's `writeSnapshot`. Match the surrounding patterns.
 - Minimal dependencies: no new library or mod integration unless the benefit is large. Prefer the
-  smallest change that does the job.
+  smallest change that does the job. A library that takes over code we would otherwise maintain (SkyBlock
+  parsing that breaks when Hypixel changes a menu or message) counts as a large benefit.
+- SkyblockAPI (bundled, Jar-in-Jar): prefer its data over writing new SkyBlock parsing. Call it from Java via
+  `X.INSTANCE`; avoid members typed `SkyBlockId` (name-mangled, not callable from Java). Its extra traffic
+  (party request, price polling) is blocked by `SkyblockApiGuard` and the `SkyblockApi*Mixin`s while no other
+  mod uses it; keep that list current when bumping its version.
 - Keep the mod resource light (disk, network, CPU): no large temp data, extra polling or extra downloads.
   Weigh the footprint when proposing a feature.
 

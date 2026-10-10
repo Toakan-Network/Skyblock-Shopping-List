@@ -19,6 +19,8 @@ repositories {
 	maven { url = "https://repo.nea.moe/releases" }
 	maven { url = "https://repo.hypixel.net/repository/Hypixel/" }
 	maven { url = "https://maven.isxander.dev/releases" }
+	// SkyblockAPI (ThatGravyBoat): sacks, storage, profile and repo data, bundled below.
+	maven { url = "https://maven.teamresourceful.com/repository/maven-public/" }
 }
 
 dependencies {
@@ -37,6 +39,24 @@ dependencies {
 	// Official Hypixel Mod API, used for SkyBlock detection. Required at runtime ("depends" in
 	// fabric.mod.json); players install the hypixel-mod-api mod themselves, so it is compile-only, not bundled.
 	compileOnly "net.hypixel:mod-api:1.0.2"
+
+	// SkyblockAPI: SkyBlock data readers maintained upstream (sacks, storage, forge, recipes via its bundled
+	// Repo-Lib). One build per Minecraft version, picked by capability; bundled with Jar-in-Jar (it is not on
+	// Modrinth), and Fabric loads the newest copy when other mods bundle it too. Needs fabric-language-kotlin.
+	// The version is written out in full so Dependabot can bump it. Not transitive: its runtime metadata lists
+	// dev-only mods (DevAuth); what it needs at runtime is nested in its own jar or installed by the player.
+	implementation("tech.thatgravyboat:skyblock-api:4.2.37") {
+		transitive = false
+		capabilities { requireCapability("tech.thatgravyboat:skyblock-api-26.2") }
+	}
+	include("tech.thatgravyboat:skyblock-api:4.2.37") {
+		transitive = false
+		capabilities { requireCapability("tech.thatgravyboat:skyblock-api-26.2") }
+	}
+	// Compile against what SkyblockAPI exposes: Repo-Lib (nested in its jar) and the Kotlin standard library
+	// (from fabric-language-kotlin, installed by the player).
+	compileOnly "tech.thatgravyboat.repo-lib:repo-lib:4.1.11"
+	compileOnly "org.jetbrains.kotlin:kotlin-stdlib:2.4.0"
 
 	// YetAnotherConfigLib for the Settings screen. Required at runtime ("depends" in fabric.mod.json), not bundled.
 	implementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"

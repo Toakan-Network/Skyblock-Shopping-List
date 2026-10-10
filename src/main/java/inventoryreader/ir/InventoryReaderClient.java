@@ -86,6 +86,7 @@ public class InventoryReaderClient implements ClientModInitializer {
         StorageViewerMod.register();
         IrCommandManager.register();
         SackChatListener.register();
+        SkyblockApiProbe.register();
         ProfileManager.register();
         ProfileChatListener.register();
         // Saves run on a background thread; make sure the last ones reach the disk before the game closes.

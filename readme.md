@@ -20,11 +20,12 @@ Skyblock Shopping List grew out of [Inventory Reader](https://github.com/Scholib
 - Fabric API 0.161.0 or newer, built for your Minecraft version
 - YetAnotherConfigLib 3.9.7 or newer, built for your Minecraft version (already installed if you use Skyblocker)
 - [Hypixel Mod API](https://modrinth.com/mod/hypixel-mod-api) 1.0.2 or newer (official; used to know when you are on SkyBlock)
+- [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) 1.13.12 or newer (needed by the bundled SkyblockAPI library)
 - Java 25
 
 ## Installation
 1. Install Fabric Loader for Minecraft 26.2 or 26.3.
-2. Put Fabric API, YetAnotherConfigLib, the Hypixel Mod API and the Skyblock Shopping List jar in your `mods/` folder.
+2. Put Fabric API, YetAnotherConfigLib, the Hypixel Mod API, Fabric Language Kotlin and the Skyblock Shopping List jar in your `mods/` folder.
 3. Launch Minecraft with the Fabric profile.
 
 ## First-time setup
@@ -90,6 +91,7 @@ Skyblock Shopping List is designed to stay within the [Hypixel Allowed Modificat
 - It is read-only. It looks at screens you open and chat messages you receive (only Hypixel's own `[Sacks]` summaries and `Profile ID` line, matched exactly so player chat can't trigger them), and never sends packets, chat messages or commands to the server. It never hides or changes a message.
 - It does not automate anything: no clicking, crafting, moving items or opening menus for you.
 - The HUD only shows your own items and recipe arithmetic.
+- It bundles the [SkyblockAPI](https://github.com/SkyblockAPI/SkyblockAPI) library (MIT, by ThatGravyBoat), which reads SkyBlock data the same read-only way. On its own, SkyblockAPI can ask Hypixel for your party through the official Hypixel Mod API; this mod switches that request off. If another mod you have installed also uses SkyblockAPI (e.g. SkyOcean or StorageLens), nothing is switched off, so that mod keeps working, and the request is then that mod's.
 
 Outside the game connection it downloads recipes from the NEU repository and NPC sell prices from Hypixel's public, keyless item list (`api.hypixel.net/v2/resources/skyblock/items`), and at most once an hour while you are on SkyBlock reads Hypixel's public, keyless election data (`api.hypixel.net/v2/resources/skyblock/election`) to know whether Cole's Molten Forge perk is active.
 
@@ -121,6 +123,8 @@ Each SkyBlock profile keeps its own data in `profiles/<account>/<profile>/`, so 
 - `neu-repo-extracted/`: the unpacked NEU repository, only while it is being parsed (deleted afterwards)
 
 ## Network access
+**SkyblockAPI** (bundled library): on startup it downloads SkyBlock item and recipe data from `skyblock-api-repo.thatgravyboat.tech` (a daily copy of the NEU repository) into `skyblock-repo-cache/` in your Minecraft folder, and afterwards only files that changed. It also reads Hypixel's public election data and item list (the same keyless requests listed below). On its own it would also download bazaar prices (`api.hypixel.net/v2/skyblock/bazaar`) and lowest BIN prices (`skyblock-pv.thatgravyboat.tech/auctions`) every two hours; this mod doesn't use them and blocks those requests, unless another installed mod uses SkyblockAPI too (then that mod gets them). SkyblockAPI keeps what it reads in `config/skyblockapi/`.
+
 On startup the mod downloads the [NotEnoughUpdates-REPO](https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO) archive from GitHub (`codeload.github.com`) to get recipes. The request is a plain GET with an ETag, so unchanged data is not downloaded again. It then reads NPC sell prices from Hypixel's public, keyless item list (`api.hypixel.net/v2/resources/skyblock/items`, about 2 MB compressed); it asks with the date of the copy it has, so the list is only downloaded again when Hypixel changed it, and only the prices are kept. No player data is sent anywhere.
 
 The sources are listed in `remote_sources.json`. Only `https` URLs and local files are accepted. The archive is unpacked to `neu-repo-extracted/` with path-traversal, entry-count and size limits, then parsed as JSON and deleted again. Nothing from it is executed.

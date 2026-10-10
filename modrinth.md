@@ -41,6 +41,7 @@ Designed to stay within the [Hypixel Allowed Modifications](https://support.hypi
 - Read-only: it looks at screens you open and chat messages you receive, and never sends packets, chat messages or commands.
 - No automation: no clicking, crafting, moving items or opening menus for you.
 - Only active on Hypixel SkyBlock. In lobbies, other games and other servers the HUD is hidden and nothing is tracked.
+- Bundles the [SkyblockAPI](https://github.com/SkyblockAPI/SkyblockAPI) library, which reads SkyBlock data the same read-only way. Its own party request (official Hypixel Mod API) is switched off, unless another installed mod uses SkyblockAPI too.
 
 As Hypixel states, every modification is used at your own risk.
 
@@ -51,10 +52,12 @@ NPC Sell Prices: On startup it reads Hypixel's public item list for NPC sell pri
 
 Mayor Interaction Data: At most once an hour while you're on SkyBlock it reads Hypixel's public election data to know whether Cole's Molten Forge perk is active. With Forge times turned off (Settings > Rows), this data is not read.
 
+SkyblockAPI (bundled library): downloads SkyBlock item and recipe data from `skyblock-api-repo.thatgravyboat.tech` (a daily copy of the NEU repository), cached, only changed files again. Its bazaar and lowest BIN price downloads are blocked, unless another installed mod uses SkyblockAPI too.
+
 No player data is sent anywhere.
 
 ## Requirements
-Minecraft 26.2 or 26.3 (one jar for both), Java 25, Fabric Loader 0.19.5+, Fabric API, YetAnotherConfigLib (already installed if you use Skyblocker) and the [Hypixel Mod API](https://modrinth.com/mod/hypixel-mod-api) (required: the game won't start without it).
+Minecraft 26.2 or 26.3 (one jar for both), Java 25, Fabric Loader 0.19.5+, Fabric API, YetAnotherConfigLib (already installed if you use Skyblocker) the [Hypixel Mod API](https://modrinth.com/mod/hypixel-mod-api) (required: the game won't start without it) and [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) (for the bundled SkyblockAPI library).
 
 ## Known limitations
 - Sack contents only fully resync when you open a sack; in between they follow the `[Sacks]` chat summaries. A reminder appears if no sack has been opened for an hour.
