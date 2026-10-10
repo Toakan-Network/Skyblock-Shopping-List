@@ -1,6 +1,11 @@
 package inventoryreader.ir;
 
 import com.google.gson.reflect.TypeToken;
+import kotlin.Unit;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import tech.thatgravyboat.skyblockapi.api.SkyBlockAPI;
+import tech.thatgravyboat.skyblockapi.api.events.hypixel.SacksChangeEvent;
+import tech.thatgravyboat.skyblockapi.api.profile.items.sacks.SacksAPI;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -13,19 +18,23 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
 
 /**
- * Tracks sack contents. Each item lives in exactly one sack, so a single item-to-count snapshot covers all
- * sacks. Opening a sack replaces the snapshot entries for its items and passes the difference on to
- * {@link ResourcesManager}; "[Sacks]" chat updates adjust the snapshot by the same delta, so reopening a
- * sack never counts a change twice.
+ * Tracks sack contents. The counts come from SkyblockAPI, which reads sack menus and the "[Sacks]" chat
+ * summaries (and never counts a change twice). Each item lives in exactly one sack, so one item-to-count snapshot
+ * covers all sacks; every change against it is passed on to {@link ResourcesManager}. Which sacks have been opened
+ * (so their counts are known, not just changes) is still recorded here, from the sack menus.
  */
 public class SackReader {
+    /** How often SkyblockAPI's counts are compared with the snapshot (also on every sack chat summary). */
+    private static final int SYNC_INTERVAL_TICKS = 20;
     private static final Set<String> GEMSTONE_RARITIES = Set.of("Rough", "Flawed", "Fine", "Flawless", "Perfect");
     private static final Pattern STORED = Pattern.compile("Stored:\\s*([\\d,]+)");
     private static final Pattern GEMSTONE_LINE = Pattern.compile("\\b(Rough|Flawed|Fine|Flawless|Perfect):\\s*([\\d,]+)");
     private static final Type MAP_TYPE = new TypeToken<Map<String, Integer>>() {}.getType();
     private static final SackReader INSTANCE = new SackReader();
 
+    /** Count per item, by {@link ItemNames#normalize} key (sack menus and recipes spell gemstones differently). */
     private Map<String, Integer> snapshot;
+    private int ticks = 0;
     /** Epoch ms of the last sack menu read, 0 if never; null until loaded. */
     private Long lastRead;
     /**
@@ -47,12 +56,64 @@ public class SackReader {
         return INSTANCE;
     }
 
+    /** Follows SkyblockAPI's sack counts: on each sack chat summary, and every second for sack menus. */
+    public static void register() {
+        SkyBlockAPI.getEventBus().register(SacksChangeEvent.class, 0, false, event -> {
+            INSTANCE.syncFromSkyblockApi();
+            return Unit.INSTANCE;
+        });
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (++INSTANCE.ticks < SYNC_INTERVAL_TICKS) return;
+            INSTANCE.ticks = 0;
+            INSTANCE.syncFromSkyblockApi();
+        });
+    }
+
     private Map<String, Integer> snapshot() {
         if (snapshot == null) {
             Map<String, Integer> loaded = JsonFiles.read(FilePathManager.sacksJson(), MAP_TYPE);
-            snapshot = loaded != null ? new LinkedHashMap<>(loaded) : new LinkedHashMap<>();
+            snapshot = new LinkedHashMap<>();
+            // Files from before SkyblockAPI used the shown name as key; one key per item now.
+            if (loaded != null) loaded.forEach((name, count) -> snapshot.merge(ItemNames.normalize(name), count, Math::max));
         }
         return snapshot;
+    }
+
+    /**
+     * Books every change in SkyblockAPI's sack counts since the last sync. Only while SkyblockAPI is on this mod's
+     * profile, so a profile switch can't book the last profile's sacks to the new one. Items SkyblockAPI doesn't
+     * know yet keep their count here.
+     */
+    public synchronized void syncFromSkyblockApi() {
+        if (!SkyblockDetector.isTracking() || !ProfileManager.skyblockApiOnSameProfile()) return;
+        Map<String, Integer> theirs;
+        try {
+            theirs = new HashMap<>(SacksAPI.INSTANCE.getSackItems());
+        } catch (ConcurrentModificationException e) {
+            return; // changed while copying; the next sync gets it
+        }
+        if (theirs.isEmpty()) return;
+        Map<String, String> names = new LinkedHashMap<>();
+        Map<String, Integer> current = new LinkedHashMap<>();
+        theirs.forEach((id, count) -> {
+            String name = ItemIds.nameForId(id.toUpperCase(Locale.ROOT));
+            if (name == null || count == null) return;
+            String key = ItemNames.normalize(name);
+            names.putIfAbsent(key, ItemNames.clean(name));
+            current.merge(key, Math.max(0, count), Math::max);
+        });
+        Map<String, Integer> snap = snapshot();
+        Map<String, Integer> deltas = new LinkedHashMap<>();
+        current.forEach((key, count) -> {
+            Integer previous = snap.put(key, count);
+            int delta = count - (previous == null ? 0 : previous);
+            if (delta != 0) deltas.put(names.get(key), delta);
+        });
+        if (deltas.isEmpty()) return;
+        InventoryReader.debug("Sacks: {} item(s) changed", deltas.size());
+        ResourcesManager.getInstance().saveData(deltas);
+        Map<String, Integer> copy = new LinkedHashMap<>(snap);
+        JsonFiles.writeAsync(FilePathManager.sacksJson(), () -> copy);
     }
 
     /** Forgets the in-memory snapshot (after a reset deleted sacks.json). */
@@ -111,7 +172,10 @@ public class SackReader {
         List<String> scanned;
     }
 
-    /** Reads every sack item's stored amount from an open sack menu. */
+    /**
+     * Records which items an open sack menu shows, so their counts count as known (SkyblockAPI reads the counts
+     * from the same menu), then syncs.
+     */
     public synchronized void readSack(AbstractContainerMenu handler, String title) {
         Map<String, Integer> current = new LinkedHashMap<>();
         boolean gemstoneSack = title.contains("Gemstone");
@@ -138,29 +202,7 @@ public class SackReader {
         meta.lastRead = lastRead = System.currentTimeMillis();
         meta.scanned = new ArrayList<>(scanned);
         JsonFiles.writeAsync(FilePathManager.sacksMetaJson(), () -> meta);
-
-        Map<String, Integer> snap = snapshot();
-        Map<String, Integer> deltas = new LinkedHashMap<>();
-        current.forEach((name, count) -> {
-            Integer previous = snap.put(name, count);
-            int delta = count - (previous == null ? 0 : previous);
-            if (delta != 0) deltas.put(name, delta);
-        });
-        if (!deltas.isEmpty()) {
-            ResourcesManager.getInstance().saveData(deltas);
-            Map<String, Integer> copy = new LinkedHashMap<>(snap);
-            JsonFiles.writeAsync(FilePathManager.sacksJson(), () -> copy);
-        }
-    }
-
-    /** Applies "[Sacks]" chat deltas to both the snapshot and the resource counts. */
-    public synchronized void applyChatDeltas(Map<String, Integer> deltas) {
-        if (deltas.isEmpty()) return;
-        Map<String, Integer> snap = snapshot();
-        deltas.forEach((name, delta) -> snap.merge(ItemNames.clean(name), delta, Integer::sum));
-        ResourcesManager.getInstance().saveData(deltas);
-        Map<String, Integer> copy = new LinkedHashMap<>(snap);
-        JsonFiles.writeAsync(FilePathManager.sacksJson(), () -> copy);
+        syncFromSkyblockApi();
     }
 
     private static void readStoredLore(String itemName, List<Component> lines, Map<String, Integer> out) {

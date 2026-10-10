@@ -88,7 +88,7 @@ The mod only runs on Hypixel SkyBlock. It uses the official Hypixel Mod API's lo
 
 ## Hypixel rules
 Skyblock Shopping List is designed to stay within the [Hypixel Allowed Modifications](https://support.hypixel.net/hc/en-us/articles/6472550754962-Hypixel-Allowed-Modifications) guidelines:
-- It is read-only. It looks at screens you open and chat messages you receive (only Hypixel's own `[Sacks]` summaries and `Profile ID` line, matched exactly so player chat can't trigger them), and never sends packets, chat messages or commands to the server. It never hides or changes a message.
+- It is read-only. It looks at screens you open and chat messages you receive (only Hypixel's own `Profile ID` line, matched exactly so player chat can't trigger it; the `[Sacks]` summaries are read through SkyblockAPI), and never sends packets, chat messages or commands to the server. It never hides or changes a message.
 - It does not automate anything: no clicking, crafting, moving items or opening menus for you.
 - The HUD only shows your own items and recipe arithmetic.
 - It bundles the [SkyblockAPI](https://github.com/SkyblockAPI/SkyblockAPI) library (MIT, by ThatGravyBoat), which reads SkyBlock data the same read-only way. On its own, SkyblockAPI can ask Hypixel for your party through the official Hypixel Mod API; this mod switches that request off. If another mod you have installed also uses SkyblockAPI (e.g. SkyOcean or StorageLens), nothing is switched off, so that mod keeps working, and the request is then that mod's.

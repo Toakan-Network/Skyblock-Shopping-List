@@ -67,6 +67,16 @@ public final class ItemIds {
         return stack.getHoverName().getString();
     }
 
+    /** The recipe name for a SkyBlock ID ("ENCHANTED_COAL", pets "BEE;4"), or null when the ID isn't known. */
+    public static String nameForId(String id) {
+        Map<String, String> names = namesById;
+        if (names == null) {
+            reload();
+            names = namesById;
+        }
+        return names.get(id);
+    }
+
     /** True for a real SkyBlock item; menu buttons ("Go Back", "Next Page", glass panes) have no ID. */
     public static boolean hasSkyblockId(ItemStack stack) {
         return !cachedId(stack).isEmpty();
