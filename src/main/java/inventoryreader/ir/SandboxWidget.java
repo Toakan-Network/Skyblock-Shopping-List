@@ -1137,7 +1137,7 @@ public class SandboxWidget {
                 if (root == null) return 0;
                 title = getTitle();
                 int visibleLines = 0;
-                for (RecipeManager.RecipeNode top : root.ingredients) visibleLines += countVisibleRecipeTreeLines(top, LIST_KEY);
+                for (RecipeManager.RecipeNode top : root.ingredients) visibleLines += countVisibleRecipeTreeLines(top, LIST_KEY, 0);
                 rowsHeight = 2 + visibleLines * (style.rowHeight + style.rowGap);
             }
             case CRAFTABLE -> title = "Craftable";
@@ -1316,21 +1316,38 @@ public class SandboxWidget {
         };
     }
 
-    private int countVisibleRecipeTreeLines(RecipeManager.RecipeNode node, String pathKey) {
-        if (node == null) return 0;
+    private int countVisibleRecipeTreeLines(RecipeManager.RecipeNode node, String pathKey, int level) {
+        if (node == null || isHiddenRow(node, level)) return 0;
         int count = 1;
         // Path-based key keeps expansion stable regardless of amounts.
         String nodeKey = makePathKey(pathKey, node.name);
         if (node.ingredients != null && !node.ingredients.isEmpty() && isExpandedForDraw(nodeKey)) {
             for (RecipeManager.RecipeNode child : node.ingredients) {
-                count += countVisibleRecipeTreeLines(child, nodeKey);
+                count += countVisibleRecipeTreeLines(child, nodeKey, level + 1);
             }
         }
         return count;
     }
 
+    /**
+     * Settings > Rows > Hide finished rows: a done ingredient row (and everything under it) isn't drawn. Top rows
+     * always show, and so do rows whose count is uncertain (sack not read), so the warning isn't hidden.
+     */
+    private boolean isHiddenRow(RecipeManager.RecipeNode node, int level) {
+        return level > 0 && HudStyle.get().hideFinished && node.amount <= 0 && node.toCraft <= 0 && !node.cooking
+            && !isUncertain(node);
+    }
+
+    private boolean hasVisibleChildren(RecipeManager.RecipeNode node, int level) {
+        if (node.ingredients == null) return false;
+        for (RecipeManager.RecipeNode child : node.ingredients) {
+            if (!isHiddenRow(child, level + 1)) return true;
+        }
+        return false;
+    }
+
     private int renderRecipeTree(GuiGraphicsExtractor context, RecipeManager.RecipeNode node, int x, int y, int level, String pathKey) {
-        if (node == null) return y;
+        if (node == null || isHiddenRow(node, level)) return y;
         HudStyle style = HudStyle.get();
         Minecraft client = Minecraft.getInstance();
         int unitIndent = Math.max(2, Math.round(style.indent * currentTreeScale));
@@ -1338,7 +1355,7 @@ public class SandboxWidget {
         boolean hasEnough = node.amount <= 0 && node.toCraft <= 0 && !node.cooking;
         String nodeKey = makePathKey(pathKey, node.name);
         boolean isExpanded = isExpandedForDraw(nodeKey);
-        boolean hasChildren = node.ingredients != null && !node.ingredients.isEmpty();
+        boolean hasChildren = hasVisibleChildren(node, level);
         boolean showRemaining = isShowRemaining();
         int nodeHeight = currentNodeLineHeight;
         int nodeWidth = Math.max(100, currentPanelWidth - 2 * style.padding) - indent;
@@ -1404,6 +1421,7 @@ public class SandboxWidget {
 
         if (hasChildren && isExpanded) {
             for (RecipeManager.RecipeNode child : node.ingredients) {
+                if (isHiddenRow(child, level + 1)) continue;
                 if (style.showTreeLines) {
                     int lineStartX = x + indent + Math.max(4, Math.round(6 * currentTreeScale));
                     int childIndentX = x + indent + unitIndent;

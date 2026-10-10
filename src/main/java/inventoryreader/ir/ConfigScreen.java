@@ -147,6 +147,10 @@ public final class ConfigScreen {
                 .option(toggle("Short numbers", "Show big amounts as 5.1k, 512k, 500m or 1.5b instead of the full "
                     + "number (rounded down).", d.shortNumbers,
                     s -> s.shortNumbers, (s, v) -> s.shortNumbers = v))
+                .option(toggle("Hide finished rows", "Leave out ingredient rows you already have enough of (green), "
+                    + "in the recipe trees and the Total. Recipe rows always show, and so do rows from a sack not read "
+                    + "yet. The List tab still shows everything.", d.hideFinished,
+                    s -> s.hideFinished, (s, v) -> s.hideFinished = v))
                 .option(styled(Option.<HudStyle.ForgeTimes>createBuilder()
                     .name(Component.literal("Forge times"))
                     .description(describe(

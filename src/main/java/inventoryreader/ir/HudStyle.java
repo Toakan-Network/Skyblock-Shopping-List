@@ -95,6 +95,8 @@ public final class HudStyle {
     /** A padlock after rows still to make whose recipe needs an unlock (collection, HotM, slayer level). */
     public boolean showRequirements = true;
     public ForgeTimes forgeTimes = ForgeTimes.ALL;
+    /** Done ingredient rows (green) aren't drawn on the HUD. */
+    public boolean hideFinished = true;
     // Panel placement is layout, so presets carry it.
     public Placement craftablePlacement = Placement.MAIN_PANEL;
     public Placement forgingPlacement = Placement.MAIN_PANEL;
@@ -184,6 +186,7 @@ public final class HudStyle {
         showNpcPrice = from.showNpcPrice;
         showRequirements = from.showRequirements;
         forgeTimes = from.forgeTimes;
+        hideFinished = from.hideFinished;
     }
 
     /** Forgets the in-memory copy (after a reset deleted the file). */
