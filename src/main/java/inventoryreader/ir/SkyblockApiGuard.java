@@ -5,6 +5,8 @@ import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.metadata.ModDependency;
 
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Keeps the bundled SkyblockAPI library as quiet as this mod: while no other installed mod uses SkyblockAPI, its
@@ -19,6 +21,8 @@ public final class SkyblockApiGuard {
         "https://api.hypixel.net/v2/resources/skyblock/election",
         "https://api.hypixel.net/v2/resources/skyblock/items");
     private static volatile Boolean active;
+    /** Addresses already logged as blocked; each is logged once (some repeat every two hours). */
+    private static final Set<String> LOGGED = ConcurrentHashMap.newKeySet();
 
     private SkyblockApiGuard() {}
 
@@ -28,8 +32,9 @@ public final class SkyblockApiGuard {
         if (value == null) {
             value = !otherModUsesSkyblockApi();
             active = value;
-            if (value) InventoryReader.debug("SkyblockAPI: only used by this mod; blocking its unused requests");
-            else InventoryReader.debug("SkyblockAPI: used by another mod too; not blocking anything");
+            // Always logged (once): the first request comes at startup, before Debug logging is read.
+            if (value) InventoryReader.LOGGER.info("SkyblockAPI: only used by this mod; blocking its unused requests");
+            else InventoryReader.LOGGER.info("SkyblockAPI: used by another mod too; not blocking anything");
         }
         return value;
     }
@@ -40,7 +45,9 @@ public final class SkyblockApiGuard {
         for (String allowed : ALLOWED) {
             if (url.startsWith(allowed)) return false;
         }
-        InventoryReader.debug("SkyblockAPI: blocked request to {}", url);
+        int query = url.indexOf('?');
+        String address = query >= 0 ? url.substring(0, query) : url;
+        if (LOGGED.add(address)) InventoryReader.LOGGER.info("SkyblockAPI: blocked request to {}", address);
         return true;
     }
 
