@@ -64,6 +64,8 @@ public final class RemoteRecipeFetcher {
     public static final String COINS_NAME = "Coins";
     /** Pet rarities in NEU's order: pets are keyed "BEE;4" (Legendary), as the player's own pets are. */
     private static final List<String> PET_TIERS = List.of("COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC");
+    /** Shard ID to its attribute ID, filled while keying ingredients; requirements are looked up by attribute. */
+    private static final Map<String, String> ATTRIBUTE_BY_SHARD = new java.util.concurrent.ConcurrentHashMap<>();
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
     private static final AtomicBoolean AGAIN = new AtomicBoolean(false);
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(r -> {
@@ -194,7 +196,7 @@ public final class RemoteRecipeFetcher {
         // What unlocks each recipe the mod uses, e.g. "Coal III" or "Heart of the Mountain 2".
         Map<String, String> requirements = new LinkedHashMap<>();
         for (String id : craftingOrForge(craftingByInternal, forgeByInternal)) {
-            String text = requirementText(RepoAPI.overlays().getItem(id));
+            String text = requirementText(overlay(id));
             if (text != null) requirements.putIfAbsent(recipeNameById.getOrDefault(id, id), text);
         }
         changed |= writeSnapshot(requirements, FilePathManager.ITEM_REQUIREMENTS_JSON, meta);
@@ -297,6 +299,7 @@ public final class RemoteRecipeFetcher {
                 if (data != null && data.shardId() != null && data.shardName() != null) {
                     key = data.shardId();
                     name = stripMC(data.shardName());
+                    ATTRIBUTE_BY_SHARD.put(key, attribute.id());
                 } else {
                     key = attribute.id();
                     name = titleCase(attribute.id());
@@ -323,14 +326,36 @@ public final class RemoteRecipeFetcher {
         return ids;
     }
 
-    /** The unlock requirements as one line ("Coal VII", "Gemstone X & HotM 5"), or null when there are none. */
+    /** The overlay holding an item's requirements: pets and shards are looked up by pet tier and attribute. */
+    private static IdOverlaysAPI.OverlayData overlay(String id) {
+        int semi = id.indexOf(';');
+        if (semi > 0) {
+            int tier = parseInt(id.substring(semi + 1));
+            if (tier >= 0 && tier < PET_TIERS.size()) return RepoAPI.overlays().getPet(id.substring(0, semi), PET_TIERS.get(tier));
+        }
+        String attribute = ATTRIBUTE_BY_SHARD.get(id);
+        if (attribute != null) return RepoAPI.overlays().getAttribute(attribute);
+        return RepoAPI.overlays().getItem(id);
+    }
+
+    private static int parseInt(String s) {
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    /**
+     * The recipe unlock requirements as one line ("Coal VII", "Gemstone X & HotM 5"), or null when there are none.
+     * Only entries with NEU's own text: those come from its "Requires:" crafting line. The others are what it
+     * takes to use the item (e.g. Spider Slayer 5 to wear Tarantula armour), not to unlock its recipe.
+     */
     private static String requirementText(IdOverlaysAPI.OverlayData overlay) {
         if (overlay == null || overlay.requirements() == null) return null;
         List<String> parts = new ArrayList<>();
         for (Requirement requirement : overlay.requirements()) {
-            String text = requirement.rawString();
-            if (text == null || text.isBlank()) text = requirement.formattedString();
-            text = stripMC(text);
+            String text = stripMC(requirement.rawString());
             if (text != null && !text.isBlank() && !parts.contains(text.trim())) parts.add(text.trim());
         }
         return parts.isEmpty() ? null : String.join(" & ", parts);
@@ -357,10 +382,13 @@ public final class RemoteRecipeFetcher {
             Map<String, String> internalToDisplay,
             Map<String, String> recipeNameById) {
         Map<String, Map<String, Integer>> wire = new LinkedHashMap<>(byInternal.size());
-        // In ID order, so which of two same-named items keeps the plain name never changes between updates
-        // (e.g. FELTHORN_REAPER before STARRED_FELTHORN_REAPER).
+        // In ID order, so which of two same-named items keeps the plain name never changes between updates; a
+        // starred (upgraded) item comes after its base, whose name its recipe uses (VENOMS_TOUCH, then
+        // STARRED_VENOMS_TOUCH).
         List<Map.Entry<String, Map<String, Integer>>> entries = new ArrayList<>(byInternal.entrySet());
-        entries.sort(Map.Entry.comparingByKey());
+        entries.sort(java.util.Comparator.<Map.Entry<String, Map<String, Integer>>>comparingInt(
+                e -> e.getKey().startsWith("STARRED_") ? 1 : 0)
+            .thenComparing(Map.Entry::getKey));
         for (Map.Entry<String, Map<String, Integer>> e : entries) {
             String outDisplay = internalToDisplay.getOrDefault(e.getKey(), e.getKey());
             // Different items can share a display name (e.g. upgrade stones); keep them apart.
