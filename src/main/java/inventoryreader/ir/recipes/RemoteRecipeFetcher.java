@@ -9,6 +9,7 @@ import inventoryreader.ir.FilePathManager;
 import kotlin.Unit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tech.thatgravyboat.repolib.api.AttributesAPI;
 import tech.thatgravyboat.repolib.api.PetsAPI;
 import tech.thatgravyboat.repolib.api.RepoAPI;
 import tech.thatgravyboat.repolib.api.RepoStatus;
@@ -291,8 +292,15 @@ public final class RemoteRecipeFetcher {
                 name = titleCase(rune.id()) + " Rune " + rune.tier();
             }
             case AttributeIngredient attribute -> {
-                key = attribute.id();
-                name = titleCase(attribute.id());
+                // An attribute stands for its Hunting shard ("HONEY_REFILL" -> Queen Bee Shard, SHARD_QUEEN_BEE).
+                AttributesAPI.Attribute data = RepoAPI.attributes().getAttribute(attribute.id());
+                if (data != null && data.shardId() != null && data.shardName() != null) {
+                    key = data.shardId();
+                    name = stripMC(data.shardName());
+                } else {
+                    key = attribute.id();
+                    name = titleCase(attribute.id());
+                }
             }
             default -> {
                 return null;
@@ -315,7 +323,7 @@ public final class RemoteRecipeFetcher {
         return ids;
     }
 
-    /** The unlock requirements as one line ("Coal VII", "Zombie Slayer 7"), or null when there are none. */
+    /** The unlock requirements as one line ("Coal VII", "Gemstone X & HotM 5"), or null when there are none. */
     private static String requirementText(IdOverlaysAPI.OverlayData overlay) {
         if (overlay == null || overlay.requirements() == null) return null;
         List<String> parts = new ArrayList<>();
@@ -325,7 +333,7 @@ public final class RemoteRecipeFetcher {
             text = stripMC(text);
             if (text != null && !text.isBlank() && !parts.contains(text.trim())) parts.add(text.trim());
         }
-        return parts.isEmpty() ? null : String.join(", ", parts);
+        return parts.isEmpty() ? null : String.join(" & ", parts);
     }
 
     /** NPC sell prices by item name, from SkyblockAPI's copy of Hypixel's item list (it downloads it anyway). */
@@ -334,7 +342,8 @@ public final class RemoteRecipeFetcher {
         for (Map.Entry<String, HypixelApiItem> e : ItemData.INSTANCE.getData().entrySet()) {
             Float price = e.getValue().getNpcSellPriceFloat();
             if (price == null || price <= 0) continue;
-            out.put(names.getOrDefault(e.getKey(), e.getKey()), price.doubleValue());
+            // Through the float's own text, so 0.3 stays 0.3 instead of 0.30000001192092896.
+            out.put(names.getOrDefault(e.getKey(), e.getKey()), Double.parseDouble(price.toString()));
         }
         return out;
     }
