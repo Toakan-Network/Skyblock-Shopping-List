@@ -79,7 +79,7 @@ public final class IrCommandManager {
                                 .setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD))
                         );
                         context.getSource().sendFeedback(
-                            Component.literal("Data source: NotEnoughUpdates-REPO")
+                            Component.literal("Data source: NotEnoughUpdates-REPO, via SkyblockAPI")
                                 .setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE))
                                 .append(Component.literal(" • "))
                                 .append(Component.literal("https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO")

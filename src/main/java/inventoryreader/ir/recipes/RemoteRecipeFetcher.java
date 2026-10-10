@@ -1,426 +1,342 @@
 package inventoryreader.ir.recipes;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import io.github.moulberry.repo.NEURepository;
-import io.github.moulberry.repo.NEURepositoryException;
-import io.github.moulberry.repo.data.NEUCraftingRecipe;
-import io.github.moulberry.repo.data.NEUForgeRecipe;
-import io.github.moulberry.repo.data.NEUNpcShopRecipe;
-import io.github.moulberry.repo.data.NEUIngredient;
-import io.github.moulberry.repo.data.NEUKatUpgradeRecipe;
-import io.github.moulberry.repo.data.NEUItem;
-import io.github.moulberry.repo.data.NEURecipe;
 import inventoryreader.ir.FilePathManager;
+import kotlin.Unit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tech.thatgravyboat.repolib.api.PetsAPI;
+import tech.thatgravyboat.repolib.api.RepoAPI;
+import tech.thatgravyboat.repolib.api.RepoStatus;
+import tech.thatgravyboat.repolib.api.IdOverlaysAPI;
+import tech.thatgravyboat.repolib.api.idoverlays.Requirement;
+import tech.thatgravyboat.repolib.api.recipes.CraftingRecipe;
+import tech.thatgravyboat.repolib.api.recipes.ForgeRecipe;
+import tech.thatgravyboat.repolib.api.recipes.KatRecipe;
+import tech.thatgravyboat.repolib.api.recipes.Recipe;
+import tech.thatgravyboat.repolib.api.recipes.ShopRecipe;
+import tech.thatgravyboat.repolib.api.recipes.ingredient.AttributeIngredient;
+import tech.thatgravyboat.repolib.api.recipes.ingredient.CraftingIngredient;
+import tech.thatgravyboat.repolib.api.recipes.ingredient.CurrencyIngredient;
+import tech.thatgravyboat.repolib.api.recipes.ingredient.EnchantmentIngredient;
+import tech.thatgravyboat.repolib.api.recipes.ingredient.ItemIngredient;
+import tech.thatgravyboat.repolib.api.recipes.ingredient.PetIngredient;
+import tech.thatgravyboat.repolib.api.recipes.ingredient.PotionIngredient;
+import tech.thatgravyboat.repolib.api.recipes.ingredient.RuneIngredient;
+import tech.thatgravyboat.skyblockapi.api.SkyBlockAPI;
+import tech.thatgravyboat.skyblockapi.api.events.repo.RepoEvent;
+import tech.thatgravyboat.skyblockapi.api.remote.hypixel.itemdata.HypixelApiItem;
+import tech.thatgravyboat.skyblockapi.api.remote.hypixel.itemdata.ItemData;
 
 import java.io.File;
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Builds the recipe files from the SkyBlock data SkyblockAPI's Repo-Lib downloads and caches (a daily copy of the
+ * NotEnoughUpdates repository), plus NPC sell prices from SkyblockAPI's copy of Hypixel's item list. Runs each
+ * time Repo-Lib (re)loads. Only NEU's sack list is fetched here, as Repo-Lib doesn't carry it.
+ */
 public final class RemoteRecipeFetcher {
     private static final Logger LOGGER = LoggerFactory.getLogger("IR-RemoteRecipeFetcher");
     private static final Gson GSON = new Gson();
-    public static final String DEFAULT_NEU_REPO_URL = "https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master";
-    /**
-     * Bump when the way recipes are extracted from the repo changes, so cached snapshots are rebuilt
-     * even if the remote reports "not modified".
-     */
-    private static final String PARSER_VERSION = "11";
-    /** NEU's pseudo item for coin costs in shop recipes. */
+    /** Which sack holds which item; the one file Repo-Lib doesn't have. Small, cached with an ETag. */
+    private static final String SACKS_URL =
+        "https://raw.githubusercontent.com/NotEnoughUpdates/NotEnoughUpdates-REPO/master/constants/sacks.json";
+    /** Coin costs are keyed like NEU's pseudo item, so names and the Coins resource stay as before. */
     private static final String COIN_ID = "SKYBLOCK_COIN";
     public static final String COINS_NAME = "Coins";
-    /** Hypixel's item list: the only source of NPC sell prices ({@code npc_sell_price}). No API key needed. */
-    private static final String HYPIXEL_ITEMS_URL = "https://api.hypixel.net/v2/resources/skyblock/items";
-    private static final String[] PET_RARITIES = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"};
-    private static final String PARSER_VERSION_KEY = "parser-version";
-    private static final long MAX_ZIP_ENTRIES = 200_000;
-    private static final long MAX_EXTRACTED_BYTES = 2L * 1024 * 1024 * 1024;
+    /** Pet rarities in NEU's order: pets are keyed "BEE;4" (Legendary), as the player's own pets are. */
+    private static final List<String> PET_TIERS = List.of("COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC");
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
+    private static final AtomicBoolean AGAIN = new AtomicBoolean(false);
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "IR-RecipeFetch");
         t.setDaemon(true);
         return t;
     });
+
     private RemoteRecipeFetcher() {}
 
-    /** Starts a background fetch unless one is already running. */
+    /** Builds the recipes whenever Repo-Lib (re)loads, and now if it already has. */
+    public static void register() {
+        SkyBlockAPI.getEventBus().register(RepoEvent.Reload.class, 0, false, event -> {
+            if (event.getStatus() == RepoStatus.SUCCESS) fetchAsync();
+            return Unit.INSTANCE;
+        });
+        if (RepoAPI.isInitialized()) fetchAsync();
+    }
+
+    /** Starts a background build; one asked for while another runs follows it. */
     public static void fetchAsync() {
-        if (!RUNNING.compareAndSet(false, true)) return;
+        if (!RUNNING.compareAndSet(false, true)) {
+            AGAIN.set(true);
+            return;
+        }
         EXECUTOR.execute(() -> {
             try {
-                runFetch();
+                do {
+                    AGAIN.set(false);
+                    build();
+                } while (AGAIN.get());
             } catch (Throwable t) {
-                LOGGER.warn("Remote fetch failed: {}", t.toString());
+                LOGGER.warn("Recipe build failed: {}", t.toString());
             } finally {
-                // The unpacked repo is only needed while parsing; the results live in the recipe JSON files.
-                deleteDirectoryRecursively(FilePathManager.NEU_REPO_EXTRACTED.toPath());
                 RUNNING.set(false);
             }
         });
     }
 
-    private static void runFetch() throws Exception {
-        File cfgFile = FilePathManager.REMOTE_SOURCES_JSON;
-        if (!cfgFile.exists()) return;
-        List<Map<String, String>> sources = readSources(cfgFile);
-        if (sources.isEmpty()) return;
-
-        for (Map<String, String> s : sources) {
-            String type = String.valueOf(s.getOrDefault("type", "")).toLowerCase(java.util.Locale.ROOT);
-            String url = s.get("url");
-            if (url == null || url.isBlank()) continue;
-            boolean done = false;
-            switch (type) {
-                case "recipes":
-                case "json":
-                    done = fetchDirectJson(url);
-                    break;
-                case "neu-zip":
-                case "neu_zip":
-                case "neuzip":
-                    done = fetchNeuZip(url);
-                    break;
-                default:
-                    break;
-            }
-            if (done) break;
+    private static void build() throws Exception {
+        List<CraftingRecipe> crafting = RepoAPI.recipes().getRecipes(Recipe.Type.CRAFTING);
+        if (crafting.isEmpty()) {
+            LOGGER.warn("Repo-Lib has no recipes yet; keeping the current files");
+            return;
         }
-        fetchNpcSellPrices();
-    }
+        Map<String, String> meta = readMeta(FilePathManager.REMOTE_META_JSON);
 
-    private static boolean fetchDirectJson(String url) {
-        try {
-            if (!isHttps(url)) { LOGGER.warn("Ignoring non-https recipe source {}", url); return false; }
-            Map<String, String> meta = readMeta(FilePathManager.REMOTE_META_JSON);
-            String etagKey = "etag::" + url;
-            String etag = cacheIsCurrent(meta) ? meta.getOrDefault(etagKey, "") : "";
-
-            HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(url))
-                    .timeout(Duration.ofSeconds(15))
-                    .GET();
-            if (!etag.isEmpty()) b.header("If-None-Match", etag);
-            HttpResponse<String> resp = inventoryreader.ir.Http.CLIENT.send(b.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            if (resp.statusCode() == 304) { inventoryreader.ir.InventoryReader.debug("Remote recipes not modified (ETag)"); return true; }
-            if (resp.statusCode() / 100 != 2) { LOGGER.warn("Remote fetch HTTP {}", resp.statusCode()); return false; }
-
-            String body = resp.body();
-            if (body == null || body.isBlank()) return false;
-            java.lang.reflect.Type t = new TypeToken<Map<String, Object>>(){}.getType();
-            Map<String, Object> parsed = GSON.fromJson(body, t);
-            if (parsed == null || parsed.isEmpty()) { LOGGER.warn("Remote recipes JSON empty"); return false; }
-
-            boolean changed = writeSnapshot(parsed, FilePathManager.REMOTE_RECIPES_JSON, meta);
-
-            String newEtag = resp.headers().firstValue("etag").orElse("");
-            if (!newEtag.isEmpty()) meta.put(etagKey, newEtag);
-            meta.put(PARSER_VERSION_KEY, PARSER_VERSION);
-            writeMeta(FilePathManager.REMOTE_META_JSON, meta);
-
-            if (changed) inventoryreader.ir.RecipeManager.getInstance().reload();
-            else inventoryreader.ir.InventoryReader.debug("Recipes unchanged");
-            return true;
-        } catch (Exception e) {
-            LOGGER.warn("fetchDirectJson failed: {}", e.toString());
-            return false;
-        }
-    }
-
-    private static boolean fetchNeuZip(String url) {
-        try {
-            Map<String, String> meta = readMeta(FilePathManager.REMOTE_META_JSON);
-            boolean cacheCurrent = cacheIsCurrent(meta);
-
-            InputStream inputStream;
-            String metaKey;
-            String metaValToWrite = null;
-
-            try {
-                URI u = URI.create(url);
-                String scheme = u.getScheme();
-                if (scheme != null && scheme.equalsIgnoreCase("file")) {
-                    java.io.File f = new java.io.File(u);
-                    if (!f.exists()) { LOGGER.warn("NEU ZIP file does not exist: {}", f.getAbsolutePath()); return false; }
-                    metaKey = "mtime::" + f.getAbsolutePath();
-                    String prev = meta.getOrDefault(metaKey, "");
-                    String cur = Long.toString(f.lastModified());
-                    if (cacheCurrent && !prev.isEmpty() && prev.equals(cur)) { inventoryreader.ir.InventoryReader.debug("NEU ZIP file unchanged (mtime cache)"); return true; }
-                    inputStream = new java.io.FileInputStream(f);
-                    metaValToWrite = cur;
-                } else {
-                    if (!"https".equalsIgnoreCase(scheme)) { LOGGER.warn("Ignoring non-https recipe source {}", url); return false; }
-                    String etagKey = "etag::" + url;
-                    String etag = cacheCurrent ? meta.getOrDefault(etagKey, "") : "";
-                    HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(url))
-                            .timeout(Duration.ofSeconds(30))
-                            .GET();
-                    if (!etag.isEmpty()) b.header("If-None-Match", etag);
-                    HttpResponse<java.io.InputStream> resp = inventoryreader.ir.Http.CLIENT.send(b.build(), HttpResponse.BodyHandlers.ofInputStream());
-                    if (resp.statusCode() / 100 != 2) {
-                        resp.body().close();
-                        if (resp.statusCode() == 304) { inventoryreader.ir.InventoryReader.debug("NEU ZIP not modified (ETag)"); return true; }
-                        LOGGER.warn("NEU ZIP fetch HTTP {}", resp.statusCode());
-                        return false;
-                    }
-                    inputStream = resp.body();
-                    metaKey = etagKey;
-                    metaValToWrite = resp.headers().firstValue("etag").orElse("");
-                }
-            } catch (IllegalArgumentException badUri) {
-                java.io.File f = new java.io.File(url);
-                if (!f.exists()) { LOGGER.warn("NEU ZIP path not found: {}", url); return false; }
-                metaKey = "mtime::" + f.getAbsolutePath();
-                String prev = meta.getOrDefault(metaKey, "");
-                String cur = Long.toString(f.lastModified());
-                if (cacheCurrent && !prev.isEmpty() && prev.equals(cur)) { inventoryreader.ir.InventoryReader.debug("NEU ZIP file unchanged (mtime cache)"); return true; }
-                inputStream = new java.io.FileInputStream(f);
-                metaValToWrite = cur;
-            }
-
-            Path repoExtracted = FilePathManager.NEU_REPO_EXTRACTED.toPath();
-            deleteDirectoryRecursively(repoExtracted);
-            try (InputStream in = inputStream) {
-                extractZipStrippingRoot(in, repoExtracted);
-            }
-            inventoryreader.ir.InventoryReader.debug("NEU ZIP extracted to {}", repoExtracted);
-
-            NEURepository neuRepo = NEURepository.of(repoExtracted);
-            try {
-                neuRepo.reload();
-            } catch (NEURepositoryException e) {
-                LOGGER.warn("NEU repo load had issues: {}", e.toString());
-                if (neuRepo.isIncomplete()) { LOGGER.warn("Repo incomplete after reload, aborting"); return false; }
-            }
-
-            Map<String, String> internalToDisplay = new LinkedHashMap<>();
-            for (NEUItem item : neuRepo.getItems().getItems().values()) {
-                String id = item.getSkyblockItemId();
-                String display = stripMC(item.getDisplayName());
-                if (id != null && !id.isBlank() && display != null && !display.isBlank()) {
-                    internalToDisplay.putIfAbsent(id, petName(id, display));
-                }
-            }
-            internalToDisplay.put(COIN_ID, COINS_NAME);
+        Map<String, String> internalToDisplay = new LinkedHashMap<>();
+        Map<String, String> typeByInternal = new LinkedHashMap<>();
+        for (Map.Entry<String, JsonObject> e : RepoAPI.items().items().entrySet()) {
+            JsonObject components = object(e.getValue(), "components");
+            String display = stripMC(text(object(components, "minecraft:custom_name")));
+            if (display != null && !display.isBlank()) internalToDisplay.putIfAbsent(e.getKey(), display);
             // Rarity and type from the last lore line ("LEGENDARY ACCESSORY"), for the List tab filters.
-            Map<String, String> typeByInternal = new LinkedHashMap<>();
-            for (NEUItem item : neuRepo.getItems().getItems().values()) {
-                String id = item.getSkyblockItemId();
-                String rarityType = rarityType(item.getLore());
-                if (id != null && !id.isBlank() && rarityType != null) typeByInternal.putIfAbsent(id, rarityType);
+            String rarityType = rarityType(loreLines(components));
+            if (rarityType != null) typeByInternal.putIfAbsent(e.getKey(), rarityType);
+        }
+        for (Map.Entry<String, PetsAPI.Data> e : RepoAPI.pets().pets().entrySet()) {
+            for (String tier : e.getValue().tiers().keySet()) {
+                String id = petKey(e.getKey(), tier);
+                if (id != null) internalToDisplay.putIfAbsent(id, e.getValue().name() + " (" + titleCase(tier) + ")");
             }
+        }
+        internalToDisplay.put(COIN_ID, COINS_NAME);
 
-            Map<String, Map<String, Integer>> craftingByInternal = new LinkedHashMap<>();
-            Map<String, Map<String, Integer>> forgeByInternal    = new LinkedHashMap<>();
-            Map<String, Map<String, Integer>> shopByInternal     = new LinkedHashMap<>();
-            Map<String, Map<String, Integer>> katByInternal      = new LinkedHashMap<>();
-            Map<String, Integer> forgeSecondsByInternal = new LinkedHashMap<>();
-            Map<String, Double> buyPriceByInternal = new LinkedHashMap<>();
-            for (NEUItem item : neuRepo.getItems().getItems().values()) {
-                for (NEURecipe recipe : item.getRecipes()) {
-                    if (recipe instanceof NEUCraftingRecipe cr) {
-                        collectRecipeIngredients(craftingByInternal, cr.getAllOutputs(), cr.getAllInputs());
-                    } else if (recipe instanceof NEUForgeRecipe fr) {
-                        boolean first = fr.getOutputStack() != null && !forgeByInternal.containsKey(fr.getOutputStack().getItemId());
-                        collectRecipeIngredients(forgeByInternal, fr.getAllOutputs(), fr.getAllInputs());
-                        // Same first-recipe-wins rule as the ingredients, so time and ingredients match.
-                        if (first && fr.getDuration() > 0 && forgeByInternal.containsKey(fr.getOutputStack().getItemId())) {
-                            forgeSecondsByInternal.put(fr.getOutputStack().getItemId(), fr.getDuration());
-                        }
-                    } else if (recipe instanceof NEUNpcShopRecipe shop) {
-                        collectRecipeIngredients(shopByInternal, shop.getAllOutputs(), shop.getAllInputs());
-                        collectCoinPrice(buyPriceByInternal, shop);
-                    } else if (recipe instanceof NEUKatUpgradeRecipe kat) {
-                        collectRecipeIngredients(katByInternal, kat.getAllOutputs(), kat.getAllInputs());
-                    }
-                }
-            }
+        Map<String, Map<String, Integer>> craftingByInternal = new LinkedHashMap<>();
+        Map<String, Map<String, Integer>> forgeByInternal    = new LinkedHashMap<>();
+        Map<String, Map<String, Integer>> shopByInternal     = new LinkedHashMap<>();
+        Map<String, Map<String, Integer>> katByInternal      = new LinkedHashMap<>();
+        Map<String, Integer> forgeSecondsByInternal = new LinkedHashMap<>();
+        Map<String, Double> buyPriceByInternal = new LinkedHashMap<>();
+        for (CraftingRecipe recipe : crafting) {
+            collectRecipeIngredients(craftingByInternal, recipe.result(), recipe.inputs(), 0, internalToDisplay);
+        }
+        for (ForgeRecipe recipe : RepoAPI.recipes().getRecipes(Recipe.Type.FORGE)) {
+            String out = key(recipe.result(), internalToDisplay);
+            boolean first = out != null && !forgeByInternal.containsKey(out);
+            collectRecipeIngredients(forgeByInternal, recipe.result(), recipe.inputs(), recipe.coins(), internalToDisplay);
+            // Same first-recipe-wins rule as the ingredients, so time and ingredients match.
+            if (first && recipe.time() > 0 && forgeByInternal.containsKey(out)) forgeSecondsByInternal.put(out, recipe.time());
+        }
+        for (ShopRecipe recipe : RepoAPI.recipes().getRecipes(Recipe.Type.SHOP)) {
+            collectRecipeIngredients(shopByInternal, recipe.result(), recipe.inputs(), 0, internalToDisplay);
+            collectCoinPrice(buyPriceByInternal, recipe, internalToDisplay);
+        }
+        for (KatRecipe recipe : RepoAPI.recipes().getRecipes(Recipe.Type.KAT)) {
+            List<CraftingIngredient> inputs = new ArrayList<>(recipe.items());
+            inputs.add(recipe.input());
+            collectRecipeIngredients(katByInternal, recipe.output(), inputs, recipe.coins(), internalToDisplay);
+        }
 
-            // Forge recipes win over crafting recipes for the same item; keeping both would double-count.
-            craftingByInternal.keySet().removeAll(forgeByInternal.keySet());
-            // Shop purchases only fill gaps (items with no crafting/forge recipe, e.g. the Golden Dragon), and only
-            // when they cost items: a coins-only price would turn ordinary materials into "buy it for coins".
-            shopByInternal.keySet().removeAll(craftingByInternal.keySet());
-            shopByInternal.keySet().removeAll(forgeByInternal.keySet());
-            shopByInternal.values().removeIf(cost -> cost.keySet().stream().allMatch(COIN_ID::equals));
-            // Kat upgrades (the pet one rarity lower + items + coins) cover most pets above Common. They fill
-            // the remaining gaps and travel with the crafting recipes.
-            katByInternal.keySet().removeAll(forgeByInternal.keySet());
-            katByInternal.keySet().removeAll(shopByInternal.keySet());
-            int katCount = 0;
-            for (Map.Entry<String, Map<String, Integer>> e : katByInternal.entrySet()) {
-                if (craftingByInternal.putIfAbsent(e.getKey(), e.getValue()) == null) katCount++;
-            }
-            Map<String, String> recipeNameById = new LinkedHashMap<>(internalToDisplay);
-            Map<String, Map<String, Integer>> craftingWire = resolveToDisplayNames(craftingByInternal, internalToDisplay, recipeNameById);
-            Map<String, Map<String, Integer>> forgeWire    = resolveToDisplayNames(forgeByInternal,    internalToDisplay, recipeNameById);
-            Map<String, Map<String, Integer>> shopWire     = resolveToDisplayNames(shopByInternal,     internalToDisplay, recipeNameById);
+        // Forge recipes win over crafting recipes for the same item; keeping both would double-count.
+        craftingByInternal.keySet().removeAll(forgeByInternal.keySet());
+        // Shop purchases only fill gaps (items with no crafting/forge recipe, e.g. the Golden Dragon), and only
+        // when they cost items: a coins-only price would turn ordinary materials into "buy it for coins".
+        shopByInternal.keySet().removeAll(craftingByInternal.keySet());
+        shopByInternal.keySet().removeAll(forgeByInternal.keySet());
+        shopByInternal.values().removeIf(cost -> cost.keySet().stream().allMatch(COIN_ID::equals));
+        // Kat upgrades (the pet one rarity lower + items + coins) cover most pets above Common. They fill
+        // the remaining gaps and travel with the crafting recipes.
+        katByInternal.keySet().removeAll(forgeByInternal.keySet());
+        katByInternal.keySet().removeAll(shopByInternal.keySet());
+        int katCount = 0;
+        for (Map.Entry<String, Map<String, Integer>> e : katByInternal.entrySet()) {
+            if (craftingByInternal.putIfAbsent(e.getKey(), e.getValue()) == null) katCount++;
+        }
+        Map<String, String> recipeNameById = new LinkedHashMap<>(internalToDisplay);
+        Map<String, Map<String, Integer>> craftingWire = resolveToDisplayNames(craftingByInternal, internalToDisplay, recipeNameById);
+        Map<String, Map<String, Integer>> forgeWire    = resolveToDisplayNames(forgeByInternal,    internalToDisplay, recipeNameById);
+        Map<String, Map<String, Integer>> shopWire     = resolveToDisplayNames(shopByInternal,     internalToDisplay, recipeNameById);
 
-            // Each file is only rewritten (and the recipes only reloaded) when its content actually changed:
-            // the repo changes often, the recipes much less.
-            boolean changed = false;
-            if (!craftingWire.isEmpty()) changed |= writeSnapshot(craftingWire, FilePathManager.REMOTE_RECIPES_JSON, meta);
-            if (!forgeWire.isEmpty())    changed |= writeSnapshot(forgeWire, FilePathManager.REMOTE_FORGE_JSON, meta);
-            changed |= writeSnapshot(shopWire, FilePathManager.REMOTE_SHOP_JSON, meta);
-            // Base forge time per forge item, under the name its recipe uses (resolved after any renames above).
-            Map<String, Integer> forgeSeconds = new LinkedHashMap<>();
-            forgeSecondsByInternal.forEach((id, seconds) -> forgeSeconds.put(recipeNameById.getOrDefault(id, id), seconds));
-            changed |= writeSnapshot(forgeSeconds, FilePathManager.FORGE_TIMES_JSON, meta);
-            Map<String, String> itemTypes = new LinkedHashMap<>();
-            typeByInternal.forEach((id, rarityType) -> itemTypes.putIfAbsent(recipeNameById.getOrDefault(id, id), rarityType));
-            changed |= writeSnapshot(itemTypes, FilePathManager.ITEM_TYPES_JSON, meta);
-            changed |= writeSnapshot(itemSacks(repoExtracted, recipeNameById), FilePathManager.ITEM_SACKS_JSON, meta);
-            changed |= writeSnapshot(recipeNameById, FilePathManager.ITEM_NAMES_JSON, meta);
-            // What unlocks each recipe the mod uses, e.g. "Requires: Coal III" -> "Coal III".
-            Map<String, String> requirements = new LinkedHashMap<>();
-            for (NEUItem item : neuRepo.getItems().getItems().values()) {
-                String id = item.getSkyblockItemId();
-                String text = stripMC(item.getCrafttext());
-                if (id == null || text == null || text.isBlank()) continue;
-                if (!craftingByInternal.containsKey(id) && !forgeByInternal.containsKey(id)) continue;
-                text = text.replaceFirst("(?i)^\\s*requires:?\\s*", "").trim();
-                if (!text.isEmpty()) requirements.putIfAbsent(recipeNameById.getOrDefault(id, id), text);
-            }
-            changed |= writeSnapshot(requirements, FilePathManager.ITEM_REQUIREMENTS_JSON, meta);
-            Map<String, Double> buyPrices = new LinkedHashMap<>();
-            buyPriceByInternal.forEach((id, coins) -> buyPrices.put(recipeNameById.getOrDefault(id, id), coins));
-            changed |= writeSnapshot(buyPrices, FilePathManager.NPC_BUY_PRICES_JSON, meta);
+        // Each file is only rewritten (and the recipes only reloaded) when its content actually changed:
+        // the data changes often, the recipes much less.
+        boolean changed = false;
+        changed |= writeSnapshot(craftingWire, FilePathManager.REMOTE_RECIPES_JSON, meta);
+        changed |= writeSnapshot(forgeWire, FilePathManager.REMOTE_FORGE_JSON, meta);
+        changed |= writeSnapshot(shopWire, FilePathManager.REMOTE_SHOP_JSON, meta);
+        // Base forge time per forge item, under the name its recipe uses (resolved after any renames above).
+        Map<String, Integer> forgeSeconds = new LinkedHashMap<>();
+        forgeSecondsByInternal.forEach((id, seconds) -> forgeSeconds.put(recipeNameById.getOrDefault(id, id), seconds));
+        changed |= writeSnapshot(forgeSeconds, FilePathManager.FORGE_TIMES_JSON, meta);
+        Map<String, String> itemTypes = new LinkedHashMap<>();
+        typeByInternal.forEach((id, rarityType) -> itemTypes.putIfAbsent(recipeNameById.getOrDefault(id, id), rarityType));
+        changed |= writeSnapshot(itemTypes, FilePathManager.ITEM_TYPES_JSON, meta);
+        Map<String, String> sacks = itemSacks(meta, recipeNameById);
+        if (sacks != null) changed |= writeSnapshot(sacks, FilePathManager.ITEM_SACKS_JSON, meta);
+        changed |= writeSnapshot(recipeNameById, FilePathManager.ITEM_NAMES_JSON, meta);
+        // What unlocks each recipe the mod uses, e.g. "Coal III" or "Heart of the Mountain 2".
+        Map<String, String> requirements = new LinkedHashMap<>();
+        for (String id : craftingOrForge(craftingByInternal, forgeByInternal)) {
+            String text = requirementText(RepoAPI.overlays().getItem(id));
+            if (text != null) requirements.putIfAbsent(recipeNameById.getOrDefault(id, id), text);
+        }
+        changed |= writeSnapshot(requirements, FilePathManager.ITEM_REQUIREMENTS_JSON, meta);
+        Map<String, Double> buyPrices = new LinkedHashMap<>();
+        buyPriceByInternal.forEach((id, coins) -> buyPrices.put(recipeNameById.getOrDefault(id, id), coins));
+        changed |= writeSnapshot(buyPrices, FilePathManager.NPC_BUY_PRICES_JSON, meta);
+        boolean pricesChanged = writeSnapshot(npcSellPrices(recipeNameById), FilePathManager.NPC_SELL_PRICES_JSON, meta);
+        writeMeta(FilePathManager.REMOTE_META_JSON, meta);
 
-            inventoryreader.ir.InventoryReader.debug("NEU repo parsed (library): {} crafting (incl. {} pet upgrades), {} forge, {} shop recipes", craftingWire.size(), katCount, forgeWire.size(), shopWire.size());
-            if (changed) {
-                inventoryreader.ir.ItemIds.reload();
-                inventoryreader.ir.RecipeManager.getInstance().reload();
-            } else {
-                inventoryreader.ir.InventoryReader.debug("Recipes unchanged");
-            }
-
-            if (metaValToWrite != null && !metaValToWrite.isEmpty()) {
-                meta.put(metaKey, metaValToWrite);
-            }
-            meta.put(PARSER_VERSION_KEY, PARSER_VERSION);
-            writeMeta(FilePathManager.REMOTE_META_JSON, meta);
-            return true;
-        } catch (Exception e) {
-            LOGGER.warn("fetchNeuZip failed: {}", e.toString());
-            return false;
+        inventoryreader.ir.InventoryReader.debug("Repo-Lib recipes: {} crafting (incl. {} pet upgrades), {} forge, {} shop", craftingWire.size(), katCount, forgeWire.size(), shopWire.size());
+        if (changed) {
+            inventoryreader.ir.ItemIds.reload();
+            inventoryreader.ir.RecipeManager.getInstance().reload();
+        } else {
+            inventoryreader.ir.InventoryReader.debug("Recipes unchanged");
+            if (pricesChanged) inventoryreader.ir.NpcPrices.reload();
         }
     }
 
     /**
-     * Adds an {@code output → {ingredient: count per output item}} mapping into {@code target}, keyed by
-     * internal SkyBlock ID. Only the first recipe per output is kept: items with alternative recipes
-     * would otherwise have the ingredients of every alternative summed together.
+     * Adds an {@code output -> {ingredient: count per output item}} mapping into {@code target}, keyed by internal
+     * SkyBlock ID. Only the first recipe per output is kept: items with alternative recipes would otherwise have
+     * the ingredients of every alternative summed together. {@code coins} is a coin cost kept outside the inputs
+     * (Forge and Kat).
      */
-    private static void collectRecipeIngredients(
-            Map<String, Map<String, Integer>> target,
-            Collection<NEUIngredient> outputs,
-            Collection<NEUIngredient> inputs) {
-        if (outputs == null || outputs.isEmpty() || inputs == null) return;
-        NEUIngredient output = outputs.iterator().next();
-        if (output == null || NEUIngredient.NEU_SENTINEL_EMPTY.equals(output.getItemId())) return;
-        if (target.containsKey(output.getItemId())) return;
-        double outputCount = Math.max(1, output.getAmount());
+    private static void collectRecipeIngredients(Map<String, Map<String, Integer>> target, CraftingIngredient output,
+                                                 List<CraftingIngredient> inputs, int coins,
+                                                 Map<String, String> names) {
+        String out = key(output, names);
+        if (out == null || inputs == null || target.containsKey(out)) return;
+        double outputCount = Math.max(1, output.count());
         Map<String, Double> totals = new LinkedHashMap<>();
-        for (NEUIngredient in : inputs) {
-            // Skips free parts too, e.g. the zero-coin cost of some pet upgrades.
-            if (in == null || NEUIngredient.NEU_SENTINEL_EMPTY.equals(in.getItemId()) || in.getAmount() <= 0) continue;
-            totals.merge(in.getItemId(), in.getAmount(), Double::sum);
+        for (CraftingIngredient in : inputs) {
+            String id = key(in, names);
+            // Skips empty slots and free parts.
+            if (id == null || in.count() <= 0) continue;
+            totals.merge(id, (double) in.count(), Double::sum);
         }
+        if (coins > 0) totals.merge(COIN_ID, (double) coins, Double::sum);
         if (totals.isEmpty()) return;
         Map<String, Integer> ing = new LinkedHashMap<>();
         totals.forEach((id, amount) -> ing.put(id, (int) Math.max(1, Math.ceil(amount / outputCount))));
-        target.put(output.getItemId(), ing);
+        target.put(out, ing);
     }
 
     /**
      * Keeps the cheapest price per item of shop offers that cost only coins (e.g. 8 coins for 2 Coal = 4 each).
      * Offers that also cost items are left out: the NPC price is about coins only.
      */
-    private static void collectCoinPrice(Map<String, Double> target, NEUNpcShopRecipe shop) {
-        NEUIngredient output = shop.getResult();
-        if (output == null || NEUIngredient.NEU_SENTINEL_EMPTY.equals(output.getItemId())) return;
+    private static void collectCoinPrice(Map<String, Double> target, ShopRecipe shop, Map<String, String> names) {
+        String out = key(shop.result(), names);
+        if (out == null || shop.inputs() == null) return;
         double coins = 0;
-        if (shop.getCost() == null) return;
-        for (NEUIngredient in : shop.getCost()) {
-            if (in == null || NEUIngredient.NEU_SENTINEL_EMPTY.equals(in.getItemId()) || in.getAmount() <= 0) continue;
-            if (!COIN_ID.equals(in.getItemId())) return;
-            coins += in.getAmount();
+        for (CraftingIngredient in : shop.inputs()) {
+            String id = key(in, names);
+            if (id == null || in.count() <= 0) continue;
+            if (!COIN_ID.equals(id)) return;
+            coins += in.count();
         }
         if (coins <= 0) return;
-        target.merge(output.getItemId(), coins / Math.max(1, output.getAmount()), Math::min);
-    }
-
-    /** The two fields of Hypixel's item list that are used; Gson skips the rest. */
-    private static class HypixelItems {
-        List<HypixelItem> items;
-    }
-
-    private static class HypixelItem {
-        String id;
-        Double npc_sell_price;
+        target.merge(out, coins / Math.max(1, shop.result().count()), Math::min);
     }
 
     /**
-     * Downloads NPC sell prices from Hypixel's item list and saves them by item name. The list is large (about 2 MB
-     * compressed), so it is only downloaded again when Hypixel reports it changed (Last-Modified).
+     * The key an ingredient is stored under: its SkyBlock ID, "BEE;4" for pets, "SKYBLOCK_COIN" style for
+     * currencies, "ID;level" for enchantments, potions and runes. Kinds that have no item name yet get a readable
+     * one in {@code names}. Null for empty slots and unknown kinds.
      */
-    private static void fetchNpcSellPrices() {
-        try {
-            Map<String, String> names = inventoryreader.ir.JsonFiles.read(FilePathManager.ITEM_NAMES_JSON,
-                new TypeToken<Map<String, String>>(){}.getType());
-            if (names == null || names.isEmpty()) return;
-            Map<String, String> meta = readMeta(FilePathManager.REMOTE_META_JSON);
-            String modifiedKey = "last-modified::" + HYPIXEL_ITEMS_URL;
-            String modified = FilePathManager.NPC_SELL_PRICES_JSON.isFile() ? meta.getOrDefault(modifiedKey, "") : "";
-            HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(HYPIXEL_ITEMS_URL))
-                    .timeout(Duration.ofSeconds(30))
-                    .header("Accept-Encoding", "gzip")
-                    .GET();
-            if (!modified.isEmpty()) b.header("If-Modified-Since", modified);
-            HttpResponse<InputStream> resp = inventoryreader.ir.Http.CLIENT.send(b.build(), HttpResponse.BodyHandlers.ofInputStream());
-            if (resp.statusCode() / 100 != 2) {
-                resp.body().close();
-                if (resp.statusCode() == 304) { inventoryreader.ir.InventoryReader.debug("NPC sell prices not modified"); return; }
-                LOGGER.warn("NPC sell price fetch HTTP {}", resp.statusCode());
-                return;
+    private static String key(CraftingIngredient in, Map<String, String> names) {
+        if (in == null) return null;
+        String key;
+        String name;
+        switch (in) {
+            case ItemIngredient item -> {
+                return item.id();
             }
-            HypixelItems parsed;
-            InputStream body = resp.body();
-            if (resp.headers().firstValue("content-encoding").orElse("").equalsIgnoreCase("gzip")) {
-                body = new java.util.zip.GZIPInputStream(body);
+            case PetIngredient pet -> {
+                return petKey(pet.id(), pet.tier());
             }
-            try (java.io.Reader reader = new java.io.InputStreamReader(body, StandardCharsets.UTF_8)) {
-                parsed = GSON.fromJson(reader, HypixelItems.class);
+            case CurrencyIngredient currency -> {
+                if ("COIN".equals(currency.currency())) return COIN_ID;
+                key = "SKYBLOCK_" + currency.currency();
+                name = titleCase(currency.currency());
             }
-            if (parsed == null || parsed.items == null || parsed.items.isEmpty()) { LOGGER.warn("Hypixel item list empty"); return; }
-            Map<String, Double> sellPrices = new LinkedHashMap<>();
-            for (HypixelItem item : parsed.items) {
-                if (item == null || item.id == null || item.npc_sell_price == null || item.npc_sell_price <= 0) continue;
-                sellPrices.put(names.getOrDefault(item.id, item.id), item.npc_sell_price);
+            case EnchantmentIngredient enchantment -> {
+                key = enchantment.id() + ";" + enchantment.level();
+                name = titleCase(enchantment.id()) + " " + enchantment.level();
             }
-            boolean changed = writeSnapshot(sellPrices, FilePathManager.NPC_SELL_PRICES_JSON, meta);
-            resp.headers().firstValue("last-modified").ifPresent(v -> meta.put(modifiedKey, v));
-            writeMeta(FilePathManager.REMOTE_META_JSON, meta);
-            inventoryreader.ir.InventoryReader.debug("NPC sell prices: {} items", sellPrices.size());
-            if (changed) inventoryreader.ir.NpcPrices.reload();
-        } catch (Exception e) {
-            LOGGER.warn("NPC sell price fetch failed: {}", e.toString());
+            case PotionIngredient potion -> {
+                key = potion.id() + ";" + potion.level();
+                name = titleCase(potion.id().replaceFirst("^POTION_", "")) + " Potion " + potion.level();
+            }
+            case RuneIngredient rune -> {
+                key = rune.id() + ";" + rune.tier();
+                name = titleCase(rune.id()) + " Rune " + rune.tier();
+            }
+            case AttributeIngredient attribute -> {
+                key = attribute.id();
+                name = titleCase(attribute.id());
+            }
+            default -> {
+                return null;
+            }
         }
+        names.putIfAbsent(key, name);
+        return key;
+    }
+
+    /** "BEE" + "LEGENDARY" -> "BEE;4", NEU's pet key; null for a tier outside Common..Mythic. */
+    private static String petKey(String id, String tier) {
+        if (id == null || tier == null) return null;
+        int index = PET_TIERS.indexOf(tier.toUpperCase(Locale.ROOT));
+        return index < 0 ? null : id + ";" + index;
+    }
+
+    private static List<String> craftingOrForge(Map<String, ?> crafting, Map<String, ?> forge) {
+        List<String> ids = new ArrayList<>(crafting.keySet());
+        ids.addAll(forge.keySet());
+        return ids;
+    }
+
+    /** The unlock requirements as one line ("Coal VII", "Zombie Slayer 7"), or null when there are none. */
+    private static String requirementText(IdOverlaysAPI.OverlayData overlay) {
+        if (overlay == null || overlay.requirements() == null) return null;
+        List<String> parts = new ArrayList<>();
+        for (Requirement requirement : overlay.requirements()) {
+            String text = requirement.rawString();
+            if (text == null || text.isBlank()) text = requirement.formattedString();
+            text = stripMC(text);
+            if (text != null && !text.isBlank() && !parts.contains(text.trim())) parts.add(text.trim());
+        }
+        return parts.isEmpty() ? null : String.join(", ", parts);
+    }
+
+    /** NPC sell prices by item name, from SkyblockAPI's copy of Hypixel's item list (it downloads it anyway). */
+    private static Map<String, Double> npcSellPrices(Map<String, String> names) {
+        Map<String, Double> out = new LinkedHashMap<>();
+        for (Map.Entry<String, HypixelApiItem> e : ItemData.INSTANCE.getData().entrySet()) {
+            Float price = e.getValue().getNpcSellPriceFloat();
+            if (price == null || price <= 0) continue;
+            out.put(names.getOrDefault(e.getKey(), e.getKey()), price.doubleValue());
+        }
+        return out;
     }
 
     /**
@@ -449,45 +365,6 @@ public final class RemoteRecipeFetcher {
     }
 
     /**
-     * Extracts a ZIP input stream into {@code targetDir}, stripping the single top-level directory
-     * that GitHub archive ZIPs always include (e.g. {@code NotEnoughUpdates-REPO-{sha}/}).
-     */
-    private static void extractZipStrippingRoot(InputStream inputStream, Path targetDir) throws Exception {
-        Files.createDirectories(targetDir);
-        long entries = 0;
-        long bytes = 0;
-        try (java.util.zip.ZipInputStream zin = new java.util.zip.ZipInputStream(inputStream)) {
-            java.util.zip.ZipEntry ze;
-            while ((ze = zin.getNextEntry()) != null) {
-                if (ze.isDirectory()) continue;
-                if (++entries > MAX_ZIP_ENTRIES) throw new java.io.IOException("ZIP has too many entries");
-                String name = ze.getName();
-                int slash = name.indexOf('/');
-                if (slash < 0) continue;                        // no subdirectory — skip
-                String stripped = name.substring(slash + 1);
-                if (stripped.isBlank()) continue;
-                Path dest = targetDir.resolve(stripped).normalize();
-                if (!dest.startsWith(targetDir)) {              // guard against path traversal
-                    LOGGER.error("ZIP path traversal blocked: {}", name);
-                    continue;
-                }
-                Files.createDirectories(dest.getParent());
-                bytes += Files.copy(zin, dest, StandardCopyOption.REPLACE_EXISTING);
-                if (bytes > MAX_EXTRACTED_BYTES) throw new java.io.IOException("ZIP extracts to more than " + MAX_EXTRACTED_BYTES + " bytes");
-            }
-        }
-    }
-
-    /** Recursively deletes {@code dir} and all its contents, silently ignoring errors. */
-    private static void deleteDirectoryRecursively(Path dir) {
-        if (!Files.exists(dir)) return;
-        try (java.util.stream.Stream<Path> paths = Files.walk(dir)) {
-            paths.sorted(java.util.Comparator.reverseOrder())
-                .forEach(p -> { try { Files.delete(p); } catch (Exception ignore) {} });
-        } catch (Exception ignore) {}
-    }
-
-    /**
      * Writes {@code data} to {@code dest} unless the file already holds exactly that: the SHA-256 of the JSON is
      * kept in the meta file ("hash::name"). Returns true when the file was (re)written.
      */
@@ -506,31 +383,6 @@ public final class RemoteRecipeFetcher {
         return java.util.HexFormat.of().formatHex(digest);
     }
 
-    private static List<Map<String, String>> readSources(File f) {
-        try {
-            Map<String, Object> root = inventoryreader.ir.JsonFiles.read(f, new TypeToken<Map<String, Object>>(){}.getType());
-            Object arr = root == null ? null : root.get("sources");
-            List<Map<String, String>> out = new ArrayList<>();
-            if (arr instanceof List<?>) {
-                for (Object o : (List<?>) arr) {
-                    if (o instanceof Map<?, ?> m) {
-                        Map<String, String> entry = new LinkedHashMap<>();
-                        Object type = m.get("type");
-                        Object url = m.get("url");
-                        if (type != null && url != null) {
-                            entry.put("type", String.valueOf(type));
-                            entry.put("url", String.valueOf(url));
-                            out.add(entry);
-                        }
-                    }
-                }
-            }
-            return out;
-        } catch (Exception e) {
-            return List.of();
-        }
-    }
-
     private static Map<String, String> readMeta(File f) {
         Map<String, String> m = inventoryreader.ir.JsonFiles.read(f, new TypeToken<Map<String, String>>(){}.getType());
         return m == null ? new LinkedHashMap<>() : new LinkedHashMap<>(m);
@@ -541,35 +393,6 @@ public final class RemoteRecipeFetcher {
         inventoryreader.ir.JsonFiles.write(f, meta);
     }
 
-    /**
-     * Pets are listed per rarity ("BEE;4") with a level placeholder in the name ("[Lvl {LVL}] Bee"). Use
-     * "Bee (Legendary)" so the rarities stay apart and the name reads well.
-     */
-    private static String petName(String id, String display) {
-        int semi = id.lastIndexOf(';');
-        if (semi < 0 || !display.startsWith("[Lvl")) return display;
-        String name = display.replaceFirst("^\\[Lvl [^\\]]*\\]\\s*", "");
-        try {
-            int rarity = Integer.parseInt(id.substring(semi + 1));
-            if (rarity >= 0 && rarity < PET_RARITIES.length) return name + " (" + PET_RARITIES[rarity] + ")";
-        } catch (NumberFormatException ignored) {
-            // Not a pet rarity suffix; keep the plain name.
-        }
-        return name;
-    }
-
-    private static boolean cacheIsCurrent(Map<String, String> meta) {
-        return PARSER_VERSION.equals(meta.get(PARSER_VERSION_KEY));
-    }
-
-    private static boolean isHttps(String url) {
-        try {
-            return "https".equalsIgnoreCase(URI.create(url).getScheme());
-        } catch (IllegalArgumentException e) {
-            return false;
-        }
-    }
-
     /** One entry of NEU's constants/sacks.json: the internal IDs a sack holds. */
     private static class SackDef {
         List<String> contents;
@@ -577,19 +400,71 @@ public final class RemoteRecipeFetcher {
 
     /**
      * Item name (as the recipes name it) to the sack that holds it ("Enchanted Coal" -> "Enchanted Mining Sack"),
-     * from the repo's constants/sacks.json. Empty when the file is missing.
+     * from NEU's constants/sacks.json. The file is kept locally and only downloaded again when it changed (ETag).
+     * Null when there is no copy at all (keeps the current file).
      */
-    private static Map<String, String> itemSacks(Path repo, Map<String, String> recipeNameById) {
-        Map<String, Map<String, SackDef>> root = inventoryreader.ir.JsonFiles.read(
-            repo.resolve("constants").resolve("sacks.json").toFile(),
+    private static Map<String, String> itemSacks(Map<String, String> meta, Map<String, String> recipeNameById) {
+        File local = FilePathManager.NEU_SACKS_JSON;
+        String etagKey = "etag::" + SACKS_URL;
+        try {
+            HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(SACKS_URL)).timeout(Duration.ofSeconds(15)).GET();
+            String etag = local.isFile() ? meta.getOrDefault(etagKey, "") : "";
+            if (!etag.isEmpty()) b.header("If-None-Match", etag);
+            HttpResponse<String> resp = inventoryreader.ir.Http.CLIENT.send(b.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (resp.statusCode() / 100 == 2 && resp.body() != null && !resp.body().isBlank()) {
+                if (inventoryreader.ir.JsonFiles.writeText(local, resp.body())) {
+                    resp.headers().firstValue("etag").ifPresent(v -> meta.put(etagKey, v));
+                }
+            } else if (resp.statusCode() != 304) {
+                LOGGER.warn("Sack list fetch HTTP {}", resp.statusCode());
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Sack list fetch failed: {}", e.toString());
+        }
+        Map<String, Map<String, SackDef>> root = inventoryreader.ir.JsonFiles.read(local,
             new TypeToken<Map<String, Map<String, SackDef>>>(){}.getType());
+        if (root == null || root.get("sacks") == null) return null;
         Map<String, String> out = new LinkedHashMap<>();
-        if (root == null || root.get("sacks") == null) return out;
         root.get("sacks").forEach((sack, def) -> {
             if (def == null || def.contents == null) return;
             for (String id : def.contents) out.putIfAbsent(recipeNameById.getOrDefault(id, id), sack + " Sack");
         });
         return out;
+    }
+
+    private static JsonObject object(JsonObject parent, String name) {
+        if (parent == null) return null;
+        JsonElement e = parent.get(name);
+        return e != null && e.isJsonObject() ? e.getAsJsonObject() : null;
+    }
+
+    private static String text(JsonObject component) {
+        if (component == null) return null;
+        JsonElement e = component.get("text");
+        return e != null && e.isJsonPrimitive() ? e.getAsString() : null;
+    }
+
+    private static List<String> loreLines(JsonObject components) {
+        List<String> out = new ArrayList<>();
+        if (components == null) return out;
+        JsonElement lore = components.get("minecraft:lore");
+        if (lore == null || !lore.isJsonArray()) return out;
+        for (JsonElement line : (JsonArray) lore) {
+            if (line.isJsonObject()) out.add(text(line.getAsJsonObject()));
+            else if (line.isJsonPrimitive()) out.add(line.getAsString());
+        }
+        return out;
+    }
+
+    /** "NORTH_STAR" -> "North Star". */
+    private static String titleCase(String id) {
+        StringBuilder out = new StringBuilder();
+        for (String word : id.toLowerCase(Locale.ROOT).split("_")) {
+            if (word.isEmpty()) continue;
+            if (!out.isEmpty()) out.append(' ');
+            out.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return out.toString();
     }
 
     private static final List<String> RARITIES = List.of("VERY SPECIAL", "UNCOMMON", "COMMON", "RARE", "EPIC",

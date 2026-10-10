@@ -93,7 +93,7 @@ Skyblock Shopping List is designed to stay within the [Hypixel Allowed Modificat
 - The HUD only shows your own items and recipe arithmetic.
 - It bundles the [SkyblockAPI](https://github.com/SkyblockAPI/SkyblockAPI) library (MIT, by ThatGravyBoat), which reads SkyBlock data the same read-only way. On its own, SkyblockAPI can ask Hypixel for your party through the official Hypixel Mod API; this mod switches that request off. If another mod you have installed also uses SkyblockAPI (e.g. SkyOcean or StorageLens), nothing is switched off, so that mod keeps working, and the request is then that mod's.
 
-Outside the game connection it downloads recipes from the NEU repository and NPC sell prices from Hypixel's public, keyless item list (`api.hypixel.net/v2/resources/skyblock/items`), and at most once an hour while you are on SkyBlock reads Hypixel's public, keyless election data (`api.hypixel.net/v2/resources/skyblock/election`) to know whether Cole's Molten Forge perk is active.
+Outside the game connection it gets recipes and NPC sell prices through the bundled SkyblockAPI library (see [Network access](#network-access)), and at most once an hour while you are on SkyBlock reads Hypixel's public, keyless election data (`api.hypixel.net/v2/resources/skyblock/election`) to know whether Cole's Molten Forge perk is active.
 
 As Hypixel states, every modification is used at your own risk.
 
@@ -114,20 +114,18 @@ Each SkyBlock profile keeps its own data in `profiles/<account>/<profile>/`, so 
 - `presets/`: your saved HUD presets, one file each (share them by sending the file or a share code); kept by a data reset
 - `widget_config.json`: HUD position and size, expanded nodes and settings
 - `forging.json`, `gemstone_recipes.json`: built-in fallback recipes
-- `recipes_remote.json`, `recipes_remote_forge.json`, `recipes_remote_shop.json`: crafting, forge and NPC shop recipes parsed from the NEU repository
+- `recipes_remote.json`, `recipes_remote_forge.json`, `recipes_remote_shop.json`: crafting, forge and NPC shop recipes, built from SkyblockAPI's copy of the NEU repository
 - `item_names.json`: SkyBlock item ID to name table
-- `item_requirements.json`: what unlocks each recipe (collection, HotM or slayer level), from the NEU repository
-- `npc_buy_prices.json`, `npc_sell_prices.json`: coins per item to buy from NPC shops (NEU repository) and that NPCs pay (Hypixel's item list)
-- `forge_times.json`: base forge time of each forge item, from the NEU repository
-- `remote_sources.json`, `remote_sources_meta.json`: recipe source list and download cache state
-- `neu-repo-extracted/`: the unpacked NEU repository, only while it is being parsed (deleted afterwards)
+- `item_requirements.json`: what unlocks each recipe (collection, HotM or slayer level)
+- `npc_buy_prices.json`, `npc_sell_prices.json`: coins per item to buy from NPC shops (NEU repository) and that NPCs pay (Hypixel's item list, via SkyblockAPI)
+- `forge_times.json`: base forge time of each forge item
+- `neu_sacks.json`: NEU's list of which sack holds which item
+- `remote_sources_meta.json`: which recipe files changed, and the sack list's download state
 
 ## Network access
 **SkyblockAPI** (bundled library): on startup it downloads SkyBlock item and recipe data from `skyblock-api-repo.thatgravyboat.tech` (a daily copy of the NEU repository) into `skyblock-repo-cache/` in your Minecraft folder, and afterwards only files that changed. It also reads Hypixel's public election data and item list (the same keyless requests listed below). On its own it would also download bazaar prices (`api.hypixel.net/v2/skyblock/bazaar`) and lowest BIN prices (`skyblock-pv.thatgravyboat.tech/auctions`) every two hours; this mod doesn't use them and blocks those requests, unless another installed mod uses SkyblockAPI too (then that mod gets them). SkyblockAPI keeps what it reads in `config/skyblockapi/`.
 
-On startup the mod downloads the [NotEnoughUpdates-REPO](https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO) archive from GitHub (`codeload.github.com`) to get recipes. The request is a plain GET with an ETag, so unchanged data is not downloaded again. It then reads NPC sell prices from Hypixel's public, keyless item list (`api.hypixel.net/v2/resources/skyblock/items`, about 2 MB compressed); it asks with the date of the copy it has, so the list is only downloaded again when Hypixel changed it, and only the prices are kept. No player data is sent anywhere.
-
-The sources are listed in `remote_sources.json`. Only `https` URLs and local files are accepted. The archive is unpacked to `neu-repo-extracted/` with path-traversal, entry-count and size limits, then parsed as JSON and deleted again. Nothing from it is executed.
+Recipes, forge times, unlock requirements and NPC prices are built from the data SkyblockAPI already has (its copy of the NEU repository and Hypixel's item list), so the mod downloads no recipe archive of its own. The one extra file it fetches is NEU's sack list (`constants/sacks.json` from `raw.githubusercontent.com`, a few KB, with an ETag so an unchanged list isn't downloaded again). No player data is sent anywhere.
 
 ## Building from source
 Requires JDK 25.

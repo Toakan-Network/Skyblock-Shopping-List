@@ -46,9 +46,7 @@ Designed to stay within the [Hypixel Allowed Modifications](https://support.hypi
 As Hypixel states, every modification is used at your own risk.
 
 ## Network access
-Recipe Data: On startup the mod downloads the [NotEnoughUpdates-REPO](https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO) archive from GitHub to get recipes (cached with an ETag, so unchanged data isn't downloaded again). Nothing from the archive is executed.
-
-NPC Sell Prices: On startup it reads Hypixel's public item list for NPC sell prices, and only downloads it again when Hypixel has changed it.
+Recipe Data: recipes and NPC prices are built from the data the bundled SkyblockAPI library already downloads (a copy of the [NotEnoughUpdates-REPO](https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO) and Hypixel's public item list). The mod itself only fetches NEU's small sack list, cached with an ETag.
 
 Mayor Interaction Data: At most once an hour while you're on SkyBlock it reads Hypixel's public election data to know whether Cole's Molten Forge perk is active. With Forge times turned off (Settings > Rows), this data is not read.
 

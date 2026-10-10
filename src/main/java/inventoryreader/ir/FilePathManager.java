@@ -6,9 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import net.fabricmc.loader.api.FabricLoader;
 import inventoryreader.ir.recipes.RemoteRecipeFetcher;
@@ -63,7 +61,7 @@ public class FilePathManager {
     public static final File ITEM_SACKS_JSON = new File(DATA_DIR, "item_sacks.json");
     /** NPC shop purchases (coins + items) for items with no crafting or forge recipe. */
     public static final File REMOTE_SHOP_JSON = new File(DATA_DIR, "recipes_remote_shop.json");
-    /** Item name to what unlocks its recipe ("Coal III", "HotM 2"), from NEU's crafttext; written by the recipe fetch. */
+    /** Item name to what unlocks its recipe ("Coal III", "HotM 2"), written by the recipe fetch. */
     public static final File ITEM_REQUIREMENTS_JSON = new File(DATA_DIR, "item_requirements.json");
     /** Item name to the cheapest coins-only NPC shop price per item, written by the recipe fetch. */
     public static final File NPC_BUY_PRICES_JSON = new File(DATA_DIR, "npc_buy_prices.json");
@@ -71,15 +69,17 @@ public class FilePathManager {
     public static final File NPC_SELL_PRICES_JSON = new File(DATA_DIR, "npc_sell_prices.json");
     /** SkyBlock item ID to the name recipes use, written by the recipe fetch. */
     public static final File ITEM_NAMES_JSON = new File(DATA_DIR, "item_names.json");
-    public static final File REMOTE_SOURCES_JSON = new File(DATA_DIR, "remote_sources.json");
+    /** Hashes of the recipe files (rewritten only when they change) and the sack list's ETag. */
     public static final File REMOTE_META_JSON = new File(DATA_DIR, "remote_sources_meta.json");
-    /** Extracted NEU-REPO ZIP contents — read by NEURepository via the neurepoparser library. */
-    public static final File NEU_REPO_EXTRACTED = new File(DATA_DIR, "neu-repo-extracted");
+    /** Local copy of NEU's constants/sacks.json (the one file SkyblockAPI's repo data doesn't carry). */
+    public static final File NEU_SACKS_JSON = new File(DATA_DIR, "neu_sacks.json");
     private static final File VERSION_FILE = new File(DATA_DIR, "version.txt");
     /** Files written by older versions that nothing reads any more. */
     private static final File[] OBSOLETE_FILES = {
         new File(DATA_DIR, "recipes_all.json"),
         new File(DATA_DIR, "sackNames.txt"),
+        // NEU zip source list from before recipes came from SkyblockAPI.
+        new File(DATA_DIR, "remote_sources.json"),
     };
 
     private static boolean initialized = false;
@@ -93,10 +93,9 @@ public class FilePathManager {
         handleVersionUpgrade();
         migrateVersionedResources();
         cleanupStaleFiles();
-        if (!REMOTE_SOURCES_JSON.exists()) initializeRemoteSourcesConfig();
         // Item names are added to the profile's resources once ProfileManager knows the profile.
         RecipeManager.getInstance().reload();
-        RemoteRecipeFetcher.fetchAsync();
+        RemoteRecipeFetcher.register();
     }
 
     /** Moves the newest old data folder into config/skyblock-shopping-list/ the first time this version runs. */
@@ -203,15 +202,6 @@ public class FilePathManager {
             for (File f : stale) f.delete();
         }
         for (File f : OBSOLETE_FILES) f.delete();
-    }
-
-    private static void initializeRemoteSourcesConfig() {
-        Map<String, String> neu = new LinkedHashMap<>();
-        neu.put("type", "neu-zip");
-        neu.put("url", RemoteRecipeFetcher.DEFAULT_NEU_REPO_URL);
-        Map<String, Object> cfg = new LinkedHashMap<>();
-        cfg.put("sources", List.of(neu));
-        JsonFiles.write(REMOTE_SOURCES_JSON, cfg);
     }
 
     /** Items tracked even before any recipe data is available. */
