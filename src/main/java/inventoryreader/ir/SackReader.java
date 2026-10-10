@@ -1,11 +1,10 @@
 package inventoryreader.ir;
 
 import com.google.gson.reflect.TypeToken;
-import kotlin.Unit;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import tech.thatgravyboat.skyblockapi.api.SkyBlockAPI;
-import tech.thatgravyboat.skyblockapi.api.events.hypixel.SacksChangeEvent;
-import tech.thatgravyboat.skyblockapi.api.profile.items.sacks.SacksAPI;
+import skyblockdb.api.ItemCount;
+import skyblockdb.api.SkyblockDbApi;
+import skyblockdb.api.SkyblockDbListener;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -18,13 +17,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
 
 /**
- * Tracks sack contents. The counts come from SkyblockAPI, which reads sack menus and the "[Sacks]" chat
- * summaries (and never counts a change twice). Each item lives in exactly one sack, so one item-to-count snapshot
+ * Tracks sack contents. The counts come from SkyblockDB (SkyblockAPI reads sack menus and the "[Sacks]" chat
+ * summaries, and never counts a change twice). Each item lives in exactly one sack, so one item-to-count snapshot
  * covers all sacks; every change against it is passed on to {@link ResourcesManager}. Which sacks have been opened
  * (so their counts are known, not just changes) is still recorded here, from the sack menus.
  */
 public class SackReader {
-    /** How often SkyblockAPI's counts are compared with the snapshot (also on every sack chat summary). */
+    /** How often SkyblockDB's counts are compared with the snapshot (also whenever SkyblockDB reports a change). */
     private static final int SYNC_INTERVAL_TICKS = 20;
     private static final Set<String> GEMSTONE_RARITIES = Set.of("Rough", "Flawed", "Fine", "Flawless", "Perfect");
     private static final Pattern STORED = Pattern.compile("Stored:\\s*([\\d,]+)");
@@ -49,6 +48,11 @@ public class SackReader {
     private volatile Set<String> scannedView;
     /** Changes whenever {@link #scanned} grows or is cleared, so callers can cache what depends on it. */
     private volatile long scanVersion = 0;
+    /**
+     * Keys SkyblockDB reported at the last sync. SkyblockDB leaves out sack items at 0, so one of these that is gone
+     * now was emptied; keys only known from a sack menu are not touched.
+     */
+    private Set<String> fromDb = new HashSet<>();
 
     private SackReader() {}
 
@@ -56,16 +60,18 @@ public class SackReader {
         return INSTANCE;
     }
 
-    /** Follows SkyblockAPI's sack counts: on each sack chat summary, and every second for sack menus. */
+    /** Follows SkyblockDB's sack counts: whenever it reports a change, and every second. */
     public static void register() {
-        SkyBlockAPI.getEventBus().register(SacksChangeEvent.class, 0, false, event -> {
-            INSTANCE.syncFromSkyblockApi();
-            return Unit.INSTANCE;
-        });
+        SkyblockDbHook.whenReady(db -> db.addListener(new SkyblockDbListener() {
+            @Override
+            public void onItemsChanged(String profile, Set<String> sbIds) {
+                INSTANCE.syncFromSkyblockDb();
+            }
+        }));
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (++INSTANCE.ticks < SYNC_INTERVAL_TICKS) return;
             INSTANCE.ticks = 0;
-            INSTANCE.syncFromSkyblockApi();
+            INSTANCE.syncFromSkyblockDb();
         });
     }
 
@@ -80,29 +86,33 @@ public class SackReader {
     }
 
     /**
-     * Books every change in SkyblockAPI's sack counts since the last sync. Only while SkyblockAPI is on this mod's
-     * profile, so a profile switch can't book the last profile's sacks to the new one. Items SkyblockAPI doesn't
+     * Books every change in SkyblockDB's sack counts since the last sync. Only while SkyblockDB is on this mod's
+     * profile, so a profile switch can't book the last profile's sacks to the new one. Items SkyblockDB doesn't
      * know yet keep their count here.
      */
-    public synchronized void syncFromSkyblockApi() {
-        if (!SkyblockDetector.isTracking() || !ProfileManager.skyblockApiOnSameProfile()) return;
-        Map<String, Integer> theirs;
-        try {
-            theirs = new HashMap<>(SacksAPI.INSTANCE.getSackItems());
-        } catch (ConcurrentModificationException e) {
-            return; // changed while copying; the next sync gets it
-        }
+    public synchronized void syncFromSkyblockDb() {
+        if (!SkyblockDetector.isTracking() || !ProfileManager.skyblockDbOnSameProfile()) return;
+        List<ItemCount> theirs = SkyblockDbApi.get().map(db -> db.container("sacks")).orElse(List.of());
         if (theirs.isEmpty()) return;
         Map<String, String> names = new LinkedHashMap<>();
         Map<String, Integer> current = new LinkedHashMap<>();
-        theirs.forEach((id, count) -> {
-            String name = ItemIds.nameForId(id.toUpperCase(Locale.ROOT));
-            if (name == null || count == null) return;
+        for (ItemCount row : theirs) {
+            String name = ItemIds.nameForId(row.sbId());
+            if (name == null) continue;
             String key = ItemNames.normalize(name);
             names.putIfAbsent(key, ItemNames.clean(name));
-            current.merge(key, Math.max(0, count), Math::max);
-        });
+            current.merge(key, (int) Math.min(Integer.MAX_VALUE, Math.max(0, row.amount())), Math::max);
+        }
         Map<String, Integer> snap = snapshot();
+        // Reported last time and gone now: emptied (SkyblockDB leaves out items at 0).
+        for (String key : fromDb) {
+            if (!current.containsKey(key) && snap.getOrDefault(key, 0) > 0) {
+                current.put(key, 0);
+                names.putIfAbsent(key, key);
+            }
+        }
+        fromDb = new HashSet<>(current.keySet());
+        fromDb.removeIf(key -> current.get(key) == 0);
         Map<String, Integer> deltas = new LinkedHashMap<>();
         current.forEach((key, count) -> {
             Integer previous = snap.put(key, count);
@@ -119,6 +129,7 @@ public class SackReader {
     /** Forgets the in-memory snapshot (after a reset deleted sacks.json). */
     public synchronized void clear() {
         snapshot = null;
+        fromDb = new HashSet<>();
         lastRead = null;
         scanned = null;
         scannedView = null;
@@ -202,7 +213,7 @@ public class SackReader {
         meta.lastRead = lastRead = System.currentTimeMillis();
         meta.scanned = new ArrayList<>(scanned);
         JsonFiles.writeAsync(FilePathManager.sacksMetaJson(), () -> meta);
-        syncFromSkyblockApi();
+        syncFromSkyblockDb();
     }
 
     private static void readStoredLore(String itemName, List<Component> lines, Map<String, Integer> out) {

@@ -5,8 +5,6 @@
   "compatibilityLevel": "JAVA_25",
   "client": [
     "SackHighlightMixin",
-    "SkyblockApiHttpMixin",
-    "SkyblockApiPartyMixin",
     "SlotClickMixin"
   ],
   "injectors": {

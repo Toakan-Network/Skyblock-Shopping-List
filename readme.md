@@ -20,12 +20,12 @@ Skyblock Shopping List grew out of [Inventory Reader](https://github.com/Scholib
 - Fabric API 0.161.0 or newer, built for your Minecraft version
 - YetAnotherConfigLib 3.9.7 or newer, built for your Minecraft version (already installed if you use Skyblocker)
 - [Hypixel Mod API](https://modrinth.com/mod/hypixel-mod-api) 1.0.2 or newer (official; used to know when you are on SkyBlock)
-- [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) 1.13.12 or newer (needed by the bundled SkyblockAPI library)
+- SkyblockDB 0.4.8 or newer, the jar for your Minecraft version: it reads your SkyBlock data and the item and recipe data, and needs [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) 1.13.12 or newer
 - Java 25
 
 ## Installation
 1. Install Fabric Loader for Minecraft 26.2 or 26.3.
-2. Put Fabric API, YetAnotherConfigLib, the Hypixel Mod API, Fabric Language Kotlin and the Skyblock Shopping List jar in your `mods/` folder.
+2. Put Fabric API, YetAnotherConfigLib, the Hypixel Mod API, SkyblockDB, Fabric Language Kotlin and the Skyblock Shopping List jar in your `mods/` folder.
 3. Launch Minecraft with the Fabric profile.
 
 ## First-time setup
@@ -63,7 +63,7 @@ The HUD (`H` to toggle) shows:
 - **Forging**: items cooking in your Dwarven Forge that the list needs, with time left. Updated when you open The Forge.
 - **Recipe locks**: a small padlock after rows you still need to make whose recipe has to be unlocked first: a collection tier, a Heart of the Mountain tier or a slayer level. Rows with such a requirement further down their tree get the padlock too, so you see it before committing to the whole craft, even with the row collapsed. In the List tab preview, hover the row to see what it requires, e.g. `Requires: HotM 6`, then under **Needs below** each lower requirement with its item, e.g. `HotM 2 (Refined Titanium)`. The requirement comes from the NEU repository. Your own collections and levels aren't read, so the padlock shows even if you've already unlocked the recipe; rows you already have enough of never show one.
 - **NPC price** (at the bottom): what the whole list costs at NPCs, like the bottom line of an invoice. **Buy** is the coins to buy every raw material in the Total from NPC shops, **Sell** is what NPCs pay for them. It covers everything the list needs, including what you already hold. Coin prices only: buy prices are the cheapest NPC shop offer that costs coins alone (e.g. Coal: 8 coins for 2 at the Mine Merchant, so 4 each), and sell prices come from Hypixel's item list. Many items have no NPC price (bazaar-only items, mob drops), so each line says how many of the items have one, e.g. `Buy: 1,240 coins (12/15 items)`; those without one are left out of the sum. Coins on the list count towards Buy.
-- **Forge times**: rows made in the Forge show how long is still ahead, e.g. `Titanium Drill DR-X455 [25hrs]`: every forge craft still to make for that row, one after another (forge time × how many are still needed, plus all its ingredients). That is the worst case: forging several at once finishes sooner. Items cooking now add the time they have left and count down on their real timer. Crafts not started yet get your **Quick Forge** perk (read when you open Heart of the Mountain) and Cole's **Molten Forge** while he is mayor or minister (the mayor and minister come from SkyblockAPI's election tracking). Settings > Rows > Forge times: Every row, Top level only, or Off. Long names are cut short so the time always shows.
+- **Forge times**: rows made in the Forge show how long is still ahead, e.g. `Titanium Drill DR-X455 [25hrs]`: every forge craft still to make for that row, one after another (forge time × how many are still needed, plus all its ingredients). That is the worst case: forging several at once finishes sooner. Items cooking now add the time they have left and count down on their real timer. Crafts not started yet get your **Quick Forge** perk (read when you open Heart of the Mountain) and Cole's **Molten Forge** while he is mayor or minister (the mayor and minister come from SkyblockDB, which follows SkyblockAPI's election tracking). Settings > Rows > Forge times: Every row, Top level only, or Off. Long names are cut short so the time always shows.
 
 Recipes cover crafting, the Dwarven Forge and NPC shop purchases (for items with no crafting or forge recipe) and Kat pet upgrades, so things like the **Golden Dragon (Legendary)** (500M coins, 50 Enchanted Gold Block and one of each Perfect gem) can go on the list. Items with no recipe of their own, such as shop currencies (Agatha's Coupon, Miria's Prize), can be added too, to track how many you hold. Pets are listed as "<Pet> (<Rarity>)"; a pet upgrade needs the same pet one rarity lower. Pets you own count once they are in your inventory, a backpack or the ender chest, or after you have opened each page of your Pets menu (`/pets`).
 
@@ -88,12 +88,12 @@ The mod only runs on Hypixel SkyBlock. It uses the official Hypixel Mod API's lo
 
 ## Hypixel rules
 Skyblock Shopping List is designed to stay within the [Hypixel Allowed Modifications](https://support.hypixel.net/hc/en-us/articles/6472550754962-Hypixel-Allowed-Modifications) guidelines:
-- It is read-only. It looks at screens you open and chat messages you receive (only Hypixel's own `Profile ID` line, matched exactly so player chat can't trigger it; the `[Sacks]` summaries are read through SkyblockAPI), and never sends packets, chat messages or commands to the server. It never hides or changes a message.
+- It is read-only. It looks at screens you open and chat messages you receive (only Hypixel's own `Profile ID` line, matched exactly so player chat can't trigger it; the `[Sacks]` summaries are read through SkyblockDB), and never sends packets, chat messages or commands to the server. It never hides or changes a message.
 - It does not automate anything: no clicking, crafting, moving items or opening menus for you.
 - The HUD only shows your own items and recipe arithmetic.
-- It bundles the [SkyblockAPI](https://github.com/SkyblockAPI/SkyblockAPI) library (MIT, by ThatGravyBoat), which reads SkyBlock data the same read-only way. On its own, SkyblockAPI can ask Hypixel for your party through the official Hypixel Mod API; this mod switches that request off. If another mod you have installed also uses SkyblockAPI (e.g. SkyOcean or StorageLens), nothing is switched off, so that mod keeps working, and the request is then that mod's.
+- It gets your sacks, purse, profile, the recipes and the mayor from SkyblockDB, a separate mod built on the [SkyblockAPI](https://github.com/SkyblockAPI/SkyblockAPI) library (MIT, by ThatGravyBoat). Both read SkyBlock data the same read-only way.
 
-Outside the game connection it gets recipes, NPC sell prices and the current mayor (for Cole's Molten Forge perk) through the bundled SkyblockAPI library, which reads Hypixel's public, keyless resources (see [Network access](#network-access)).
+Outside the game connection it gets recipes, NPC sell prices and the current mayor (for Cole's Molten Forge perk) from SkyblockDB, whose SkyblockAPI reads Hypixel's public, keyless resources (see [Network access](#network-access)).
 
 As Hypixel states, every modification is used at your own risk.
 
@@ -114,18 +114,18 @@ Each SkyBlock profile keeps its own data in `profiles/<account>/<profile>/`, so 
 - `presets/`: your saved HUD presets, one file each (share them by sending the file or a share code); kept by a data reset
 - `widget_config.json`: HUD position and size, expanded nodes and settings
 - `forging.json`, `gemstone_recipes.json`: built-in fallback recipes
-- `recipes_remote.json`, `recipes_remote_forge.json`, `recipes_remote_shop.json`: crafting, forge and NPC shop recipes, built from SkyblockAPI's copy of the NEU repository
+- `recipes_remote.json`, `recipes_remote_forge.json`, `recipes_remote_shop.json`: crafting, forge and NPC shop recipes, built from SkyblockDB's copy of the NEU repository
 - `item_names.json`: SkyBlock item ID to name table
 - `item_requirements.json`: what unlocks each recipe (collection, HotM or slayer level)
-- `npc_buy_prices.json`, `npc_sell_prices.json`: coins per item to buy from NPC shops (NEU repository) and that NPCs pay (Hypixel's item list, via SkyblockAPI)
+- `npc_buy_prices.json`, `npc_sell_prices.json`: coins per item to buy from NPC shops (NEU repository) and that NPCs pay (Hypixel's item list, via SkyblockDB)
 - `forge_times.json`: base forge time of each forge item
 - `neu_sacks.json`: NEU's list of which sack holds which item
 - `remote_sources_meta.json`: which recipe files changed, and the sack list's download state
 
 ## Network access
-**SkyblockAPI** (bundled library): on startup it downloads SkyBlock item and recipe data from `skyblock-api-repo.thatgravyboat.tech` (a daily copy of the NEU repository) into `skyblock-repo-cache/` in your Minecraft folder, and afterwards only files that changed. It also reads Hypixel's public election data and item list (the same keyless requests listed below). On its own it would also download bazaar prices (`api.hypixel.net/v2/skyblock/bazaar`) and lowest BIN prices (`skyblock-pv.thatgravyboat.tech/auctions`) every two hours; this mod doesn't use them and blocks those requests, unless another installed mod uses SkyblockAPI too (then that mod gets them). SkyblockAPI keeps what it reads in `config/skyblockapi/`.
+**SkyblockDB** (required mod) makes no web requests itself; its SkyblockAPI library downloads SkyBlock item and recipe data from `skyblock-api-repo.thatgravyboat.tech` (a daily copy of the NEU repository) into `skyblock-repo-cache/` in your Minecraft folder, and afterwards only files that changed. SkyblockAPI also reads Hypixel's public election data and item list, and bazaar and lowest BIN prices, as its readme describes; this mod doesn't block any of them.
 
-Recipes, forge times, unlock requirements and NPC prices are built from the data SkyblockAPI already has (its copy of the NEU repository and Hypixel's item list), so the mod downloads no recipe archive of its own. The one extra file it fetches is NEU's sack list (`constants/sacks.json` from `raw.githubusercontent.com`, a few KB, with an ETag so an unchanged list isn't downloaded again). No player data is sent anywhere.
+Recipes, forge times, unlock requirements and NPC prices are built from SkyblockDB's reference data (its copy of the NEU repository and Hypixel's item list), so the mod downloads no recipe archive of its own. The one extra file it fetches is NEU's sack list (`constants/sacks.json` from `raw.githubusercontent.com`, a few KB, with an ETag so an unchanged list isn't downloaded again). No player data is sent anywhere.
 
 ## Building from source
 Requires JDK 25.

@@ -8,7 +8,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
-import tech.thatgravyboat.skyblockapi.api.profile.currency.CurrencyAPI;
+import skyblockdb.api.Currency;
+import skyblockdb.api.SkyblockDbApi;
 
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.regex.Pattern;
 
 /**
  * Keeps the "Coins" resource equal to purse + bank, so coin costs (shop purchases) show what is left like any
- * other item. The purse comes from SkyblockAPI (it reads the SkyBlock sidebar); the bank balance from the bank
+ * other item. The purse comes from SkyblockDB (SkyblockAPI reads it from the sidebar); the bank balance from the bank
  * menu when the player opens it. Read-only: nothing is sent or clicked.
  */
 public final class CoinTracker {
@@ -72,10 +73,11 @@ public final class CoinTracker {
         lastWritten = -1;
     }
 
-    /** The purse SkyblockAPI has for this profile, or -1 while it hasn't caught up with a profile switch. */
+    /** The purse SkyblockDB has for this profile, or -1 while it hasn't caught up with a profile switch. */
     private static long readPurse() {
-        if (!ProfileManager.skyblockApiOnSameProfile()) return -1;
-        return (long) CurrencyAPI.INSTANCE.getPurse();
+        if (!ProfileManager.skyblockDbOnSameProfile()) return -1;
+        Currency purse = SkyblockDbApi.get().map(db -> db.currencies().get("purse")).orElse(null);
+        return purse == null ? -1 : (long) purse.value();
     }
 
     private static void publish() {

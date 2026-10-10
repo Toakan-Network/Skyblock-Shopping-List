@@ -5,8 +5,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
-import tech.thatgravyboat.skyblockapi.api.data.MayorPerk;
-import tech.thatgravyboat.skyblockapi.api.data.MayorPerks;
+import skyblockdb.api.Perk;
+import skyblockdb.api.SkyblockDbApi;
 
 import java.io.File;
 import java.util.List;
@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 
 /**
  * How much faster the Forge runs for this player: the HOTM Quick Forge perk (read from the Heart of the
- * Mountain menu when it is opened) plus Cole's Molten Forge perk when he is mayor or minister (from SkyblockAPI's
- * election tracking). The two stack additively.
+ * Mountain menu when it is opened) plus Cole's Molten Forge perk when he is mayor or minister (from SkyblockDB, which
+ * follows SkyblockAPI's election tracking). The two stack additively.
  */
 public final class ForgeSpeed {
     private static final Pattern QUICK_FORGE = Pattern.compile("forge,?\\s+by ([\\d.]+)%");
@@ -70,7 +70,7 @@ public final class ForgeSpeed {
     }
 
     /**
-     * Takes the current Molten Forge bonus from SkyblockAPI, which tracks the mayor and minister (Hypixel's public
+     * Takes the current Molten Forge bonus from SkyblockDB, which follows the mayor and minister (Hypixel's public
      * election data). Cheap; the update thread calls it every second.
      */
     public static void refreshMayor() {
@@ -83,9 +83,9 @@ public final class ForgeSpeed {
 
     /** Molten Forge's cut in percent while Cole (mayor or minister) has it active, else 0. */
     private static double moltenForgeBonus() {
-        MayorPerk perk = MayorPerks.INSTANCE.getMOLTEN_FORGE();
-        if (perk == null || !perk.getActive()) return 0;
-        Matcher m = PERCENT.matcher(ItemNames.clean(perk.getDescription()));
+        Perk perk = SkyblockDbApi.get().flatMap(db -> db.activePerk("MOLTEN_FORGE")).orElse(null);
+        if (perk == null) return 0;
+        Matcher m = PERCENT.matcher(ItemNames.clean(perk.description()));
         double bonus = m.find() ? parse(m.group(1)) : MOLTEN_FORGE_DEFAULT;
         return bonus > 0 ? bonus : MOLTEN_FORGE_DEFAULT;
     }

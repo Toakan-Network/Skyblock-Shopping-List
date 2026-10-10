@@ -18,27 +18,6 @@ repositories {
 	// for more information about repositories.
 	maven { url = "https://repo.hypixel.net/repository/Hypixel/" }
 	maven { url = "https://maven.isxander.dev/releases" }
-	// SkyblockAPI (ThatGravyBoat): sacks, storage, profile and repo data, bundled below.
-	maven {
-		url = "https://maven.teamresourceful.com/repository/maven-public/"
-		content { excludeModule("tech.thatgravyboat", "skyblock-api") }
-	}
-	// SkyblockAPI's own jars, fetched as plain files: its Gradle variant metadata would pick one Minecraft build,
-	// and we bundle two (26.2 and 26.3).
-	exclusiveContent {
-		forRepository {
-			ivy {
-				name = "SkyblockAPI jars"
-				url = "https://maven.teamresourceful.com/repository/maven-public/"
-				patternLayout {
-					artifact "[organisation]/[module]/[revision]/[module]-[revision](-[classifier]).[ext]"
-					m2compatible = true
-				}
-				metadataSources { artifact() }
-			}
-		}
-		filter { includeModule("tech.thatgravyboat", "skyblock-api") }
-	}
 }
 
 dependencies {
@@ -53,21 +32,11 @@ dependencies {
 	// fabric.mod.json); players install the hypixel-mod-api mod themselves, so it is compile-only, not bundled.
 	compileOnly "net.hypixel:mod-api:1.0.2"
 
-	// SkyblockAPI: SkyBlock data readers maintained upstream (sacks, storage, forge, recipes via its bundled
-	// Repo-Lib). One build per Minecraft version, picked by capability; bundled with Jar-in-Jar (it is not on
-	// Modrinth), and Fabric loads the newest copy when other mods bundle it too. Needs fabric-language-kotlin.
-	// The version is written out in full so Dependabot can bump it. Jar only (@jar): its metadata lists
-	// dev-only mods (DevAuth); what it needs at runtime is nested in its own jar or installed by the player.
-	// Compiled against the 26.2 build, the lower bound.
-	implementation "tech.thatgravyboat:skyblock-api:4.2.37:26.2@jar"
-	// Both builds go in the jar; each requires its own Minecraft version, so Fabric loads the one that matches
-	// (one jar for 26.2 and 26.3). Picked by file classifier, which bypasses the variant metadata.
-	include "tech.thatgravyboat:skyblock-api:4.2.37:26.2@jar"
-	include "tech.thatgravyboat:skyblock-api:4.2.37:26.3@jar"
-	// Compile against what SkyblockAPI exposes: Repo-Lib (nested in its jar) and the Kotlin standard library
-	// (from fabric-language-kotlin, installed by the player).
-	compileOnly "tech.thatgravyboat.repo-lib:repo-lib:4.1.11"
-	compileOnly "org.jetbrains.kotlin:kotlin-stdlib:2.4.0"
+	// SkyblockDB: the player's SkyBlock data (sacks, purse, profile) and the reference data (items, recipes,
+	// requirements, NPC prices, mayor), on top of SkyblockAPI. Required at runtime ("depends" in fabric.mod.json);
+	// players install it themselves. Compiled against its plain-Java API jar, kept in libs/ (the same jar for
+	// every Minecraft version).
+	compileOnly files("libs/skyblock-db-api-0.4.8.jar")
 
 	// YetAnotherConfigLib for the Settings screen. Required at runtime ("depends" in fabric.mod.json), not bundled.
 	implementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"

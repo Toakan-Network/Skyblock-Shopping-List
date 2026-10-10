@@ -41,21 +41,21 @@ Designed to stay within the [Hypixel Allowed Modifications](https://support.hypi
 - Read-only: it looks at screens you open and chat messages you receive, and never sends packets, chat messages or commands.
 - No automation: no clicking, crafting, moving items or opening menus for you.
 - Only active on Hypixel SkyBlock. In lobbies, other games and other servers the HUD is hidden and nothing is tracked.
-- Bundles the [SkyblockAPI](https://github.com/SkyblockAPI/SkyblockAPI) library, which reads SkyBlock data the same read-only way. Its own party request (official Hypixel Mod API) is switched off, unless another installed mod uses SkyblockAPI too.
+- Reads your SkyBlock data through SkyblockDB (built on the [SkyblockAPI](https://github.com/SkyblockAPI/SkyblockAPI) library), which works the same read-only way.
 
 As Hypixel states, every modification is used at your own risk.
 
 ## Network access
-Recipe Data: recipes and NPC prices are built from the data the bundled SkyblockAPI library already downloads (a copy of the [NotEnoughUpdates-REPO](https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO) and Hypixel's public item list). The mod itself only fetches NEU's small sack list, cached with an ETag.
+Recipe Data: recipes and NPC prices are built from SkyblockDB's reference data, which its SkyblockAPI library downloads (a copy of the [NotEnoughUpdates-REPO](https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO) and Hypixel's public item list). The mod itself only fetches NEU's small sack list, cached with an ETag.
 
-Mayor Interaction Data: whether Cole's Molten Forge perk is active comes from SkyblockAPI, which reads Hypixel's public election data.
+Mayor Interaction Data: whether Cole's Molten Forge perk is active comes from SkyblockDB, whose SkyblockAPI reads Hypixel's public election data.
 
-SkyblockAPI (bundled library): downloads SkyBlock item and recipe data from `skyblock-api-repo.thatgravyboat.tech` (a daily copy of the NEU repository), cached, only changed files again. Its bazaar and lowest BIN price downloads are blocked, unless another installed mod uses SkyblockAPI too.
+SkyblockDB (required mod): its SkyblockAPI library downloads SkyBlock item and recipe data from `skyblock-api-repo.thatgravyboat.tech` (a daily copy of the NEU repository), cached, only changed files again.
 
 No player data is sent anywhere.
 
 ## Requirements
-Minecraft 26.2 or 26.3 (one jar for both), Java 25, Fabric Loader 0.19.5+, Fabric API, YetAnotherConfigLib (already installed if you use Skyblocker) the [Hypixel Mod API](https://modrinth.com/mod/hypixel-mod-api) (required: the game won't start without it) and [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) (for the bundled SkyblockAPI library).
+Minecraft 26.2 or 26.3 (one jar for both), Java 25, Fabric Loader 0.19.5+, Fabric API, YetAnotherConfigLib (already installed if you use Skyblocker) the [Hypixel Mod API](https://modrinth.com/mod/hypixel-mod-api) and SkyblockDB 0.4.8+ with [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) (all required: the game won't start without them).
 
 ## Known limitations
 - Sack contents only fully resync when you open a sack; in between they follow the `[Sacks]` chat summaries. A reminder appears if no sack has been opened for an hour.

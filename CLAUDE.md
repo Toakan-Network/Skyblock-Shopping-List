@@ -20,10 +20,13 @@ Order per change: edit, bump `mod_version`, `./gradlew build`, commit. Bump befo
 - Minimal dependencies: no new library or mod integration unless the benefit is large. Prefer the
   smallest change that does the job. A library that takes over code we would otherwise maintain (SkyBlock
   parsing that breaks when Hypixel changes a menu or message) counts as a large benefit.
-- SkyblockAPI (bundled, Jar-in-Jar): prefer its data over writing new SkyBlock parsing. Call it from Java via
-  `X.INSTANCE`; avoid members typed `SkyBlockId` (name-mangled, not callable from Java). Its extra traffic
-  (party request, price polling) is blocked by `SkyblockApiGuard` and the `SkyblockApi*Mixin`s while no other
-  mod uses it; keep that list current when bumping its version.
+- SkyblockDB (required mod, sibling repo `../SkyblockDB`): all SkyBlock data (sacks, purse, profile, mayor)
+  and reference data (items, recipes, requirements, attributes, NPC prices) come from its plain-Java API,
+  `SkyblockDbApi`, compiled against `libs/skyblock-db-api-<version>.jar`. Prefer it over new SkyBlock parsing;
+  if something is missing, add it to SkyblockDB's API rather than calling SkyblockAPI here. Reach it through
+  `SkyblockDbHook.whenReady` (mods start in no fixed order). Its IDs use NEU's spelling (`INK_SACK-3`, `BEE;4`),
+  and so does `ItemIds`. After a SkyblockDB API change, copy the new api jar into `libs/` and raise the
+  `skyblock-db` version in `fabric.mod.json`.
 - Keep the mod resource light (disk, network, CPU): no large temp data, extra polling or extra downloads.
   Weigh the footprint when proposing a feature.
 
@@ -40,10 +43,8 @@ Tracking, the HUD and keybinds run only on SkyBlock (`SkyblockDetector`).
 ## Minecraft versions
 One jar covers 26.2 and 26.3 (`"minecraft": ["~26.2", "~26.3"]`). It is built against 26.2, the lower bound.
 - No `org.lwjgl.glfw`: 26.3 moved to SDL, so GLFW is missing there.
-- SkyblockAPI has one build per Minecraft version, each hard-requiring it; both the 26.2 and 26.3 builds are
-  nested in the jar (fetched as plain files, see `build.gradle`) and Fabric loads the matching one.
-  We compile against the 26.2 build: only use SkyblockAPI classes that exist in both. The 26.3 build drops
-  its deprecated `WardrobeAPI` (use `ArmorWardrobeAPI` / `EquipmentWardrobeAPI`) and `RepoStatusEvent` (use `RepoEvent`).
+- SkyblockDB has one jar per Minecraft version (players install the matching one); its API jar is the same
+  for both, so this mod stays one jar.
 - Don't reference `InputConstants` key or mouse codes directly. Their values differ between versions and
   javac inlines them, so read them with `InventoryReaderClient.inputCode("KEY_V")`.
 - Before a release, compile against 26.3 too (swap `minecraft_version`, `fabric_version` and `yacl_version`)

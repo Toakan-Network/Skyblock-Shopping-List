@@ -90,12 +90,13 @@ public final class ItemIds {
     }
 
     /**
-     * The item's SkyBlock ID. Every pet has the ID "PET" with its type and rarity in the "petInfo" JSON, so pets
+     * The item's SkyBlock ID, spelt as SkyblockDB (and NEU) spell it: variants with a dash ("INK_SACK-3", Hypixel
+     * writes "INK_SACK:3"). Every pet has the ID "PET" with its type and rarity in the "petInfo" JSON, so pets
      * get the NEU form "TYPE;rarity" ("BEE;4") that the recipe tables use.
      */
     private static String skyblockId(ItemStack stack) {
         CompoundTag data = customData(stack);
-        String id = data.getStringOr("id", "");
+        String id = data.getStringOr("id", "").replace(':', '-');
         if (!PET_ID.equals(id)) return id;
         try {
             JsonObject info = JsonParser.parseString(data.getStringOr("petInfo", "")).getAsJsonObject();

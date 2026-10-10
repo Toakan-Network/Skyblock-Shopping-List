@@ -84,4 +84,3 @@ jobs:
             fabric-api(required)
             yacl(required)
             hypixel-mod-api(required)
-            fabric-language-kotlin(required)
