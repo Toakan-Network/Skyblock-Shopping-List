@@ -1,6 +1,12 @@
-Pick the items you want to make, and a HUD shopping list shows what you can already craft and what you still need to gather. Skyblock Shopping List counts the items in your inventory, sacks, backpacks and ender chest, and works out every recipe tree down to its raw materials.
+> **Built for Ironman first, works for everyone.**
 
-**Built for Ironman first, works for everyone.** No Bazaar, no Auction House: on Ironman everything is gathered or crafted yourself, so the mod is designed around that, from full recipe trees down to raw materials to NPC coin prices instead of Bazaar prices. Nothing is limited to Ironman, though; on a regular profile it tracks your stock and plans crafts just the same.
+Skyblock Shopping List is a Fabric client mod for Hypixel SkyBlock. It keeps a count of the items in your inventory, sacks, backpacks and ender chest, and shows a shopping list HUD for the recipes you pick: what you can already craft and what you still need. Lists can be saved under a name and swapped back in later.
+
+### Ironman first
+This mod is designed around Ironman play. With no Bazaar or Auction House, every item has to be gathered or crafted yourself, so knowing exactly what a recipe tree still needs, which sacks hold it, what is cooking in the Forge and what an NPC sells or pays is the whole game. New features are planned with that in mind: nothing relies on Bazaar or Auction House prices, and prices shown are NPC coin prices.
+
+### Works for everyone
+Nothing in the mod is limited to Ironman profiles. On a regular profile it works the same way: track your stock across inventory, sacks and storage, plan big crafts down to raw materials, and see what you can make right now.
 
 **Coming from Inventory Reader?** This mod grew out of [Inventory Reader](https://github.com/Scholiboi/InventoryReader) by Scholiboi. Remove the old jar before installing; your data is moved to `config/skyblock-shopping-list/` automatically on first launch.
 
