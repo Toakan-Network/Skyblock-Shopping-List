@@ -127,6 +127,11 @@ Each SkyBlock profile keeps its own data in `profiles/<account>/<profile>/`, so 
 
 Recipes, forge times, unlock requirements and NPC prices are built from SkyblockDB's reference data (its copy of the NEU repository and Hypixel's item list), so the mod downloads no recipe archive of its own. The one extra file it fetches is NEU's sack list (`constants/sacks.json` from `raw.githubusercontent.com`, a few KB, with an ETag so an unchanged list isn't downloaded again). No player data is sent anywhere.
 
+## Security scan
+The 4.28.0-integration jar was scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), a static scanner for malicious Java code and Minecraft mods (network off, nothing
+uploaded). Result: no confirmed malicious behavior and no known malware matched. The report, the jar hashes to check
+your copy against and an explanation of each flagged item are in [security/java-triage](security/java-triage/README.md).
+
 ## Building from source
 Requires JDK 25.
 
