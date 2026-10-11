@@ -1,9 +1,9 @@
-# Builds the mod on every push and pull request and uploads the jar.
+# Builds the mod on every push to master or dev and on pull requests, and uploads the jar.
 
 name: build
 on:
   push:
-    branches: [master]
+    branches: [master, dev]
     paths:
       - 'src/**'
       - 'build.gradle'
