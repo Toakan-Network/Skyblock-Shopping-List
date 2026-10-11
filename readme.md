@@ -42,39 +42,25 @@ You don't need to open every sack. When you join SkyBlock and each time you add 
 - in the sack menus (`/sacks`), the sacks still to open have a gold square behind them.
 Everything goes back to normal as soon as each sack has been opened once.
 
-## Menu
-Press `V` (or `/ssl menu`) to open the menu. It has five tabs:
-- **List** (opens first): search recipes, type how many you want and click a recipe to add it (up to 3 by default). Each entry has ▲ / ▼ to change its order, its own amount box and an × to remove it, plus **Clear list**. Order is priority: when recipes share materials, the higher one gets them first. Each entry's **=** / **+** button sets what its amount means: **=** Have total (default: how many you want in total, so what you already hold counts) or **+** Add more (how many more to make on top of what you hold when you switch). Below is a preview of what the HUD shows, with the NPC price line under it. On the right, **Saved lists** keeps named lists (e.g. Mining, Foraging): type a name and click **Save**, click a saved list to load it in place of the current one, or click its × twice to delete it. Saved lists are shared by all profiles. Under the search box, four filter buttons narrow the recipe list (left click to cycle, right click to go back): **Name** / **Uses** (Uses searches ingredients, so *coal* finds Torch), item type (Armor, Accessory, Pet, Weapon, Tool, Equipment, Other), rarity, and **Owned** / **Missing**. Type and rarity come from the downloaded recipe data.
-- **Resources**: your item counts with search. Type in a box or use − / + to correct a count; changes save straight away. **Show all** also lists items you have none of.
-- **Recipes**: browse any recipe's full tree for a chosen amount, and **Add to list**.
-- **Forge**: what you still need for one recipe, with **Add to list**.
-- **Settings**: opens the settings screen (YetAnotherConfigLib, same style as Skyblocker), with three tabs. Changes apply when you press Save.
-  - **Settings**: what the mod shows and does, in groups. **HUD**: HUD on/off, Max recipes, **Move HUD...**, Reset HUD position. **Sections**: Total, Craftable and Forging (each on/off, inside the main panel or in a panel of its own), Total lists, NPC price. **Rows**: the amount format (Remaining "3×", Have / need "83/5,120", or Required "6×"), **Short numbers** (on by default; big amounts as 5.1k / 500m / 1.5b), **Hide finished rows** (on by default; ingredient rows you already have enough of drop off the HUD, the List tab still shows them), Forge times and Recipe locks. **List**: Auto-remove. **Notifications**: Pop-ups and Sack reminder.
-  - **Appearance**: how the HUD looks (below).
-  - **Advanced**: **Key binds...** and **Debug logging** (off by default; when on, writes what the mod reads to latest.log).
-- **Appearance** (in Settings): design the HUD yourself. Colours (with transparency) for the panel, borders, title, rows, tree lines, text and the done / partly gathered / missing / can craft / cooking states (cooking: you only have enough by counting items still in the Forge); row height, row gap, indent, padding, border thicknesses and rounded corners (panels and rows, 0-6 px); font (Minecraft's fonts plus any your enabled resource packs add), shadow and bold recipe names; separate text sizes for the title, rows, Craftable and Forging, and left / centre / right alignment for the title, Craftable and Forging; tick/cross marks, row boxes and tree lines (Row decoration). A live preview at the top of the description column shows a sample panel with your changes before you press Save. **Reset look to defaults** restores the original look; the Settings tab is left as it is.
-  - **HUD scale** (50-300%) sizes every panel. **HUD sizing** sets how it reacts to the window: **Window size** (default) grows and shrinks with the game window, **Minecraft GUI Scale** follows GUI Scale in steps like vanilla menus, **Fixed pixels** never changes. Panels keep their place relative to the screen and stay on it when the window is resized.
-  - **Craftable** and **Forging** can each be hidden, or moved to their **own panel** that you place and size separately in Move HUD.
-  - **Recipe locks** (on by default) can be hidden.
-  - **NPC price section** (on by default) can be hidden; it uses the Craftable text size, alignment and section colours.
-  - In **Move HUD**, drag a panel to move it, drag a **corner** to scale it (keeps its shape; each panel has its own scale on top of HUD scale), or drag an **edge** to make it wider, narrower, taller or shorter.
-  - **Presets** (Appearance > Presets): save your look and panel sizes under a name (Settings tab choices such as Short numbers aren't part of a preset), load one of yours or a built-in (Default, Compact, Minimal), and **Copy share code** / **Paste share code** to share a look as text (e.g. in Discord). Panel positions are never changed. Loading, pasting or resetting first keeps your current look as the preset "Previous (auto)", and a setup you made before presets existed is kept as "My look".
-  - Panels grow to fit their content up to the height set in Move HUD; anything beyond is cut off and marked with "…" (make the panel taller or collapse rows).
+## Features
+- [Shopping list HUD](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD)
+- [Easy start: no need to open every sack](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#first-things-to-open)
+- [Recipe filters](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
+- [Saved lists](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
+- [Per-profile data](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#per-profile-data)
+- [Craftable](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#craftable)
+- [Forging](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forging)
+- [Recipe locks](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#recipe-locks)
+- [NPC price](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#npc-price)
+- [Forge times](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forge-times)
+- [Recipes beyond the crafting table](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#recipes)
+- [Coins count as an item](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#coins)
+- [Pop-ups](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#pop-ups)
+- [Fully customisable look](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
+- [Presets and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
+- [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)
 
-The HUD (`H` to toggle) shows:
-- **Total**: every raw material still needed across all recipes, missing items first. Slide **Total lists** to a level to sum the steps in between instead: Level 1 is the pieces each recipe takes directly (e.g. Drill Motor, Refined Titanium), Level 2 what those take, up to Level 5. Raw materials needed above the chosen level are listed as they are. Set **Total panel** to Own panel to give the Total its own panel you can move, resize and scale in **Move HUD...**, like Craftable and Forging. Your stock is shared between recipes, never counted twice (earlier entries get it first).
-- One tree per recipe.
-- **Craftable**: intermediates you can make right now.
-- **Forging**: items cooking in your Dwarven Forge that the list needs, with time left. Updated when you open The Forge.
-- **Recipe locks**: a small padlock after rows you still need to make whose recipe has to be unlocked first: a collection tier, a Heart of the Mountain tier or a slayer level. Rows with such a requirement further down their tree get the padlock too, so you see it before committing to the whole craft, even with the row collapsed. In the List tab preview, hover the row to see what it requires, e.g. `Requires: HotM 6`, then under **Needs below** each lower requirement with its item, e.g. `HotM 2 (Refined Titanium)`. The requirement comes from the NEU repository. Your own collections and levels aren't read, so the padlock shows even if you've already unlocked the recipe; rows you already have enough of never show one.
-- **NPC price** (at the bottom): what the whole list costs at NPCs, like the bottom line of an invoice. **Buy** is the coins to buy every raw material in the Total from NPC shops, **Sell** is what NPCs pay for them. It covers everything the list needs, including what you already hold. Coin prices only: buy prices are the cheapest NPC shop offer that costs coins alone (e.g. Coal: 8 coins for 2 at the Mine Merchant, so 4 each), and sell prices come from Hypixel's item list. Many items have no NPC price (bazaar-only items, mob drops), so each line says how many of the items have one, e.g. `Buy: 1,240 coins (12/15 items)`; those without one are left out of the sum. Coins on the list count towards Buy.
-- **Forge times**: rows made in the Forge show how long is still ahead, e.g. `Titanium Drill DR-X455 [25hrs]`: every forge craft still to make for that row, one after another (forge time × how many are still needed, plus all its ingredients). That is the worst case: forging several at once finishes sooner. Items cooking now add the time they have left and count down on their real timer. Crafts not started yet get your **Quick Forge** perk (read when you open Heart of the Mountain) and Cole's **Molten Forge** while he is mayor or minister (the mayor is checked hourly, only while Forge times is on). Settings > Rows > Forge times: Every row, Top level only, or Off. Long names are cut short so the time always shows.
-
-Recipes cover crafting, the Dwarven Forge and NPC shop purchases (for items with no crafting or forge recipe) and Kat pet upgrades, so things like the **Golden Dragon (Legendary)** (500M coins, 50 Enchanted Gold Block and one of each Perfect gem) can go on the list. Items with no recipe of their own, such as shop currencies (Agatha's Coupon, Miria's Prize), can be added too, to track how many you hold. Pets are listed as "<Pet> (<Rarity>)"; a pet upgrade needs the same pet one rarity lower. Pets you own count once they are in your inventory, a backpack or the ender chest, or after you have opened each page of your Pets menu (`/pets`).
-
-**Coins** count as an item: your purse is read from the SkyBlock sidebar, and your bank balance each time you open the bank menu. Balances above about 2.1 billion are shown capped at that.
-
-When a recipe has everything it needs you get a "Ready to craft" pop-up, and once you have made the amount you asked for an "Item achieved" pop-up and the recipe leaves the list (both can be turned off in Settings).
+How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-List/wiki).
 
 ## Keys and commands
 | Key / command | Action |

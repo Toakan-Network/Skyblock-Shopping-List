@@ -23,9 +23,14 @@ Order per change: edit, bump `mod_version`, `./gradlew build`, commit. Bump befo
   Weigh the footprint when proposing a feature.
 
 ## Docs
-When a change adds or changes something a player would notice, update `readme.md` (detailed) and, if it is
-worth advertising, `modrinth.md` (short, synced to the Modrinth description) in the same commit. Internal
-changes and small fixes don't need a docs note.
+When a change adds or changes something a player would notice, update the docs with it. Internal changes and
+small fixes don't need a docs note.
+- How each feature works (menu tabs, settings, appearance, HUD sections, recipes, coins) is described in the
+  GitHub wiki (`git@github.com:Toakan/Skyblock-Shopping-List.wiki.git`, cloned next to this repo as
+  `../InventoryReader.wiki`). Update the wiki page in step with the change, as its own commit there.
+- `readme.md` and `modrinth.md` (synced to the Modrinth description) list features by title only, each linking
+  to its wiki page. Add or rename a title there when a feature is added or renamed. The readme keeps install,
+  first-time setup, keys, Hypixel rules, data, network, security and license.
 
 ## Hypixel rules
 The mod must stay read-only and client-side (see the "Hypixel rules" section in `readme.md`): never send

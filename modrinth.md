@@ -11,22 +11,24 @@ Nothing in the mod is limited to Ironman profiles. On a regular profile it works
 **Coming from Inventory Reader?** This mod grew out of [Inventory Reader](https://github.com/Scholiboi/InventoryReader) by Scholiboi. Remove the old jar before installing; your data is moved to `config/skyblock-shopping-list/` automatically on first launch.
 
 ## Features
-- **Shopping list HUD:** add recipes with an amount and reorder them by priority. A **Total** section lists every raw material still needed (missing items first), or the steps in between, inside the list or in a panel of its own, followed by one tree per recipe. Your stock is shared between recipes and never counted twice. Each amount is either a total to hold (what you already have counts) or how many more to make. Ingredients you already have enough of drop off the HUD (optional).
-- **Easy start:** no need to open every sack. The mod names the sacks your list needs, greys out counts it can't vouch for yet and highlights those sacks in `/sacks`.
-- **Recipe filters:** find recipes by ingredient (*coal* finds Torch), item type (armor, accessory, pet...), rarity, or whether you own the item.
-- **Saved lists:** save the current list under a name (Mining, Foraging, Combat...) and load it back with one click when you switch what you're working on.
-- **Per-profile data:** each SkyBlock profile keeps its own counts and shopping list, and switching profile switches them with it.
-- **Craftable:** intermediates you can make right now.
-- **Forging:** items cooking in your Dwarven Forge that the list needs, with time left.
-- **Recipe locks:** a padlock on rows whose recipe needs a collection, HotM or slayer unlock; hover it in the List tab to see what.
-- **NPC price:** a bottom line showing what the whole list costs to buy from NPCs and what NPCs pay for it, with how many items have an NPC price.
-- **Forge times:** forge rows show how long is still ahead, e.g. `Titanium Drill DR-X455 [25hrs]`, taking your Quick Forge perk and Cole's Molten Forge into account.
-- **Recipes beyond the crafting table:** Dwarven Forge, NPC shop purchases and Kat pet upgrades. Even the Golden Dragon (Legendary), with its 500M coins, Enchanted Gold Blocks and Perfect gems, can go on the list.
-- **Coins count as an item:** purse from the sidebar, bank balance when you open the bank. Shop currencies such as Agatha's Coupon can be added to the list too, to track how many you hold.
-- **Pop-ups:** "Ready to craft" when a recipe has everything, and "Item achieved" when you've made the amount you asked for (it then leaves the list).
-- **Fully customisable look:** colours with transparency, fonts (including resource pack fonts), text sizes, alignment, rounded corners, row spacing, amount formats, HUD scale (50-300%), and Craftable / Forging as separate panels. Drag panels to move them and drag corners or edges to resize them.
-- **Presets:** save your look under a name, pick a built-in one (Default, Compact, Minimal), or share a look as a text code, for example in Discord.
-- **Menu tabs:** browse any recipe's full tree in **Recipes**, check a forge recipe in **Forge**, and see and correct every tracked count in **Resources**.
+- [Shopping list HUD](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD)
+- [Easy start: no need to open every sack](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#first-things-to-open)
+- [Recipe filters](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
+- [Saved lists](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
+- [Per-profile data](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#per-profile-data)
+- [Craftable](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#craftable)
+- [Forging](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forging)
+- [Recipe locks](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#recipe-locks)
+- [NPC price](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#npc-price)
+- [Forge times](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forge-times)
+- [Recipes beyond the crafting table](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#recipes)
+- [Coins count as an item](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#coins)
+- [Pop-ups](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#pop-ups)
+- [Fully customisable look](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
+- [Presets and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
+- [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)
+
+How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-List/wiki).
 
 ## Getting started
 The mod only knows what you have shown it. Open each of your sacks, backpacks and ender chest pages once on SkyBlock, plus each Accessory Bag page, each wardrobe page and the Stats & Equipment menu (for worn equipment). After that, counts stay up to date from your inventory, the containers you open and the `[Sacks]` chat summaries (keep those enabled in your SkyBlock settings).
