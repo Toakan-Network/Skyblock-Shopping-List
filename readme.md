@@ -10,6 +10,8 @@
 
 Skyblock Shopping List is a Fabric client mod for Hypixel SkyBlock. It keeps a count of the items in your inventory, sacks, backpacks and ender chest, and shows a shopping list HUD for the recipes you pick: what you can already craft and what you still need. Lists can be saved under a name and swapped back in later.
 
+![The List tab: pick recipes, see the full tree with forge times, NPC price and saved lists](https://raw.githubusercontent.com/wiki/Toakan/Skyblock-Shopping-List/Images/Live-Recipe-Track.gif)
+
 ### Ironman first
 This mod is designed around Ironman play. With no Bazaar or Auction House, every item has to be gathered or crafted yourself, so knowing exactly what a recipe tree still needs, which sacks hold it, what is cooking in the Forge and what an NPC sells or pays is the whole game. New features are planned with that in mind: nothing relies on Bazaar or Auction House prices, and prices shown are NPC coin prices.
 
@@ -35,6 +37,10 @@ Nothing in the mod is limited to Ironman profiles. On a regular profile it works
 - [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)
 
 How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-List/wiki).
+
+| Plan big goals | Every step, in game | Know what to unlock |
+| --- | --- | --- |
+| ![Golden Dragon (Legendary) broken down into coins, gold blocks and Perfect gems](https://raw.githubusercontent.com/wiki/Toakan/Skyblock-Shopping-List/Images/Golden-Dragon-Recipe.png) | ![The HUD with the full Chestplate of Divan tree](https://raw.githubusercontent.com/wiki/Toakan/Skyblock-Shopping-List/Images/Recipe-Tree-HUD.png) | ![Recipe lock tooltip listing HotM and collection requirements](https://raw.githubusercontent.com/wiki/Toakan/Skyblock-Shopping-List/Images/Recipe-Locks-Tooltip.png) |
 
 ## Coming from Inventory Reader?
 Skyblock Shopping List grew out of [Inventory Reader](https://github.com/Scholiboi/InventoryReader) by Scholiboi (see [Credits](#license-and-attribution)). Remove the old Inventory Reader jar from `mods/` before installing; its data folder (`.ir-data`, or `.skyblock-shopping-list` from earlier versions of this mod) is moved to `config/skyblock-shopping-list/` automatically on first launch.
