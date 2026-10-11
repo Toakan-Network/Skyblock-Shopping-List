@@ -1,10 +1,10 @@
 {
-  "root": "cwd/skyblock-shopping-list-4.28.1",
+  "root": "cwd/skyblock-shopping-list-1.0.0",
   "scan_roots": [
-    "cwd/skyblock-shopping-list-4.28.1"
+    "cwd/skyblock-shopping-list-1.0.0"
   ],
   "scan_diagnostics": {
-    "cwd/skyblock-shopping-list-4.28.1": {
+    "cwd/skyblock-shopping-list-1.0.0": {
       "java_files": 42,
       "class_files": 101,
       "finding_count": 63,
@@ -13,37 +13,37 @@
   },
   "target_metadata": {
     "basic_properties": {
-      "subject": "skyblock-shopping-list-4.28.1.jar",
-      "md5": "9d00ef616d3fa71f8d8fae95ef6ef459",
-      "sha1": "658e8f8b1c11a02137ddefb4f2188e3924adb7ca",
-      "sha256": "981d8263593f2d4388eb3c789ce8402d5fe7ebcc53056cb1b579eb708e4d3f2a",
+      "subject": "skyblock-shopping-list-1.0.0.jar",
+      "md5": "83549eefb3bef2acc126550c6623ba6a",
+      "sha1": "9fac75319d293e85d171203c445dadaaa1304c7d",
+      "sha256": "3702c61d8fcf8e1b3c2fad278c2e21dd748307daf7e5c4d4be84c2ff13d0672f",
       "file_type": "JAR",
       "compressed": "jar",
       "magic": "Zip archive data (JAR)",
       "file_size_text": "353.90 KB",
-      "file_size_bytes": 362398
+      "file_size_bytes": 362396
     },
     "source_jar_metadata": {
-      "name": "skyblock-shopping-list-4.28.1.jar",
-      "path": "<scan-dir>\\sl\\skyblock-shopping-list-4.28.1.jar",
-      "size_bytes": 362398,
+      "name": "skyblock-shopping-list-1.0.0.jar",
+      "path": "<scan-dir>\\skyblock-shopping-list-1.0.0\\skyblock-shopping-list-1.0.0.jar",
+      "size_bytes": 362396,
       "size_text": "353.90 KB",
-      "md5": "9d00ef616d3fa71f8d8fae95ef6ef459",
-      "sha1": "658e8f8b1c11a02137ddefb4f2188e3924adb7ca",
-      "sha256": "981d8263593f2d4388eb3c789ce8402d5fe7ebcc53056cb1b579eb708e4d3f2a"
+      "md5": "83549eefb3bef2acc126550c6623ba6a",
+      "sha1": "9fac75319d293e85d171203c445dadaaa1304c7d",
+      "sha256": "3702c61d8fcf8e1b3c2fad278c2e21dd748307daf7e5c4d4be84c2ff13d0672f"
     },
     "artifact_identity": {
-      "scan_root_name": "skyblock-shopping-list-4.28.1",
-      "scan_root_tree_sha256": "de66f49e138897a184e1fc955694e7fcb2694fd6d5a8b5a37b27bbab28510f98",
+      "scan_root_name": "skyblock-shopping-list-1.0.0",
+      "scan_root_tree_sha256": "28ecb006be7b0dac65f86c82b88d4c53c1250d5f39e35bd7c7c66576a42e9c79",
       "scan_root_file_count": 145,
       "source_jar": {
-        "name": "skyblock-shopping-list-4.28.1.jar",
-        "path": "<scan-dir>\\sl\\skyblock-shopping-list-4.28.1.jar",
-        "size_bytes": 362398,
+        "name": "skyblock-shopping-list-1.0.0.jar",
+        "path": "<scan-dir>\\skyblock-shopping-list-1.0.0\\skyblock-shopping-list-1.0.0.jar",
+        "size_bytes": 362396,
         "size_text": "353.90 KB",
-        "md5": "9d00ef616d3fa71f8d8fae95ef6ef459",
-        "sha1": "658e8f8b1c11a02137ddefb4f2188e3924adb7ca",
-        "sha256": "981d8263593f2d4388eb3c789ce8402d5fe7ebcc53056cb1b579eb708e4d3f2a"
+        "md5": "83549eefb3bef2acc126550c6623ba6a",
+        "sha1": "9fac75319d293e85d171203c445dadaaa1304c7d",
+        "sha256": "3702c61d8fcf8e1b3c2fad278c2e21dd748307daf7e5c4d4be84c2ff13d0672f"
       }
     },
     "library_fingerprints": {
@@ -56,8 +56,8 @@
         "contained_directories": 9,
         "max_directory_depth": 5,
         "contained_files": 147,
-        "latest_content_modification": "2026-10-11 15:23:31",
-        "earliest_content_modification": "2026-10-11 15:23:27",
+        "latest_content_modification": "2026-10-11 17:05:35",
+        "earliest_content_modification": "2026-10-11 17:05:33",
         "contained_files_by_type": {
           "xml": 0,
           "ascii": 147
@@ -66,10 +66,10 @@
     },
     "bundle_info": {
       "contained_files": 147,
-      "uncompressed_size_text": "988.85 KB",
-      "uncompressed_size_bytes": 1012579,
-      "earliest_content_modification": "2026-10-11 15:23:27",
-      "latest_content_modification": "2026-10-11 15:23:31",
+      "uncompressed_size_text": "988.89 KB",
+      "uncompressed_size_bytes": 1012628,
+      "earliest_content_modification": "2026-10-11 17:05:33",
+      "latest_content_modification": "2026-10-11 17:05:35",
       "contained_files_by_type": {
         "UNKNOWN": 145,
         "DIRECTORY": 9,
@@ -97,13 +97,13 @@
     "aes_gcm_strings_replaced": 0,
     "aes_gcm_strings_failed": 0,
     "recovered_crypto_keys": [],
-    "output_root": "<scan-dir>\\skyblock-shopping-list-4.28.1_deciphered"
+    "output_root": "<scan-dir>\\skyblock-shopping-list-1.0.0_deciphered"
   },
   "string_dump": {
     "strings_count": 12085,
     "aes_candidates_count": 182,
-    "json": "<scan-dir>\\skyblock-shopping-list-4.28.1\\.java_triage_string_dump.json",
-    "txt": "<scan-dir>\\skyblock-shopping-list-4.28.1\\.java_triage_string_dump.txt"
+    "json": "<scan-dir>\\skyblock-shopping-list-1.0.0\\.java_triage_string_dump.json",
+    "txt": "<scan-dir>\\skyblock-shopping-list-1.0.0\\.java_triage_string_dump.txt"
   },
   "invokedynamic_bootstrap": {
     "class_files_count": 101,
@@ -111,7 +111,7 @@
     "invokedynamic_sites_count": 451,
     "suspicious_bootstraps_count": 0,
     "high_value_sites_count": 96,
-    "json": "<scan-dir>\\skyblock-shopping-list-4.28.1\\.java_triage_indy_bootstrap_map.json"
+    "json": "<scan-dir>\\skyblock-shopping-list-1.0.0\\.java_triage_indy_bootstrap_map.json"
   },
   "summary": {
     "total_findings": 57,

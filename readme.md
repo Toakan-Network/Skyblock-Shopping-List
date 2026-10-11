@@ -126,7 +126,7 @@ On startup the mod downloads the [NotEnoughUpdates-REPO](https://github.com/NotE
 The sources are listed in `remote_sources.json`. Only `https` URLs and local files are accepted. The archive is unpacked to `neu-repo-extracted/` with path-traversal, entry-count and size limits, then parsed as JSON and deleted again. Nothing from it is executed.
 
 ## Security scan
-The 4.28.1 release jar, and the neurepoparser library bundled in it, were scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), a static scanner for malicious Java code and Minecraft mods (network off, nothing
+The 1.0.0 release jar, and the neurepoparser library bundled in it, were scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), a static scanner for malicious Java code and Minecraft mods (network off, nothing
 uploaded). Result: no confirmed malicious behavior and no known malware matched. The report, the jar hashes to check
 your copy against and an explanation of each flagged item are in [security/java-triage](security/java-triage/README.md).
 
@@ -148,4 +148,5 @@ The jar is written to `build/libs/`. `./gradlew runClient` starts a development 
 - Code: GPL-3.0-only (see `LICENSE`) with additional terms under GPLv3 section 7 (see `NOTICE`): keep the credits to both authors, mark modified versions as changed, and give a modified version its own name, mod id and icon.
 - Originally based on [Inventory Reader](https://github.com/Scholiboi/InventoryReader) by Scholiboi. Its core ideas and code (reading items from your inventory, sacks and storage, working out recipe trees, the HUD and the recipe viewer) are what this mod was built on. Thanks to Scholiboi for the original project. Inventory Reader is licensed CC-BY-SA-4.0; its modified code is used here under GPLv3, which Creative Commons lists as compatible with CC-BY-SA-4.0.
 - Versions up to 4.26.1 were released under CC-BY-SA-4.0.
+- Version numbers restarted at 1.0.0. Earlier builds were numbered 4.x, carrying on from Inventory Reader's numbering.
 - Recipe and item data comes from NotEnoughUpdates-REPO; follow its license when reusing that data.
