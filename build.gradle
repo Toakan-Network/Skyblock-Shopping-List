@@ -19,6 +19,14 @@ repositories {
 	maven { url = "https://repo.nea.moe/releases" }
 	maven { url = "https://repo.hypixel.net/repository/Hypixel/" }
 	maven { url = "https://maven.isxander.dev/releases" }
+	maven {
+		url = "https://maven.operationpotato.com/releases"
+		content { includeGroup "com.operationpotato" }
+	}
+	maven {
+		url = "https://maven.terraformersmc.com/releases"
+		content { includeGroup "com.terraformersmc" }
+	}
 }
 
 dependencies {
@@ -37,6 +45,15 @@ dependencies {
 	// Official Hypixel Mod API, used for SkyBlock detection. Required at runtime ("depends" in
 	// fabric.mod.json); players install the hypixel-mod-api mod themselves, so it is compile-only, not bundled.
 	compileOnly "net.hypixel:mod-api:1.0.2"
+
+	// SkyBlock Item List plugin API (optional): adds a "☰" button to its recipes and keeps its item grid off the
+	// HUD panels. Only ItemList ever loads inventoryreader.ir.compat.ItemListPlugin (fabric.mod.json entrypoint),
+	// so nothing here is needed without it.
+	compileOnly "com.operationpotato:skyblock-item-list-api:${project.itemlist_version}"
+
+	// Mod Menu (optional): its "Configure" button opens Settings. Only Mod Menu loads
+	// inventoryreader.ir.compat.ModMenuCompat (fabric.mod.json entrypoint).
+	compileOnly("com.terraformersmc:modmenu:${project.modmenu_version}") { transitive = false }
 
 	// YetAnotherConfigLib for the Settings screen. Required at runtime ("depends" in fabric.mod.json), not bundled.
 	implementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"

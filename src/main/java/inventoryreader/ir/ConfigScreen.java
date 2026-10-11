@@ -180,6 +180,10 @@ public final class ConfigScreen {
                 .option(toggle("Auto-remove",
                     "Take a recipe off the list once you have made the amount you asked for.",
                     true, widget::isAutoRemove, widget::setAutoRemove))
+                .option(toggle("SkyBlock Item List button",
+                    "With the SkyBlock Item List mod installed, show a ☰ button on its recipes that adds the item "
+                        + "to your shopping list.",
+                    true, widget::isItemListButton, widget::setItemListButton))
                 .build())
             .group(OptionGroup.createBuilder()
                 .name(Component.literal("Notifications"))

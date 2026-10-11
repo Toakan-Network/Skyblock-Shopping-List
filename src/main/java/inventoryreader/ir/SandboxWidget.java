@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.toasts.SystemToast;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import java.util.*;
@@ -85,7 +86,10 @@ public class SandboxWidget {
     private volatile boolean notifications = true;
     private volatile boolean autoRemove = true;
     private volatile boolean staleSackWarning = true;
+    private volatile boolean itemListButton = true;
     private volatile int maxRecipes = 3;
+    /** Where the HUD panels were last drawn (GUI pixels, borders included); empty while the HUD is hidden. */
+    private volatile List<Rect2i> drawnPanels = List.of();
     /** Update thread only: entries already announced as ready / achieved, so each toast fires once. */
     private final Set<String> readyEntries = new HashSet<>();
     private final Set<String> achievedEntries = new HashSet<>();
@@ -130,6 +134,8 @@ public class SandboxWidget {
         HudElementRegistry.addLast(SANDBOX_WIDGET_LAYER, (context, tickCounter) -> {
             if (enabled && !shoppingList.isEmpty() && recipeTree != null && SkyblockDetector.isOnSkyblock()) {
                 render(context);
+            } else {
+                drawnPanels = List.of();
             }
         });
         loadConfiguration();
@@ -374,6 +380,7 @@ public class SandboxWidget {
         config.notifications = notifications;
         config.autoRemove = autoRemove;
         config.staleSackWarning = staleSackWarning;
+        config.itemListButton = itemListButton;
         config.debugLogging = InventoryReader.debugLogging;
         config.maxRecipes = maxRecipes;
         JsonFiles.writeAsync(FilePathManager.WIDGET_CONFIG_JSON, () -> config);
@@ -403,6 +410,7 @@ public class SandboxWidget {
         if (config.notifications != null) this.notifications = config.notifications;
         if (config.autoRemove != null) this.autoRemove = config.autoRemove;
         if (config.staleSackWarning != null) this.staleSackWarning = config.staleSackWarning;
+        if (config.itemListButton != null) this.itemListButton = config.itemListButton;
         InventoryReader.debugLogging = Boolean.TRUE.equals(config.debugLogging);
         if (config.maxRecipes != null) this.maxRecipes = clampMaxRecipes(config.maxRecipes);
         if (config.widgetWidth > 0) this.widgetWidth = config.widgetWidth;
@@ -456,6 +464,7 @@ public class SandboxWidget {
         notifications = true;
         autoRemove = true;
         staleSackWarning = true;
+        itemListButton = true;
         InventoryReader.debugLogging = false;
         maxRecipes = 3;
         messages = List.of();
@@ -493,6 +502,7 @@ public class SandboxWidget {
         /** Read only: the list-wide Have total / Add more switch from 4.20.6, now set per entry. */
         Boolean haveTotal;
         Boolean staleSackWarning;
+        Boolean itemListButton;
         Boolean debugLogging;
         Integer maxRecipes;
     }
@@ -1123,11 +1133,21 @@ public class SandboxWidget {
 
     private void render(GuiGraphicsExtractor context) {
         recordMissingRefs();
+        int inset = HudStyle.get().panelBorderWidth + 1;
+        List<Rect2i> drawn = new ArrayList<>(4);
         for (Panel panel : activePanels()) {
             PanelRect rect = getPanelRect(panel);
-            renderPanel(context, panel, rect.x, rect.y, rect.width, rect.height, false);
+            int height = renderPanel(context, panel, rect.x, rect.y, rect.width, rect.height, false);
+            if (height <= 0) continue;
+            float scale = scaleFactor(panel);
+            drawn.add(new Rect2i(rect.x - inset, rect.y - inset, Math.round(rect.width * scale) + 2 * inset,
+                Math.round(height * scale) + 2 * inset));
         }
+        drawnPanels = drawn;
     }
+
+    /** Where the HUD panels were last drawn (GUI pixels, borders included); empty while the HUD is hidden. */
+    public List<Rect2i> getDrawnPanels() { return drawnPanels; }
 
     /**
      * Draws one panel with its top-left at (x, y) in GUI pixels; width and max height are HUD units. The panel is
@@ -1541,6 +1561,11 @@ public class SandboxWidget {
     public boolean isStaleSackWarning() { return staleSackWarning; }
     public void setStaleSackWarning(boolean staleSackWarning) {
         this.staleSackWarning = staleSackWarning;
+        saveConfiguration();
+    }
+    public boolean isItemListButton() { return itemListButton; }
+    public void setItemListButton(boolean itemListButton) {
+        this.itemListButton = itemListButton;
         saveConfiguration();
     }
     public boolean isDebugLogging() { return InventoryReader.debugLogging; }

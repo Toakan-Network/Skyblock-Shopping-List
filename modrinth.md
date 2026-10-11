@@ -27,6 +27,7 @@ Nothing in the mod is limited to Ironman profiles. On a regular profile it works
 - [Fully customisable look](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
 - [Presets and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
 - [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)
+- [Works with SkyBlock Item List and Mod Menu (optional)](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Other-Mods)
 
 How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-List/wiki).
 
