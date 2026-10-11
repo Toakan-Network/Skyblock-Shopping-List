@@ -24,6 +24,11 @@ public class StorageReader {
     private static final Pattern WARDROBE = Pattern.compile("^(\\(\\d+/\\d+\\) )?(Armor Sets|Equipment Sets)$");
     /** The menu showing worn equipment (necklace, cloak, belt, gloves). */
     private static final String EQUIPMENT_MENU = "Stats & Equipment";
+    /**
+     * Not a menu: the armor worn when the wearable menus were last counted. Those menus are stored as shown (worn items
+     * included) and the worn copies are taken off when counting, so swapping armor needs no re-read of the wardrobe.
+     */
+    private static final String WORN_KEY = "#Worn armor";
 
     private Map<String, Map<String, Integer>> containers;
 
@@ -70,24 +75,19 @@ public class StorageReader {
         // These menus mix items with buttons; only real SkyBlock items count.
         boolean wearable = isWearableMenu(title);
         boolean itemsOnly = wearable || title.contains("Accessory Bag");
-        // Worn items show in these menus too but are already counted (armor with the inventory, equipment
-        // from the equipment menu); skipping as many copies as are worn keeps them from counting twice,
-        // while a spare copy of the same item stored here still counts.
-        Map<String, Integer> worn = wearable ? wornCounts(title) : new HashMap<>();
         // The player's own inventory (below the menu) is tracked separately.
         for (ItemStack stack : MenuSlots.containerStacks(handler)) {
             if (petsOnly ? !ItemIds.isPet(stack) : itemsOnly && !ItemIds.hasSkyblockId(stack)) continue;
             if (wearable && ItemIds.isPet(stack)) continue;
-            String name = ItemIds.nameOf(stack);
-            int count = stack.getCount();
-            int wornLeft = worn.getOrDefault(name, 0);
-            int skipped = Math.min(wornLeft, count);
-            if (skipped > 0) worn.put(name, wornLeft - skipped);
-            if (count > skipped) newData.merge(name, count - skipped, Integer::sum);
+            newData.merge(ItemIds.nameOf(stack), stack.getCount(), Integer::sum);
         }
 
         Map<String, Integer> previous = containers().getOrDefault(title, Map.of());
         if (previous.equals(newData)) return;
+        if (wearable) {
+            updateWearable(title, newData, armorCounts());
+            return;
+        }
 
         Map<String, Integer> changes = Counts.diff(previous, newData);
 
@@ -97,8 +97,60 @@ public class StorageReader {
         ResourcesManager.getInstance().saveData(changes);
     }
 
-    /** How many of each item are worn: the armor, plus (outside the equipment menu itself) the worn equipment. */
-    private Map<String, Integer> wornCounts(String title) {
+    /** Recounts the wearable menus after the worn armor changed (called when the inventory changes). */
+    public synchronized void refreshWorn() {
+        Map<String, Integer> armor = armorCounts();
+        if (armor.equals(containers().get(WORN_KEY))) return;
+        updateWearable(null, null, armor);
+    }
+
+    /** Stores a wearable menu's contents (if given) and the worn armor, and reports how the counted items changed. */
+    private void updateWearable(String title, Map<String, Integer> contents, Map<String, Integer> armor) {
+        Map<String, Integer> before = wearableCounts();
+        if (title != null) containers.put(title, contents);
+        containers.put(WORN_KEY, armor);
+        Map<String, Integer> changes = Counts.diff(before, wearableCounts());
+
+        Map<String, Map<String, Integer>> copy = new HashMap<>(containers);
+        JsonFiles.writeAsync(FilePathManager.containerJson(), () -> copy);
+        if (!changes.isEmpty()) ResourcesManager.getInstance().saveData(changes);
+    }
+
+    /**
+     * What the wearable menus add to the counts: their items minus the worn copies, which are counted elsewhere (armor
+     * with the inventory, equipment from the equipment menu). A spare copy of a worn item stored there still counts.
+     */
+    private Map<String, Integer> wearableCounts() {
+        Map<String, Integer> armor = containers().get(WORN_KEY);
+        Map<String, Integer> equipment = new HashMap<>();
+        Map<String, Integer> wardrobe = new HashMap<>();
+        containers.forEach((key, items) -> {
+            if (key.startsWith(EQUIPMENT_MENU)) items.forEach((name, count) -> equipment.merge(name, count, Integer::sum));
+            else if (WARDROBE.matcher(key).matches()) items.forEach((name, count) -> wardrobe.merge(name, count, Integer::sum));
+        });
+        // Files from before WORN_KEY hold these menus with the worn copies already taken off.
+        if (armor == null) {
+            equipment.forEach((name, count) -> wardrobe.merge(name, count, Integer::sum));
+            return wardrobe;
+        }
+        Map<String, Integer> counts = new HashMap<>();
+        Map<String, Integer> worn = new HashMap<>(armor);
+        equipment.forEach((name, count) -> {
+            int left = count - armor.getOrDefault(name, 0);
+            if (left > 0) {
+                counts.merge(name, left, Integer::sum);
+                worn.merge(name, left, Integer::sum);
+            }
+        });
+        wardrobe.forEach((name, count) -> {
+            int left = count - worn.getOrDefault(name, 0);
+            if (left > 0) counts.merge(name, left, Integer::sum);
+        });
+        return counts;
+    }
+
+    /** How many of each item the player wears as armor. */
+    private static Map<String, Integer> armorCounts() {
         Map<String, Integer> counts = new HashMap<>();
         Minecraft client = Minecraft.getInstance();
         if (client.player != null) {
@@ -107,11 +159,6 @@ public class StorageReader {
                 ItemStack stack = inventory.getItem(i);
                 if (!stack.isEmpty()) counts.merge(ItemIds.nameOf(stack), stack.getCount(), Integer::sum);
             }
-        }
-        if (!title.startsWith(EQUIPMENT_MENU)) {
-            containers().forEach((key, items) -> {
-                if (key.startsWith(EQUIPMENT_MENU)) items.forEach((name, count) -> counts.merge(name, count, Integer::sum));
-            });
         }
         return counts;
     }
