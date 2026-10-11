@@ -53,7 +53,7 @@ Mayor Interaction Data: At most once an hour while you're on SkyBlock it reads H
 
 No player data is sent anywhere.
 
-Security scan: the 1.0.0 jar was scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), with no malicious behavior found. [Report and jar hashes](https://github.com/Toakan/Skyblock-Shopping-List/tree/shopping-list/security/java-triage).
+Security scan: the 4.28.1 jar was scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), with no malicious behavior found. [Report and jar hashes](https://github.com/Toakan/Skyblock-Shopping-List/tree/shopping-list/security/java-triage).
 
 ## Requirements
 Minecraft 26.2 or 26.3 (one jar for both), Java 25, Fabric Loader 0.19.5+, Fabric API, YetAnotherConfigLib (already installed if you use Skyblocker) and the [Hypixel Mod API](https://modrinth.com/mod/hypixel-mod-api) (required: the game won't start without it).

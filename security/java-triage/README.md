@@ -4,7 +4,7 @@ Static malware scan of the release jar and the library it bundles, run on 2026-1
 
 | Jar | SHA-256 | Confirmed behaviors | High | Medium | Report |
 |---|---|---|---|---|---|
-| `skyblock-shopping-list-1.0.0.jar` | `3702c61d8fcf8e1b3c2fad278c2e21dd748307daf7e5c4d4be84c2ff13d0672f` | 0 | 2 (false positive, see below) | 0 | [HTML](skyblock-shopping-list-1.0.0.html), [JSON](skyblock-shopping-list-1.0.0.json) |
+| `skyblock-shopping-list-4.28.1.jar` | `981d8263593f2d4388eb3c789ce8402d5fe7ebcc53056cb1b579eb708e4d3f2a` | 0 | 2 (false positive, see below) | 0 | [HTML](skyblock-shopping-list-4.28.1.html), [JSON](skyblock-shopping-list-4.28.1.json) |
 | `neurepoparser-1.9.0.jar` (nested) | `51d99ddebbe055dc2c4e1ccc19e6a90cdb1e29d10e20e8b0751cf62d4011aa71` | 0 | 0 | 0 | [HTML](neurepoparser-1.9.0.html), [JSON](neurepoparser-1.9.0.json) |
 
 Compare the SHA-256 with your copy of the jar (`certutil -hashfile <jar> SHA256` on Windows, `sha256sum <jar>`
