@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Java Triage Report</title>
+  <style>
+    :root { --bg:#0a1622; --panel:#122235; --panel-soft:#193149; --text:#ebf2f8; --muted:#9eb2c5; --good:#6fd89b; --warn:#ffd166; --bad:#ff6b6b; --accent:#2ad0ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif; background:radial-gradient(circle at top right,#1f3955,var(--bg) 55%); color:var(--text); min-height:100vh; }
+    .wrap { width:min(1900px,98vw); margin:1.25rem auto; }
+    .card { background:linear-gradient(160deg,var(--panel),var(--panel-soft)); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:1.1rem; margin-bottom:1rem; box-shadow:0 16px 35px rgba(0,0,0,.28); }
+    h1,h2,h3 { margin:.2rem 0 .6rem; }
+    .triage-title { color:var(--accent); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:.6rem; }
+    .metric { background:rgba(10,24,38,.7); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:.6rem; }
+    .label { color:var(--muted); font-size:.82rem; }
+    .value { font-size:1.15rem; font-weight:700; margin-top:.2rem; }
+    .hero { display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; align-items:flex-start; }
+    .subject-card { margin-top:.75rem; border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:.85rem 1rem; background:rgba(7,19,30,.45); }
+    .subject-name { font-size:1.45rem; font-weight:800; margin-top:.12rem; }
+    .subject-hash { margin-top:.5rem; font-family:Consolas,Monaco,monospace; color:#b9d4e7; font-size:.86rem; word-break:break-all; }
+    .risk-chip { padding:.32rem .7rem; border-radius:999px; font-weight:700; border:1px solid transparent; display:inline-block; }
+    .risk-critical { background:rgba(255,48,48,.28); border-color:rgba(255,93,93,.6); color:#ffd9d9; }
+    .risk-high { background:rgba(255,106,54,.24); border-color:rgba(255,140,91,.55); color:#ffe5da; }
+    .risk-medium { background:rgba(255,196,55,.22); border-color:rgba(255,210,102,.5); color:#fff2c9; }
+    .risk-low { background:rgba(63,185,120,.2); border-color:rgba(109,217,158,.45); color:#d7f4e1; }
+    .subgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:.5rem; margin-top:.6rem; }
+    .kpi { border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:.5rem; background:rgba(6,16,27,.5); }
+    .kpi .k { color:var(--muted); font-size:.78rem; }
+    .kpi .v { font-weight:800; font-size:1.02rem; margin-top:.15rem; }
+    pre { overflow:auto; margin:0; white-space:pre-wrap; word-break:break-word; background:#0b1c2b; border-radius:10px; padding:.85rem; border:1px solid rgba(255,255,255,.06); font-size:.85rem; line-height:1.4; }
+    .table-wrap { overflow:auto; border:1px solid rgba(255,255,255,.08); border-radius:10px; background:rgba(8,22,35,.72); }
+    table { width:100%; border-collapse:collapse; font-size:.86rem; table-layout:auto; }
+    th,td { text-align:left; padding:.55rem; border-bottom:1px dashed rgba(255,255,255,.08); vertical-align:top; overflow-wrap:anywhere; word-break:break-word; }
+    th { color:#9dd5ff; font-weight:700; background:rgba(0,0,0,.18); position:sticky; top:0; }
+    th.tight,td.tight { white-space:nowrap; overflow-wrap:normal; word-break:normal; }
+    .smart-table tbody tr:hover td { background:rgba(90,160,220,.08); }
+    .smart-table tbody tr.row-high td:first-child { box-shadow:inset 3px 0 0 rgba(255,116,116,.85); }
+    .decoded-high { color:#ffd1d1; font-weight:600; }
+    .cat-pill { display:inline-block; padding:.15rem .5rem; border-radius:999px; font-size:.74rem; line-height:1.15; font-weight:700; border:1px solid transparent; max-width:100%; }
+    .cat-pill { white-space:nowrap; }
+    .cat-neutral { color:#d8e9f6; background:rgba(141,181,208,.14); border-color:rgba(149,194,224,.35); }
+    .cat-warn { color:#ffecc3; background:rgba(255,196,77,.16); border-color:rgba(255,210,120,.4); }
+    .cat-danger { color:#ffd4d4; background:rgba(255,91,91,.16); border-color:rgba(255,131,131,.42); }
+    .sev { display:inline-block; padding:.12rem .45rem; border-radius:999px; font-size:.74rem; font-weight:700; text-transform:uppercase; letter-spacing:.02em; border:1px solid transparent; }
+    .sev-critical { color:#ffd9d9; background:rgba(255,48,48,.28); border-color:rgba(255,93,93,.6); }
+    .sev-high { color:#ffe5da; background:rgba(255,106,54,.24); border-color:rgba(255,140,91,.55); }
+    .sev-medium { color:#fff2c9; background:rgba(255,196,55,.22); border-color:rgba(255,210,102,.5); }
+    .sev-low { color:#d7f4e1; background:rgba(63,185,120,.2); border-color:rgba(109,217,158,.45); }
+    .sev-info { color:#d9ecff; background:rgba(68,152,255,.18); border-color:rgba(120,184,255,.45); }
+    .json-block { background:rgba(8,22,35,.72); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:.55rem .7rem; margin-bottom:.55rem; }
+    .json-block summary { cursor:pointer; font-weight:700; color:var(--accent); margin-bottom:.35rem; }
+    .json-content { padding-left:.2rem; }
+    .json-row { display:grid; grid-template-columns:minmax(180px,280px) 1fr; gap:.8rem; padding:.28rem 0; border-bottom:1px dashed rgba(255,255,255,.08); }
+    .json-row:last-child { border-bottom:0; }
+    .json-key { color:#9dd5ff; font-family:Consolas,Monaco,monospace; word-break:break-word; }
+    .json-val { color:#e9f2fa; font-family:Consolas,Monaco,monospace; word-break:break-word; }
+    .json-empty { color:var(--muted); font-style:italic; padding:.2rem 0 .35rem; }
+    .finding-context summary { cursor:pointer; color:#9dd5ff; text-decoration:underline dotted; }
+    .finding-context pre { margin-top:.5rem; width:min(100%,1100px); max-height:42rem; text-align:left; }
+    .context-toggle { border:0; padding:0; background:none; color:#9dd5ff; text-decoration:underline dotted; cursor:pointer; font:inherit; }
+    .source-context-row td { padding:.7rem 1rem 1rem; background:rgba(4,15,26,.72); }
+    .source-context-row pre { width:100%; max-width:none; max-height:42rem; white-space:pre; overflow:auto; }
+    .findings-controls { margin-top:.55rem; display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+    .btn-link { display:inline-block; text-decoration:none; background:linear-gradient(120deg,#1ca4db,#58d5ff); color:#062134; border:none; border-radius:9px; padding:.45rem .75rem; font-weight:700; cursor:pointer; }
+    .table-empty { color:var(--muted); }
+    .findings-table col.file-col { width:24ch; }
+    .findings-table col.line-col { width:7ch; }
+    .findings-table col.func-col { width:16ch; }
+    .findings-table col.cat-col { width:15ch; }
+    .reconstructed-table col.file-col { width:28ch; }
+    .reconstructed-table col.line-col { width:7ch; }
+    .reconstructed-table col.func-col { width:20ch; }
+    .reconstructed-table col.method-col { width:24ch; }
+    .reconstructed-table td.func-col, .reconstructed-table td.method-col { white-space:normal; overflow-wrap:anywhere; word-break:normal; }
+    .aes-table col.location-col { width:32ch; }
+    .aes-table td.key-col { white-space:normal; overflow-wrap:anywhere; word-break:break-word; }
+    .findings-table td.func-col, .findings-table th.func-col { white-space:nowrap; overflow-wrap:normal; word-break:normal; }
+    .findings-table td.cat-col, .findings-table th.cat-col { white-space:nowrap; overflow-wrap:normal; word-break:normal; }
+    .behavior-table col.sev-col { width:10ch; }
+    .behavior-table col.file-col { width:14ch; }
+    .behavior-table col.line-col { width:5ch; }
+    .behavior-table col.beh-col { width:32ch; }
+    .smart-table tbody tr.row-critical td:first-child { box-shadow:inset 3px 0 0 rgba(255,70,70,.92); }
+    .smart-table tbody tr.row-high td:first-child { box-shadow:inset 3px 0 0 rgba(255,116,116,.85); }
+    .smart-table tbody tr.row-medium td:first-child { box-shadow:inset 3px 0 0 rgba(255,210,102,.78); }
+    .behavior-evidence-high { color:#ffd6d6; font-weight:600; }
+    .behavior-evidence-medium { color:#ffeabf; }
+    .meta-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:.75rem; }
+    .meta-box { border:1px solid rgba(255,255,255,.08); border-radius:10px; background:rgba(8,22,35,.72); padding:.65rem; }
+    .meta-box h3 { margin:.1rem 0 .55rem; color:#9dd5ff; }
+    .meta-table { width:100%; border-collapse:collapse; font-size:.86rem; }
+    .meta-table td { padding:.42rem .5rem; border-bottom:1px dashed rgba(255,255,255,.08); vertical-align:top; }
+    .meta-table tr:last-child td { border-bottom:0; }
+    .meta-k { color:#9dd5ff; font-family:Consolas,Monaco,monospace; width:38%; }
+    .meta-v { color:#edf4fb; }
+    .jlab-table col.sev-col { width:10ch; }
+    .jlab-table col.id-col { width:6ch; }
+    .jlab-table col.name-col { width:22ch; }
+    .jlab-table col.type-col { width:11ch; }
+    .jlab-table col.count-col { width:7ch; }
+    .jlab-table col.matches-col { width:48ch; }
+    .jlab-table td.matches-col { min-width:42ch; max-width:none; color:#a8c7df; font-size:.82rem; white-space:normal; overflow-wrap:anywhere; word-break:break-word; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="hero">
+        <div>
+          <h1>Java Triage Report</h1>
+          <div class="label">Total adverse indicators across all categories</div>
+          <div class="value">37</div>
+        </div>
+        <div>
+          <div class="label">Overall Assessment</div>
+          <div class="risk-chip risk-medium">Medium</div>
+        </div>
+      </div>
+      <div class="subject-card">
+        <div class="label">Subject</div>
+        <div class="subject-name">neurepoparser-1.9.0.jar</div>
+        <div class='subject-hash'>SHA256: 51d99ddebbe055dc2c4e1ccc19e6a90cdb1e29d10e20e8b0751cf62d4011aa71</div>
+      </div>
+      <div class="grid" style="margin-top:.8rem;">
+        <div class="metric"><div class="label">Total Findings</div><div class="value">36</div></div>
+        <div class="metric"><div class="label">High Risk Findings</div><div class="value">36</div></div>
+        <div class="metric"><div class="label">High Risk Behaviors</div><div class="value">0</div></div>
+        <div class="metric"><div class="label">Artifact Flags</div><div class="value">0</div></div>
+        <div class="metric"><div class="label">Proof Layer</div><div class="value">0</div></div>
+        <div class="metric"><div class="label">Suspicion Layer</div><div class="value">0</div></div>
+        <div class="metric"><div class="label">Capability Layer</div><div class="value">0</div></div>
+      </div>
+      <div class="subgrid">
+        <div class="kpi"><div class="k">Stage2 Errors</div><div class="v">1</div></div>
+        <div class="kpi"><div class="k">Blockchain Indicators</div><div class="v">0</div></div>
+        <div class="kpi"><div class="k">Network Unknown/Suspicious</div><div class="v">0</div></div>
+        <div class="kpi"><div class="k">Variant Detections</div><div class="v">0</div></div>
+        <div class="kpi"><div class="k">Raw String Detections</div><div class="v">0</div></div>
+        <div class="kpi"><div class="k">Heuristic Detections</div><div class="v">0</div></div>
+        <div class="kpi"><div class="k">RatterScanner Malicious</div><div class="v">0</div></div>
+        <div class="kpi"><div class="k">JLab Signatures</div><div class="v">0</div></div>
+      </div>
+    </div>
+    
+    <div class='card'><h2 class='triage-title'>Target Metadata</h2><div class='meta-grid'><div class='meta-box'><h3>Basic Properties</h3><table class='meta-table'><tr><td class='meta-k'>Subject</td><td class='meta-v'>neurepoparser-1.9.0.jar</td></tr><tr><td class='meta-k'>MD5</td><td class='meta-v'>f9624ff6b1421ff04f2ee487ebe5e5a4</td></tr><tr><td class='meta-k'>SHA-1</td><td class='meta-v'>fa7622ffb72249572d2563a92b25af07f001be59</td></tr><tr><td class='meta-k'>SHA-256</td><td class='meta-v'>51d99ddebbe055dc2c4e1ccc19e6a90cdb1e29d10e20e8b0751cf62d4011aa71</td></tr><tr><td class='meta-k'>File Type</td><td class='meta-v'>JAR</td></tr><tr><td class='meta-k'>Compressed</td><td class='meta-v'>jar</td></tr><tr><td class='meta-k'>Magic</td><td class='meta-v'>Zip archive data (JAR)</td></tr><tr><td class='meta-k'>File Size</td><td class='meta-v'>78.83 KB</td></tr></table></div><div class='meta-box'><h3>Artifact Identity</h3><table class='meta-table'><tr><td class='meta-k'>Scan Root Name</td><td class='meta-v'>neurepoparser-1.9.0</td></tr><tr><td class='meta-k'>Scan Root Tree SHA256</td><td class='meta-v'>aab3446c08407b6ee7231667b8b0e36dcdfc5544a0e51ddcd43031544b524427</td></tr><tr><td class='meta-k'>Scan Root File Count</td><td class='meta-v'>104</td></tr></table></div><div class='meta-box'><h3>JAR Archive Metadata</h3><table class='meta-table'><tr><td class='meta-k'>Contained Directories</td><td class='meta-v'>17</td></tr><tr><td class='meta-k'>Max Directory Depth</td><td class='meta-v'>7</td></tr><tr><td class='meta-k'>Contained Files</td><td class='meta-v'>106</td></tr><tr><td class='meta-k'>Earliest Modification</td><td class='meta-v'>2026-10-11 15:33:19</td></tr><tr><td class='meta-k'>Latest Modification</td><td class='meta-v'>2026-10-11 15:33:21</td></tr></table></div><div class='meta-box'><h3>Bundle Metadata</h3><table class='meta-table'><tr><td class='meta-k'>Contained Files</td><td class='meta-v'>106</td></tr><tr><td class='meta-k'>Uncompressed Size</td><td class='meta-v'>238.37 KB</td></tr><tr><td class='meta-k'>Earliest Modification</td><td class='meta-v'>2026-10-11 15:33:19</td></tr><tr><td class='meta-k'>Latest Modification</td><td class='meta-v'>2026-10-11 15:33:21</td></tr></table></div></div></div>
+    <div class='card'><h2 class='triage-title'>Runtime C2</h2><div class='meta-box'><table class='meta-table'><tr><td class='meta-k'>Attempted</td><td class='meta-v'>False</td></tr><tr><td class='meta-k'>Resolved</td><td class='meta-v'>False</td></tr></table></div></div>
+    
+    
+    <div class='card'><h2 class='triage-title'>Stage2 Analysis</h2><div class='meta-box'><table class='meta-table'><tr><td class='meta-k'>Enabled</td><td class='meta-v'>True</td></tr><tr><td class='meta-k'>Attempted</td><td class='meta-v'>False</td></tr><tr><td class='meta-k'>Static-only mode</td><td class='meta-v'>True</td></tr><tr><td class='meta-k'>Downloaded</td><td class='meta-v'>False</td></tr><tr><td class='meta-k'>Downloaded size</td><td class='meta-v'>0</td></tr><tr><td class='meta-k'>Entry count</td><td class='meta-v'>0</td></tr><tr><td class='meta-k'>Class count</td><td class='meta-v'>0</td></tr><tr><td class='meta-k'>Native entry count</td><td class='meta-v'>0</td></tr><tr><td class='meta-k'>Error</td><td class='meta-v'>stage2 analysis requires network access; rerun without --no-network</td></tr></table></div></div>
+    
+    
+    <div class='card'><h2 class='triage-title'>Windows Persistence / Staging</h2><div class='meta-box'><table class='meta-table'><tbody><tr><td class='meta-k' style='color:#ff6b6b'>Not confirmed</td><td class='meta-v' style='color:#ff6b6b'>Run key, Scheduled Task, Service, Startup folder</td></tr></tbody></table></div></div>
+    
+    
+    
+    <div class='card'><h2 class='triage-title'>Network Endpoint Assessment</h2><div class='meta-box'><table class='meta-table'><tr><td class='meta-k'>Total URLs</td><td class='meta-v'>0</td></tr><tr><td class='meta-k'>Vendor URLs</td><td class='meta-v'>0</td></tr><tr><td class='meta-k'>Unknown URLs</td><td class='meta-v'>0</td></tr><tr><td class='meta-k'>Suspicious URLs</td><td class='meta-v'>0</td></tr></table></div></div>
+    
+    
+    
+    
+    <div class='card'><h2 class='triage-title'>Decoded Findings</h2><div class='table-wrap'><table class='smart-table findings-table'><colgroup><col class='file-col'><col class='line-col'><col class='func-col'><col class='cat-col'><col></colgroup><thead><tr><th class='tight'>File</th><th class='tight'>Line</th><th class='func-col'>Function</th><th class='cat-col'>Category</th><th>Decoded / Context</th></tr></thead><tbody><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\vendored\RuntimeTypeAdapterFactory$1.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>(Lcom/google/gson/Gson;Lcom/google/gson/reflect/TypeToken;)Lcom/google/gson/TypeAdapter;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\vendored\RuntimeTypeAdapterFactory.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>(Lcom/google/gson/Gson;Lcom/google/gson/reflect/TypeToken;)Lcom/google/gson/TypeAdapter;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEUConstants.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>(Lcom/google/gson/reflect/TypeToken;)Ljava/lang/Object;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepoFile.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>(Lcom/google/gson/reflect/TypeToken;)Ljava/lang/Object;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\vendored\RuntimeTypeAdapterFactory.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>(Lcom/google/gson/TypeAdapterFactory;Lcom/google/gson/reflect/TypeToken;)Lcom/google/gson/TypeAdapter;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\vendored\RuntimeTypeAdapterFactory.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>(Ljava/lang/Class;)Lcom/google/gson/reflect/TypeToken;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\vendored\RuntimeTypeAdapterFactory.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>&lt;R:Ljava/lang/Object;&gt;(Lcom/google/gson/Gson;Lcom/google/gson/reflect/TypeToken&lt;TR;&gt;;)Lcom/google/gson/TypeAdapter&lt;TR;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepoFile.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>&lt;T:Ljava/lang/Object;&gt;(Lcom/google/gson/reflect/TypeToken&lt;TT;&gt;;)TT;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEUConstants$1.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEUConstants$2.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEUConstants$3.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEUConstants$4.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepoFile.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepository$1.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepository$2.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepository$3.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepository$4.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepository$5.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\constants\FairySouls$1.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\data\NEUMobDropRecipe$Drop$Serializer$1.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\vendored\RuntimeTypeAdapterFactory.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>com/google/gson/reflect/TypeToken</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepoFile.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\vendored\RuntimeTypeAdapterFactory.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepository$3.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;Lio/github/moulberry/repo/data/Coordinate;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepository$5.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;Lio/github/moulberry/repo/data/NEUCraftingRecipe;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepository$2.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;Lio/github/moulberry/repo/data/NEUIngredient;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepository$4.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;Lio/github/moulberry/repo/data/NEUMobDropRecipe$Drop;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepository$1.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;Lio/github/moulberry/repo/data/NEUUnknownRecipe;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEUConstants$4.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;Ljava/util/List&lt;Lio/github/moulberry/repo/constants/BazaarStocks$InternalRepresentation;&gt;;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\constants\FairySouls$1.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;Ljava/util/List&lt;Lio/github/moulberry/repo/data/Coordinate;&gt;;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\data\NEUMobDropRecipe$Drop$Serializer$1.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;Ljava/util/List&lt;Ljava/lang/String;&gt;;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEUConstants$2.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;Ljava/util/Map&lt;Ljava/lang/String;Lcom/google/gson/JsonElement;&gt;;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEUConstants$1.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;Ljava/util/Map&lt;Ljava/lang/String;Ljava/util/List&lt;Ljava/lang/String;&gt;;&gt;;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEUConstants$3.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;Ljava/util/Map&lt;Ljava/lang/String;Ljava/util/Map&lt;Lio/github/moulberry/repo/data/Rarity;Lio/github/moulberry/repo/constants/PetNumbers;&gt;;&gt;;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\vendored\RuntimeTypeAdapterFactory.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;TR;&gt;;</td></tr><tr class='row-high'><td class='tight'>.java_triage_classes\io\github\moulberry\repo\NEURepoFile.class</td><td class='tight'>1</td><td class='func-col'>&lt;class_const&gt;</td><td class='cat-col'><span class='cat-pill cat-danger'>credential_or_identity_field</span></td><td class='decoded-high'>Lcom/google/gson/reflect/TypeToken&lt;TT;&gt;;</td></tr></tbody></table></div></div>
+     
+    <div class='card'><h2 class='triage-title'>Behavior Indicators</h2><div class='table-wrap'><table class='smart-table behavior-table'><colgroup><col class='sev-col'><col class='file-col'><col class='line-col'><col class='beh-col'><col></colgroup><thead><tr><th class='tight'>Severity</th><th class='tight'>File</th><th class='tight'>Line</th><th>Behavior</th><th>Evidence</th></tr></thead><tbody><tr class='row-low'><td class='tight'><span class='sev sev-low'>low</span></td><td class='tight'>io\github\moulberry\repo\constants\Bonuses.java</td><td class='tight'>1</td><td>minecraft_username_access</td><td class=''>Reads Minecraft session username (method_1676/getName/getUsername)</td></tr><tr class='row-low'><td class='tight'><span class='sev sev-low'>low</span></td><td class='tight'>io\github\moulberry\repo\constants\Islands.java</td><td class='tight'>1</td><td>minecraft_username_access</td><td class=''>Reads Minecraft session username (method_1676/getName/getUsername)</td></tr><tr class='row-low'><td class='tight'><span class='sev sev-low'>low</span></td><td class='tight'>io\github\moulberry\repo\constants\Misc.java</td><td class='tight'>1</td><td>minecraft_username_access</td><td class=''>Reads Minecraft session username (method_1676/getName/getUsername)</td></tr><tr class='row-low'><td class='tight'><span class='sev sev-low'>low</span></td><td class='tight'>io\github\moulberry\repo\data\ItemOverlays.java</td><td class='tight'>1</td><td>minecraft_username_access</td><td class=''>Reads Minecraft session username (method_1676/getName/getUsername)</td></tr><tr class='row-low'><td class='tight'><span class='sev sev-low'>low</span></td><td class='tight'>io\github\moulberry\repo\data\NEUCraftingRecipe.java</td><td class='tight'>1</td><td>minecraft_username_access</td><td class=''>Reads Minecraft session username (method_1676/getName/getUsername)</td></tr><tr class='row-low'><td class='tight'><span class='sev sev-low'>low</span></td><td class='tight'>io\github\moulberry\repo\data\NEUItem.java</td><td class='tight'>1</td><td>minecraft_username_access</td><td class=''>Reads Minecraft session username (method_1676/getName/getUsername)</td></tr><tr class='row-low'><td class='tight'><span class='sev sev-low'>low</span></td><td class='tight'>io\github\moulberry\repo\data\NEUMobDropRecipe.java</td><td class='tight'>1</td><td>minecraft_username_access</td><td class=''>Reads Minecraft session username (method_1676/getName/getUsername)</td></tr><tr class='row-low'><td class='tight'><span class='sev sev-low'>low</span></td><td class='tight'>io\github\moulberry\repo\vendored\RuntimeTypeAdapterFactory.java</td><td class='tight'><button type='button' class='context-toggle' data-context-target='behavior-context-7' aria-expanded='false'>▶ 132</button></td><td>minecraft_username_access</td><td class=''>Reads Minecraft session username (method_1676/getName/getUsername)</td></tr><tr id='behavior-context-7' class='source-context-row' style='display:none'><td colspan='5'><pre>   127:             public void write(JsonWriter out, R value) throws IOException {
+   128:                 Class&lt;?&gt; srcType = value.getClass();
+   129:                 String label = (String)RuntimeTypeAdapterFactory.this.subtypeToLabel.get(srcType);
+   130:                 TypeAdapter delegate = (TypeAdapter)subtypeToDelegate.get(srcType);
+   131:                 if (delegate == null) {
+   132:                     throw new JsonParseException(&quot;cannot serialize &quot; + srcType.getName() + &quot;; did you forget to register a subtype?&quot;);
+   133:                 }
+   134:                 JsonObject jsonObject = delegate.toJsonTree(value).getAsJsonObject();
+   135:                 if (RuntimeTypeAdapterFactory.this.maintainType) {
+   136:                     jsonElementAdapter.write(out, (Object)jsonObject);
+   137:                     return;</pre></td></tr></tbody></table></div></div>
+    
+  </div>
+  <script>
+  (function () {
+    document.querySelectorAll(".context-toggle").forEach(function (button) {
+      button.addEventListener("click", function () {
+        var target = document.getElementById(button.getAttribute("data-context-target"));
+        if (!target) return;
+        var open = target.style.display !== "none";
+        target.style.display = open ? "none" : "table-row";
+        button.setAttribute("aria-expanded", open ? "false" : "true");
+        button.textContent = (open ? "▶ " : "▼ ") + button.textContent.slice(2);
+      });
+    });
+    // ── Show-more / show-all toggle ──
+    var selectors = { findings: "tr[data-findings-extra='1']", behavior: "tr[data-behavior-extra='1']", artifact: "tr[data-artifact-extra='1']" };
+    document.querySelectorAll("[data-findings-controls='1']").forEach(function (ctrl) {
+      var kind = ctrl.getAttribute("data-kind") || "findings";
+      var limit = parseInt(ctrl.getAttribute("data-limit") || "200", 10);
+      var step = parseInt(ctrl.getAttribute("data-step") || "200", 10);
+      var rows = Array.prototype.slice.call(document.querySelectorAll(selectors[kind] || selectors.findings));
+      var shown = limit;
+      var moreBtn = ctrl.querySelector(".findings-more-btn");
+      var allBtn = ctrl.querySelector(".findings-all-btn");
+      var status = ctrl.querySelector(".findings-toggle-status");
+      function apply(count) {
+        shown = count;
+        rows.forEach(function (row, idx) { row.style.display = idx < Math.max(0, shown - limit) ? "" : "none"; });
+        var visible = Math.min(rows.length + limit, shown);
+        if (status) status.textContent = "Showing first " + Math.min(visible, rows.length + limit) + " of " + (rows.length + limit) + " rows.";
+        if (moreBtn) moreBtn.style.display = visible >= (rows.length + limit) ? "none" : "";
+        if (allBtn) allBtn.style.display = visible >= (rows.length + limit) ? "none" : "";
+      }
+      if (moreBtn) moreBtn.addEventListener("click", function () { apply(shown + step); });
+      if (allBtn) allBtn.addEventListener("click", function () { apply(rows.length + limit); });
+      apply(limit);
+    });
+
+    // ── Clickable header sorting for all smart-tables ──
+    document.querySelectorAll("table.smart-table thead tr").forEach(function (headerRow) {
+      var table = headerRow.closest("table");
+      var tbody = table.querySelector("tbody");
+      if (!tbody || tbody.children.length < 2) return;
+      var headers = headerRow.querySelectorAll("th");
+      headers.forEach(function (th, colIdx) {
+        th.style.cursor = "pointer";
+        th.title = "Click to sort";
+        th.addEventListener("click", function () {
+          var rows = Array.prototype.slice.call(tbody.querySelectorAll("tr"));
+          var asc = th.getAttribute("data-sort") !== "asc";
+          // Reset all header indicators
+          headers.forEach(function (h) { h.removeAttribute("data-sort"); h.style.color = ""; });
+          th.setAttribute("data-sort", asc ? "asc" : "desc");
+          th.style.color = "#9dd5ff";
+          rows.sort(function (a, b) {
+            var cellA = (a.children[colIdx] || {}).textContent || "";
+            var cellB = (b.children[colIdx] || {}).textContent || "";
+            // Numeric sort if both look numeric
+            var numA = parseFloat(cellA.trim());
+            var numB = parseFloat(cellB.trim());
+            if (!isNaN(numA) && !isNaN(numB)) {
+              return asc ? numA - numB : numB - numA;
+            }
+            return asc ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+          });
+          rows.forEach(function (row) { tbody.appendChild(row); });
+        });
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

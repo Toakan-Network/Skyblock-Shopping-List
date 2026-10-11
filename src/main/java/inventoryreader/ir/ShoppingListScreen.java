@@ -250,14 +250,20 @@ public class ShoppingListScreen extends Screen {
     private void loadSaved(String name) {
         List<ShoppingListEntry> entries = SavedLists.get(name);
         if (entries == null) return;
-        int dropped = widget.replaceList(entries);
+        SandboxWidget.LoadResult result = widget.replaceList(entries);
         pendingDelete = null;
         saveName = name;
         Minecraft client = Minecraft.getInstance();
-        if (dropped > 0 && client.player != null) {
-            client.player.sendOverlayMessage(Component.literal("Loaded \"" + name + "\" without its last " + dropped
-                + " recipe(s): the list holds " + widget.getMaxRecipes() + " (Settings)")
-                .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+        if (result != null && client.player != null) {
+            if (result.dropped() > 0) {
+                client.player.sendOverlayMessage(Component.literal("Loaded \"" + name + "\" without its last "
+                    + result.dropped() + " recipe(s): the list holds " + widget.getMaxRecipes() + " (Settings)")
+                    .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+            } else if (result.skipped() > 0) {
+                client.player.sendOverlayMessage(Component.literal("Loaded \"" + name + "\": " + result.skipped()
+                    + " recipe(s) already done, skipped")
+                    .setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)));
+            }
         }
         rebuildWidgets();
     }

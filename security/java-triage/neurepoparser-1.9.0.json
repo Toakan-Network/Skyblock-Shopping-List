@@ -1,0 +1,661 @@
+{
+  "root": "cwd/neurepoparser-1.9.0",
+  "scan_roots": [
+    "cwd/neurepoparser-1.9.0"
+  ],
+  "scan_diagnostics": {
+    "cwd/neurepoparser-1.9.0": {
+      "java_files": 38,
+      "class_files": 64,
+      "finding_count": 36,
+      "scan_mode": "java_guarded_plus_class_constant_pool"
+    }
+  },
+  "target_metadata": {
+    "basic_properties": {
+      "subject": "neurepoparser-1.9.0.jar",
+      "md5": "f9624ff6b1421ff04f2ee487ebe5e5a4",
+      "sha1": "fa7622ffb72249572d2563a92b25af07f001be59",
+      "sha256": "51d99ddebbe055dc2c4e1ccc19e6a90cdb1e29d10e20e8b0751cf62d4011aa71",
+      "file_type": "JAR",
+      "compressed": "jar",
+      "magic": "Zip archive data (JAR)",
+      "file_size_text": "78.83 KB",
+      "file_size_bytes": 80726
+    },
+    "source_jar_metadata": {
+      "name": "neurepoparser-1.9.0.jar",
+      "path": "<scan-dir>\\neurepoparser-1.9.0\\neurepoparser-1.9.0.jar",
+      "size_bytes": 80726,
+      "size_text": "78.83 KB",
+      "md5": "f9624ff6b1421ff04f2ee487ebe5e5a4",
+      "sha1": "fa7622ffb72249572d2563a92b25af07f001be59",
+      "sha256": "51d99ddebbe055dc2c4e1ccc19e6a90cdb1e29d10e20e8b0751cf62d4011aa71"
+    },
+    "artifact_identity": {
+      "scan_root_name": "neurepoparser-1.9.0",
+      "scan_root_tree_sha256": "aab3446c08407b6ee7231667b8b0e36dcdfc5544a0e51ddcd43031544b524427",
+      "scan_root_file_count": 104,
+      "source_jar": {
+        "name": "neurepoparser-1.9.0.jar",
+        "path": "<scan-dir>\\neurepoparser-1.9.0\\neurepoparser-1.9.0.jar",
+        "size_bytes": 80726,
+        "size_text": "78.83 KB",
+        "md5": "f9624ff6b1421ff04f2ee487ebe5e5a4",
+        "sha1": "fa7622ffb72249572d2563a92b25af07f001be59",
+        "sha256": "51d99ddebbe055dc2c4e1ccc19e6a90cdb1e29d10e20e8b0751cf62d4011aa71"
+      }
+    },
+    "library_fingerprints": {
+      "detected": [],
+      "libraries": {}
+    },
+    "jar_info": {
+      "manifest": "",
+      "archive_metadata": {
+        "contained_directories": 17,
+        "max_directory_depth": 7,
+        "contained_files": 106,
+        "latest_content_modification": "2026-10-11 15:33:21",
+        "earliest_content_modification": "2026-10-11 15:33:19",
+        "contained_files_by_type": {
+          "xml": 0,
+          "ascii": 106
+        }
+      }
+    },
+    "bundle_info": {
+      "contained_files": 106,
+      "uncompressed_size_text": "238.37 KB",
+      "uncompressed_size_bytes": 244091,
+      "earliest_content_modification": "2026-10-11 15:33:19",
+      "latest_content_modification": "2026-10-11 15:33:21",
+      "contained_files_by_type": {
+        "UNKNOWN": 104,
+        "DIRECTORY": 17,
+        "JSON": 2
+      },
+      "contained_files_by_extension": {
+        "CLASS": 64,
+        "JAVA": 38,
+        "JSON": 2,
+        "TXT": 2
+      }
+    }
+  },
+  "scan_mode": "standard",
+  "deobfuscation": {},
+  "decipher": {
+    "java_files": 38,
+    "files_changed": 0,
+    "strings_replaced": 0,
+    "strings_failed": 0,
+    "xor_strings_replaced": 0,
+    "xor_strings_failed": 0,
+    "aes_strings_replaced": 0,
+    "aes_strings_failed": 0,
+    "aes_gcm_strings_replaced": 0,
+    "aes_gcm_strings_failed": 0,
+    "recovered_crypto_keys": [],
+    "output_root": "<scan-dir>\\neurepoparser-1.9.0_deciphered"
+  },
+  "string_dump": {
+    "strings_count": 3556,
+    "aes_candidates_count": 9,
+    "json": "<scan-dir>\\neurepoparser-1.9.0\\.java_triage_string_dump.json",
+    "txt": "<scan-dir>\\neurepoparser-1.9.0\\.java_triage_string_dump.txt"
+  },
+  "invokedynamic_bootstrap": {
+    "class_files_count": 64,
+    "bootstrap_methods_count": 17,
+    "invokedynamic_sites_count": 17,
+    "suspicious_bootstraps_count": 0,
+    "high_value_sites_count": 0,
+    "json": "<scan-dir>\\neurepoparser-1.9.0\\.java_triage_indy_bootstrap_map.json"
+  },
+  "summary": {
+    "total_findings": 36,
+    "unique_decoded_strings": 21,
+    "category_counts": {
+      "credential_or_identity_field": 36
+    },
+    "xor_decrypted_count": 0,
+    "decrypted_string_count": 0,
+    "reconstructed_strings": 0,
+    "high_risk_count": 36,
+    "behavior_findings": 8,
+    "high_risk_behavior_count": 0,
+    "behavior_severity_counts": {
+      "critical": 0,
+      "high": 0,
+      "medium": 0,
+      "low": 8,
+      "info": 0
+    },
+    "verdict_layers": {
+      "proof": 0,
+      "suspicion": 0,
+      "capability": 0
+    },
+    "artifact_findings": 0,
+    "assessment_counts": {
+      "benign": 0,
+      "needs_review": 0,
+      "suspicious": 0
+    },
+    "verdict_tiers": {
+      "confirmed_behavior": 0,
+      "exposed_capability": 0,
+      "suspicious_capability": 8,
+      "library_noise": 0
+    },
+    "contradiction_notes": [],
+    "aes_decrypted_count": 0
+  },
+  "assessment_summary": {
+    "counts": {
+      "benign": 0,
+      "needs_review": 0,
+      "suspicious": 0
+    },
+    "findings": {
+      "benign": [],
+      "needs_review": [],
+      "suspicious": []
+    }
+  },
+  "verdict_tiers": {
+    "confirmed_behavior": 0,
+    "exposed_capability": 0,
+    "suspicious_capability": 8,
+    "library_noise": 0
+  },
+  "contradiction_notes": [],
+  "reconstructed_strings": [],
+  "runtime_c2": {
+    "attempted": false,
+    "resolved": false
+  },
+  "exfiltration_analysis": {
+    "status": "not_detected",
+    "confirmed": false,
+    "data_sources": [],
+    "endpoints": []
+  },
+  "url_assembly": {
+    "c2_domain": "",
+    "c2_domain_source": "",
+    "fallback_domain": "",
+    "dynamic_c2_domain": "",
+    "dynamic_c2_domain_source": "",
+    "dynamic_c2_domain_decoy": false,
+    "cdn_path": "",
+    "endpoints": [],
+    "assembled_urls": [],
+    "unresolved_paths": [],
+    "note": "C2 domain not resolved; set manually via blockchain eth_call or fallback domain string"
+  },
+  "infra_probe": {
+    "probed": false,
+    "results": []
+  },
+  "ratter_scanner": {
+    "attempted": false,
+    "error": "",
+    "results": []
+  },
+  "jlab_static_scan": {
+    "attempted": false,
+    "error": "",
+    "status_code": 0,
+    "upload_file": "",
+    "upload_size": 0,
+    "file_name": "",
+    "file_size": 0,
+    "total_signatures": 0,
+    "matched_signatures": 0,
+    "signatures": [],
+    "retry_after": null,
+    "rate_limit_limit": null,
+    "rate_limit_remaining": null
+  },
+  "network_endpoint_assessment": {
+    "total_urls": 0,
+    "vendor_urls": [],
+    "unknown_urls": [],
+    "suspicious_urls": [],
+    "vendor_count": 0,
+    "unknown_count": 0,
+    "suspicious_count": 0
+  },
+  "variant_detections": {
+    "detected_count": 0,
+    "detected": []
+  },
+  "raw_string_detections": [],
+  "heuristic_detections": [],
+  "minecraft_modules": {
+    "detected": false,
+    "module_count": 0,
+    "modules": [],
+    "categories": {}
+  },
+  "stage2_analysis": {
+    "enabled": true,
+    "attempted": false,
+    "static_only_no_execution": true,
+    "error": "stage2 analysis requires network access; rerun without --no-network",
+    "aes_payload_decrypted": false,
+    "aes_payload_note": "AES decryption requires the full ciphertext bytes from the C2 download endpoint. If the download succeeded, the AES key/IV must be extracted from decoded strings and passed to the offline aes_cbc_nopadding_decrypt() helper.",
+    "payload_url_resolved": ""
+  },
+  "stage2_manual_payload_url": "",
+  "blockchain_indicators": {
+    "contracts": [],
+    "selectors": [],
+    "rpc_urls": [],
+    "rpc_hosts": [],
+    "api_key_urls": []
+  },
+  "findings": [
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEUConstants$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/util/List<Ljava/lang/String;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEUConstants$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEUConstants$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Lcom/google/gson/JsonElement;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEUConstants$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEUConstants$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/util/Map<Lio/github/moulberry/repo/data/Rarity;Lio/github/moulberry/repo/constants/PetNumbers;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEUConstants$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEUConstants$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/List<Lio/github/moulberry/repo/constants/BazaarStocks$InternalRepresentation;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEUConstants$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEUConstants.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "(Lcom/google/gson/reflect/TypeToken;)Ljava/lang/Object;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepoFile.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "(Lcom/google/gson/reflect/TypeToken;)Ljava/lang/Object;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepoFile.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "<T:Ljava/lang/Object;>(Lcom/google/gson/reflect/TypeToken<TT;>;)TT;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepoFile.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepoFile.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<TT;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepoFile.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepository$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Lio/github/moulberry/repo/data/NEUUnknownRecipe;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepository$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepository$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Lio/github/moulberry/repo/data/NEUIngredient;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepository$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepository$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Lio/github/moulberry/repo/data/Coordinate;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepository$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepository$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Lio/github/moulberry/repo/data/NEUMobDropRecipe$Drop;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepository$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepository$5.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Lio/github/moulberry/repo/data/NEUCraftingRecipe;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\NEURepository$5.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\constants\\FairySouls$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/List<Lio/github/moulberry/repo/data/Coordinate;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\constants\\FairySouls$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\data\\NEUMobDropRecipe$Drop$Serializer$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/List<Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\data\\NEUMobDropRecipe$Drop$Serializer$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\vendored\\RuntimeTypeAdapterFactory$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "(Lcom/google/gson/Gson;Lcom/google/gson/reflect/TypeToken;)Lcom/google/gson/TypeAdapter;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\vendored\\RuntimeTypeAdapterFactory.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "(Lcom/google/gson/Gson;Lcom/google/gson/reflect/TypeToken;)Lcom/google/gson/TypeAdapter;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\vendored\\RuntimeTypeAdapterFactory.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "(Lcom/google/gson/TypeAdapterFactory;Lcom/google/gson/reflect/TypeToken;)Lcom/google/gson/TypeAdapter;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\vendored\\RuntimeTypeAdapterFactory.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "(Ljava/lang/Class;)Lcom/google/gson/reflect/TypeToken;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\vendored\\RuntimeTypeAdapterFactory.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "<R:Ljava/lang/Object;>(Lcom/google/gson/Gson;Lcom/google/gson/reflect/TypeToken<TR;>;)Lcom/google/gson/TypeAdapter<TR;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\vendored\\RuntimeTypeAdapterFactory.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\vendored\\RuntimeTypeAdapterFactory.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<TR;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\io\\github\\moulberry\\repo\\vendored\\RuntimeTypeAdapterFactory.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    }
+  ],
+  "behavior_findings": [
+    {
+      "file": "io\\github\\moulberry\\repo\\constants\\Bonuses.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "io\\github\\moulberry\\repo\\constants\\Islands.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "io\\github\\moulberry\\repo\\constants\\Misc.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "io\\github\\moulberry\\repo\\data\\ItemOverlays.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "io\\github\\moulberry\\repo\\data\\NEUCraftingRecipe.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "io\\github\\moulberry\\repo\\data\\NEUItem.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "io\\github\\moulberry\\repo\\data\\NEUMobDropRecipe.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "io\\github\\moulberry\\repo\\vendored\\RuntimeTypeAdapterFactory.java",
+      "line": 132,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "   127:             public void write(JsonWriter out, R value) throws IOException {\n   128:                 Class<?> srcType = value.getClass();\n   129:                 String label = (String)RuntimeTypeAdapterFactory.this.subtypeToLabel.get(srcType);\n   130:                 TypeAdapter delegate = (TypeAdapter)subtypeToDelegate.get(srcType);\n   131:                 if (delegate == null) {\n   132:                     throw new JsonParseException(\"cannot serialize \" + srcType.getName() + \"; did you forget to register a subtype?\");\n   133:                 }\n   134:                 JsonObject jsonObject = delegate.toJsonTree(value).getAsJsonObject();\n   135:                 if (RuntimeTypeAdapterFactory.this.maintainType) {\n   136:                     jsonElementAdapter.write(out, (Object)jsonObject);\n   137:                     return;",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    }
+  ],
+  "artifact_findings": []
+}
