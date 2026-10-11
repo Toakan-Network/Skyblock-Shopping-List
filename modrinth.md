@@ -8,8 +8,6 @@ This mod is designed around Ironman play. With no Bazaar or Auction House, every
 ### Works for everyone
 Nothing in the mod is limited to Ironman profiles. On a regular profile it works the same way: track your stock across inventory, sacks and storage, plan big crafts down to raw materials, and see what you can make right now.
 
-**Coming from Inventory Reader?** This mod grew out of [Inventory Reader](https://github.com/Scholiboi/InventoryReader) by Scholiboi. Remove the old jar before installing; your data is moved to `config/skyblock-shopping-list/` automatically on first launch.
-
 ## Features
 - [Shopping list HUD](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD)
 - [Easy start: no need to open every sack](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#first-things-to-open)
@@ -29,6 +27,8 @@ Nothing in the mod is limited to Ironman profiles. On a regular profile it works
 - [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)
 
 How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-List/wiki).
+
+**Coming from Inventory Reader?** This mod grew out of [Inventory Reader](https://github.com/Scholiboi/InventoryReader) by Scholiboi. Remove the old jar before installing; your data is moved to `config/skyblock-shopping-list/` automatically on first launch.
 
 ## Getting started
 The mod only knows what you have shown it. Open each of your sacks, backpacks and ender chest pages once on SkyBlock, plus each Accessory Bag page, each wardrobe page and the Stats & Equipment menu (for worn equipment). After that, counts stay up to date from your inventory, the containers you open and the `[Sacks]` chat summaries (keep those enabled in your SkyBlock settings).

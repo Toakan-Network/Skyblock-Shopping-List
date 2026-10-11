@@ -16,6 +16,25 @@ This mod is designed around Ironman play. With no Bazaar or Auction House, every
 ### Works for everyone
 Nothing in the mod is limited to Ironman profiles. On a regular profile it works the same way: track your stock across inventory, sacks and storage, plan big crafts down to raw materials, and see what you can make right now.
 
+## Features
+- [Shopping list HUD](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD)
+- [Easy start: no need to open every sack](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#first-things-to-open)
+- [Recipe filters](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
+- [Saved lists](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
+- [Per-profile data](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#per-profile-data)
+- [Craftable](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#craftable)
+- [Forging](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forging)
+- [Recipe locks](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#recipe-locks)
+- [NPC price](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#npc-price)
+- [Forge times](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forge-times)
+- [Recipes beyond the crafting table](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#recipes)
+- [Coins count as an item](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#coins)
+- [Pop-ups](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#pop-ups)
+- [Fully customisable look](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
+- [Presets and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
+- [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)
+
+How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-List/wiki).
 
 ## Coming from Inventory Reader?
 Skyblock Shopping List grew out of [Inventory Reader](https://github.com/Scholiboi/InventoryReader) by Scholiboi (see [Credits](#license-and-attribution)). Remove the old Inventory Reader jar from `mods/` before installing; its data folder (`.ir-data`, or `.skyblock-shopping-list` from earlier versions of this mod) is moved to `config/skyblock-shopping-list/` automatically on first launch.
@@ -41,26 +60,6 @@ You don't need to open every sack. When you join SkyBlock and each time you add 
 - the HUD's **Total** row shows how far you've got, e.g. `(sacks 1/3 read)`,
 - in the sack menus (`/sacks`), the sacks still to open have a gold square behind them.
 Everything goes back to normal as soon as each sack has been opened once.
-
-## Features
-- [Shopping list HUD](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD)
-- [Easy start: no need to open every sack](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#first-things-to-open)
-- [Recipe filters](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
-- [Saved lists](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
-- [Per-profile data](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#per-profile-data)
-- [Craftable](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#craftable)
-- [Forging](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forging)
-- [Recipe locks](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#recipe-locks)
-- [NPC price](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#npc-price)
-- [Forge times](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forge-times)
-- [Recipes beyond the crafting table](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#recipes)
-- [Coins count as an item](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#coins)
-- [Pop-ups](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#pop-ups)
-- [Fully customisable look](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
-- [Presets and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
-- [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)
-
-How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-List/wiki).
 
 ## Keys and commands
 | Key / command | Action |
