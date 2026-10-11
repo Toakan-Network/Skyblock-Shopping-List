@@ -127,5 +127,7 @@ public class InventoryReaderClient implements ClientModInitializer {
         data.put(INVENTORY_KEY, current);
         JsonFiles.writeAsync(FilePathManager.inventoryJson(), () -> data);
         ResourcesManager.getInstance().saveData(changes);
+        // Worn armor also shows in the wardrobe; its count there depends on what is worn.
+        StorageReader.getInstance().refreshWorn();
     }
 }
