@@ -1,5 +1,11 @@
 # Skyblock Shopping List
 
+[![build](https://github.com/Toakan/Skyblock-Shopping-List/actions/workflows/build.yml/badge.svg)](https://github.com/Toakan/Skyblock-Shopping-List/actions/workflows/build.yml)
+[![release](https://img.shields.io/github/v/release/Toakan/Skyblock-Shopping-List?label=release)](https://github.com/Toakan/Skyblock-Shopping-List/releases/latest)
+[![license](https://img.shields.io/badge/license-GPL--3.0--only-blue)](LICENSE)
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.2-62b47a)](https://www.minecraft.net/)
+[![Fabric](https://img.shields.io/badge/loader-Fabric-dbd0b4)](https://fabricmc.net/)
+
 > **Built for Ironman first, works for everyone.**
 
 Skyblock Shopping List is a Fabric client mod for Hypixel SkyBlock. It keeps a count of the items in your inventory, sacks, backpacks and ender chest, and shows a shopping list HUD for the recipes you pick: what you can already craft and what you still need. Lists can be saved under a name and swapped back in later.
