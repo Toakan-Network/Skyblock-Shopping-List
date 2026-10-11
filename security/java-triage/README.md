@@ -4,7 +4,7 @@ Static malware scan of this branch's jar, run on 2026-10-11.
 
 | Jar | SHA-256 | Confirmed behaviors | High | Medium | Report |
 |---|---|---|---|---|---|
-| `skyblock-shopping-list-4.28.0-integration.jar` | `03cfaced6315834505019a20a5f0666a72b611d1da7cff2df9db0b0ea9bd1a1d` | 0 | 1 (false positive, see below) | 0 | [HTML](skyblock-shopping-list-4.28.0-integration.html), [JSON](skyblock-shopping-list-4.28.0-integration.json) |
+| `skyblock-shopping-list-2.0.0-integration.jar` | `a9c29af736b7e7bf3de2c007b663775c9e3d150373ba1cc62e528b79ce5701f5` | 0 | 1 (false positive, see below) | 0 | [HTML](skyblock-shopping-list-2.0.0-integration.html), [JSON](skyblock-shopping-list-2.0.0-integration.json) |
 
 The jar bundles no other libraries. SkyBlock data comes from the separate SkyblockDB mod, which has its own scan.
 

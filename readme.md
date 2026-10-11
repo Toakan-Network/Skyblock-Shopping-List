@@ -128,7 +128,7 @@ Each SkyBlock profile keeps its own data in `profiles/<account>/<profile>/`, so 
 Recipes, forge times, unlock requirements and NPC prices are built from SkyblockDB's reference data (its copy of the NEU repository and Hypixel's item list), so the mod downloads no recipe archive of its own. The one extra file it fetches is NEU's sack list (`constants/sacks.json` from `raw.githubusercontent.com`, a few KB, with an ETag so an unchanged list isn't downloaded again). No player data is sent anywhere.
 
 ## Security scan
-The 4.28.0-integration jar was scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), a static scanner for malicious Java code and Minecraft mods (network off, nothing
+The 2.0.0-integration jar was scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), a static scanner for malicious Java code and Minecraft mods (network off, nothing
 uploaded). Result: no confirmed malicious behavior and no known malware matched. The report, the jar hashes to check
 your copy against and an explanation of each flagged item are in [security/java-triage](security/java-triage/README.md).
 
@@ -150,4 +150,5 @@ The jar is written to `build/libs/`. `./gradlew runClient` starts a development 
 - Code: GPL-3.0-only (see `LICENSE`) with additional terms under GPLv3 section 7 (see `NOTICE`): keep the credits to both authors, mark modified versions as changed, and give a modified version its own name, mod id and icon.
 - Originally based on [Inventory Reader](https://github.com/Scholiboi/InventoryReader) by Scholiboi. Its core ideas and code (reading items from your inventory, sacks and storage, working out recipe trees, the HUD and the recipe viewer) are what this mod was built on. Thanks to Scholiboi for the original project. Inventory Reader is licensed CC-BY-SA-4.0; its modified code is used here under GPLv3, which Creative Commons lists as compatible with CC-BY-SA-4.0.
 - Versions up to 4.26.1 were released under CC-BY-SA-4.0.
+- Version numbers restarted at 1.0.0. Earlier builds were numbered 4.x, carrying on from Inventory Reader's numbering.
 - Recipe and item data comes from NotEnoughUpdates-REPO; follow its license when reusing that data.
