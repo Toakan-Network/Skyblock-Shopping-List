@@ -1,0 +1,1275 @@
+{
+  "root": "cwd/skyblock-shopping-list-4.28.1",
+  "scan_roots": [
+    "cwd/skyblock-shopping-list-4.28.1"
+  ],
+  "scan_diagnostics": {
+    "cwd/skyblock-shopping-list-4.28.1": {
+      "java_files": 42,
+      "class_files": 101,
+      "finding_count": 63,
+      "scan_mode": "java_guarded_plus_class_constant_pool"
+    }
+  },
+  "target_metadata": {
+    "basic_properties": {
+      "subject": "skyblock-shopping-list-4.28.1.jar",
+      "md5": "9d00ef616d3fa71f8d8fae95ef6ef459",
+      "sha1": "658e8f8b1c11a02137ddefb4f2188e3924adb7ca",
+      "sha256": "981d8263593f2d4388eb3c789ce8402d5fe7ebcc53056cb1b579eb708e4d3f2a",
+      "file_type": "JAR",
+      "compressed": "jar",
+      "magic": "Zip archive data (JAR)",
+      "file_size_text": "353.90 KB",
+      "file_size_bytes": 362398
+    },
+    "source_jar_metadata": {
+      "name": "skyblock-shopping-list-4.28.1.jar",
+      "path": "<scan-dir>\\sl\\skyblock-shopping-list-4.28.1.jar",
+      "size_bytes": 362398,
+      "size_text": "353.90 KB",
+      "md5": "9d00ef616d3fa71f8d8fae95ef6ef459",
+      "sha1": "658e8f8b1c11a02137ddefb4f2188e3924adb7ca",
+      "sha256": "981d8263593f2d4388eb3c789ce8402d5fe7ebcc53056cb1b579eb708e4d3f2a"
+    },
+    "artifact_identity": {
+      "scan_root_name": "skyblock-shopping-list-4.28.1",
+      "scan_root_tree_sha256": "de66f49e138897a184e1fc955694e7fcb2694fd6d5a8b5a37b27bbab28510f98",
+      "scan_root_file_count": 145,
+      "source_jar": {
+        "name": "skyblock-shopping-list-4.28.1.jar",
+        "path": "<scan-dir>\\sl\\skyblock-shopping-list-4.28.1.jar",
+        "size_bytes": 362398,
+        "size_text": "353.90 KB",
+        "md5": "9d00ef616d3fa71f8d8fae95ef6ef459",
+        "sha1": "658e8f8b1c11a02137ddefb4f2188e3924adb7ca",
+        "sha256": "981d8263593f2d4388eb3c789ce8402d5fe7ebcc53056cb1b579eb708e4d3f2a"
+      }
+    },
+    "library_fingerprints": {
+      "detected": [],
+      "libraries": {}
+    },
+    "jar_info": {
+      "manifest": "",
+      "archive_metadata": {
+        "contained_directories": 9,
+        "max_directory_depth": 5,
+        "contained_files": 147,
+        "latest_content_modification": "2026-10-11 15:23:31",
+        "earliest_content_modification": "2026-10-11 15:23:27",
+        "contained_files_by_type": {
+          "xml": 0,
+          "ascii": 147
+        }
+      }
+    },
+    "bundle_info": {
+      "contained_files": 147,
+      "uncompressed_size_text": "988.85 KB",
+      "uncompressed_size_bytes": 1012579,
+      "earliest_content_modification": "2026-10-11 15:23:27",
+      "latest_content_modification": "2026-10-11 15:23:31",
+      "contained_files_by_type": {
+        "UNKNOWN": 145,
+        "DIRECTORY": 9,
+        "JSON": 2
+      },
+      "contained_files_by_extension": {
+        "CLASS": 101,
+        "JAVA": 42,
+        "JSON": 2,
+        "TXT": 2
+      }
+    }
+  },
+  "scan_mode": "standard",
+  "deobfuscation": {},
+  "decipher": {
+    "java_files": 42,
+    "files_changed": 0,
+    "strings_replaced": 0,
+    "strings_failed": 0,
+    "xor_strings_replaced": 0,
+    "xor_strings_failed": 0,
+    "aes_strings_replaced": 0,
+    "aes_strings_failed": 0,
+    "aes_gcm_strings_replaced": 0,
+    "aes_gcm_strings_failed": 0,
+    "recovered_crypto_keys": [],
+    "output_root": "<scan-dir>\\skyblock-shopping-list-4.28.1_deciphered"
+  },
+  "string_dump": {
+    "strings_count": 12085,
+    "aes_candidates_count": 182,
+    "json": "<scan-dir>\\skyblock-shopping-list-4.28.1\\.java_triage_string_dump.json",
+    "txt": "<scan-dir>\\skyblock-shopping-list-4.28.1\\.java_triage_string_dump.txt"
+  },
+  "invokedynamic_bootstrap": {
+    "class_files_count": 101,
+    "bootstrap_methods_count": 416,
+    "invokedynamic_sites_count": 451,
+    "suspicious_bootstraps_count": 0,
+    "high_value_sites_count": 96,
+    "json": "<scan-dir>\\skyblock-shopping-list-4.28.1\\.java_triage_indy_bootstrap_map.json"
+  },
+  "summary": {
+    "total_findings": 57,
+    "unique_decoded_strings": 27,
+    "category_counts": {
+      "credential_or_identity_field": 42,
+      "dynamic_execution": 5,
+      "url": 5,
+      "string": 3,
+      "http_header": 1,
+      "reconstructed_string": 1
+    },
+    "xor_decrypted_count": 0,
+    "decrypted_string_count": 0,
+    "reconstructed_strings": 0,
+    "high_risk_count": 52,
+    "behavior_findings": 53,
+    "high_risk_behavior_count": 2,
+    "behavior_severity_counts": {
+      "critical": 0,
+      "high": 2,
+      "medium": 0,
+      "low": 51,
+      "info": 0
+    },
+    "verdict_layers": {
+      "proof": 0,
+      "suspicion": 2,
+      "capability": 0
+    },
+    "artifact_findings": 0,
+    "assessment_counts": {
+      "benign": 0,
+      "needs_review": 0,
+      "suspicious": 0
+    },
+    "verdict_tiers": {
+      "confirmed_behavior": 0,
+      "exposed_capability": 0,
+      "suspicious_capability": 53,
+      "library_noise": 0
+    },
+    "contradiction_notes": [],
+    "aes_decrypted_count": 0
+  },
+  "assessment_summary": {
+    "counts": {
+      "benign": 0,
+      "needs_review": 0,
+      "suspicious": 0
+    },
+    "findings": {
+      "benign": [],
+      "needs_review": [],
+      "suspicious": []
+    }
+  },
+  "verdict_tiers": {
+    "confirmed_behavior": 0,
+    "exposed_capability": 0,
+    "suspicious_capability": 53,
+    "library_noise": 0
+  },
+  "contradiction_notes": [],
+  "reconstructed_strings": [
+    {
+      "decoded": "\u00a76\u00a7l=",
+      "file": "inventoryreader\\ir\\WelcomeManager.java",
+      "line": 53,
+      "confidence": "high",
+      "category": "reconstructed_string",
+      "function": "showWelcomeMessage",
+      "context": "    48: \n    49:     private static void showWelcomeMessage(Minecraft client) {\n    50:         if (client.player == null) {\n    51:             return;\n    52:         }\n    53:         String divider = \"\\u00a76\\u00a7l\" + \"=\".repeat(40);\n    54:         client.player.sendSystemMessage((Component)Component.literal((String)divider));\n    55:         client.player.sendSystemMessage((Component)Component.literal((String)\"\\u00a7b\\u00a7lSkyblock Shopping List\").setStyle(Style.EMPTY.withBold(Boolean.valueOf(true)).withColor(ChatFormatting.AQUA)));\n    56:         client.player.sendSystemMessage((Component)Component.literal((String)\"\\u00a7eA shopping list for Hypixel SkyBlock: pick recipes, see what you still need.\"));\n    57:         client.player.sendSystemMessage((Component)Component.literal((String)\"\"));\n    58:         MutableComponent commandsText = Component.literal((String)\"\\u00a76\\u00a7lCommands:\").append((Component)Component.literal((String)\"\\n\\u00a7e- Press \"));",
+      "note": "source=string_reconstruction kind=literal_concat parts=2"
+    }
+  ],
+  "runtime_c2": {
+    "attempted": false,
+    "resolved": false
+  },
+  "exfiltration_analysis": {
+    "status": "not_detected",
+    "confirmed": false,
+    "data_sources": [],
+    "endpoints": []
+  },
+  "url_assembly": {
+    "c2_domain": "",
+    "c2_domain_source": "",
+    "fallback_domain": "",
+    "dynamic_c2_domain": "",
+    "dynamic_c2_domain_source": "",
+    "dynamic_c2_domain_decoy": false,
+    "cdn_path": "",
+    "endpoints": [],
+    "assembled_urls": [],
+    "unresolved_paths": [],
+    "note": "C2 domain not resolved; set manually via blockchain eth_call or fallback domain string"
+  },
+  "infra_probe": {
+    "probed": false,
+    "results": []
+  },
+  "ratter_scanner": {
+    "attempted": false,
+    "error": "",
+    "results": []
+  },
+  "jlab_static_scan": {
+    "attempted": false,
+    "error": "",
+    "status_code": 0,
+    "upload_file": "",
+    "upload_size": 0,
+    "file_name": "",
+    "file_size": 0,
+    "total_signatures": 0,
+    "matched_signatures": 0,
+    "signatures": [],
+    "retry_after": null,
+    "rate_limit_limit": null,
+    "rate_limit_remaining": null
+  },
+  "network_endpoint_assessment": {
+    "total_urls": 4,
+    "vendor_urls": [
+      "https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master",
+      "https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO"
+    ],
+    "unknown_urls": [
+      "https://api.hypixel.net/v2/resources/skyblock/election",
+      "https://api.hypixel.net/v2/resources/skyblock/items"
+    ],
+    "suspicious_urls": [],
+    "vendor_count": 2,
+    "unknown_count": 2,
+    "suspicious_count": 0
+  },
+  "variant_detections": {
+    "detected_count": 0,
+    "detected": []
+  },
+  "raw_string_detections": [],
+  "heuristic_detections": [
+    {
+      "category": "heuristic",
+      "description": "Base64 encoding/decoding (actual decoder/encoder usage)",
+      "file_path": "inventoryreader/ir/HudPresets.java",
+      "weight": 10
+    }
+  ],
+  "minecraft_modules": {
+    "detected": false,
+    "module_count": 0,
+    "modules": [],
+    "categories": {}
+  },
+  "stage2_analysis": {
+    "enabled": true,
+    "attempted": false,
+    "static_only_no_execution": true,
+    "error": "stage2 analysis requires network access; rerun without --no-network",
+    "aes_payload_decrypted": false,
+    "aes_payload_note": "AES decryption requires the full ciphertext bytes from the C2 download endpoint. If the download succeeded, the AES key/IV must be extracted from decoded strings and passed to the offline aes_cbc_nopadding_decrypt() helper.",
+    "payload_url_resolved": ""
+  },
+  "stage2_manual_payload_url": "",
+  "blockchain_indicators": {
+    "contracts": [],
+    "selectors": [],
+    "rpc_urls": [],
+    "rpc_hosts": [],
+    "api_key_urls": []
+  },
+  "findings": [
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\CoinTracker$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Long;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\CoinTracker$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\ConfigScreen.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Copies the current look and panel sizes as text, to paste in chat or Discord.\u0001",
+      "category": "string",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\ForgeTracker$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/List<Linventoryreader/ir/ForgeTracker$Entry;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\ForgeTracker$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\InventoryReaderClient$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\InventoryReaderClient$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\ItemIds$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\ItemIds$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\ItemNames.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "isSymbolToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\ItemNames.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "token",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\NpcPrices$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Double;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\NpcPrices$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\RecipeManager$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\RecipeManager$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\RecipeManager$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\RecipeManager$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\RecipeManager$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\RecipeManager$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\RecipeManager$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\RecipeManager$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\RecipeManager$5.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\RecipeManager$5.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\ResourcesManager$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\ResourcesManager$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\SackReader$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\SackReader$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\SandboxWidget$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/List<Linventoryreader/ir/ShoppingListEntry;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\SandboxWidget$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\SavedLists$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/LinkedHashMap<Ljava/lang/String;Ljava/util/List<Linventoryreader/ir/ShoppingListEntry;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\SavedLists$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\StorageReader$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\StorageReader$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\recipes\\RemoteRecipeFetcher$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Object;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\recipes\\RemoteRecipeFetcher$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\recipes\\RemoteRecipeFetcher$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\recipes\\RemoteRecipeFetcher$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\recipes\\RemoteRecipeFetcher$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Object;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\recipes\\RemoteRecipeFetcher$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\recipes\\RemoteRecipeFetcher$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\recipes\\RemoteRecipeFetcher$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\recipes\\RemoteRecipeFetcher$5.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/util/Map<Ljava/lang/String;Linventoryreader/ir/recipes/RemoteRecipeFetcher$SackDef;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\inventoryreader\\ir\\recipes\\RemoteRecipeFetcher$5.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": "inventoryreader\\ir\\ConfigScreen.java",
+      "line": 143,
+      "function": "advanced",
+      "decoded": "Write what the mod reads (sack messages, Forge and HOTM menus, recipe downloads) to latest.log, to help track down a problem. Warnings and errors are always logged.",
+      "category": "string",
+      "note": "source=string_scanner signal=literal_keyword_hit",
+      "context": "   138:             s.showRequirements = v;\n   139:         })).build()).group(OptionGroup.createBuilder().name((Component)Component.literal((String)\"List\")).option(ConfigScreen.toggle(\"Auto-remove\", \"Take a recipe off the list once you have made the amount you asked for.\", true, widget::isAutoRemove, widget::setAutoRemove)).build()).group(OptionGroup.createBuilder().name((Component)Component.literal((String)\"Notifications\")).option(ConfigScreen.toggle(\"Pop-ups\", \"Pop-up when a recipe is ready to craft, and when you have made it.\", true, widget::isNotifications, widget::setNotifications)).option(ConfigScreen.toggle(\"Sack reminder\", \"Chat warning when your sacks haven't been opened for an hour. Between opens, sack counts follow the [Sacks] chat summaries and can drift.\", true, widget::isStaleSackWarning, widget::setStaleSackWarning)).build()).build();\n   140:     }\n   141: \n   142:     private static ConfigCategory advanced(SandboxWidget widget) {\n   143:         return ConfigCategory.createBuilder().name((Component)Component.literal((String)\"Advanced\")).option((Option)ButtonOption.createBuilder().name((Component)Component.literal((String)\"Key binds...\")).text((Component)Component.literal((String)\"Open\")).description(OptionDescription.of((Component[])new Component[]{Component.literal((String)\"Rebind keys. This mod's keys are under \\\"Skyblock Shopping List\\\".\")})).action((screen, button) -> Minecraft.getInstance().gui.setScreen((Screen)new KeyBindsScreen((Screen)screen, Minecraft.getInstance().options))).build()).option(Option.createBuilder().name((Component)Component.literal((String)\"Debug logging\")).description(OptionDescription.of((Component[])new Component[]{Component.literal((String)\"Write what the mod reads (sack messages, Forge and HOTM menus, recipe downloads) to latest.log, to help track down a problem. Warnings and errors are always logged.\")})).binding((Object)false, widget::isDebugLogging, widget::setDebugLogging).controller(opt -> BooleanControllerBuilder.create((Option)opt).onOffFormatter().coloured(true)).build()).build();\n   144:     }\n   145: \n   146:     private static ConfigCategory appearance(Screen parent, HudStyle d, List<String> fonts) {\n   147:         return ConfigCategory.createBuilder().name((Component)Component.literal((String)\"Appearance\")).option((Option)ButtonOption.createBuilder().name((Component)Component.literal((String)\"Preview (Move HUD...)\")).text((Component)Component.literal((String)\"Open\")).description(ConfigScreen.describe(\"Shows the HUD with the saved look in Move HUD. Press Save first to see changes there; the pre\u2026"
+    },
+    {
+      "file": "inventoryreader\\ir\\ConfigScreen.java",
+      "line": 282,
+      "function": "presets",
+      "decoded": "Copies the current look and panel sizes as text, to paste in chat or Discord.",
+      "category": "string",
+      "note": "source=string_scanner signal=literal_keyword_hit",
+      "context": "   277:                 HudPresets.toast(\"Preset not saved\", \"The file couldn't be written; see the log.\");\n   278:                 return;\n   279:             }\n   280:             HudPresets.toast(\"Preset saved\", chosenPreset);\n   281:             reopen.run();\n   282:         }).build()).option((Option)ButtonOption.createBuilder().name((Component)Component.literal((String)\"Copy share code\")).text((Component)Component.literal((String)\"Copy\")).description(ConfigScreen.describe(\"Copies the current look and panel sizes as text, to paste in chat or Discord.\" + saveFirst)).action((screen, button) -> {\n   283:             HudPresets.copyCode();\n   284:             HudPresets.toast(\"Share code copied\", \"Paste it anywhere to share your look.\");\n   285:         }).build()).option((Option)ButtonOption.createBuilder().name((Component)Component.literal((String)\"Paste share code\")).text((Component)Component.literal((String)\"Paste\")).description(ConfigScreen.describe(\"Reads a share code from the clipboard, saves it as a preset and switches to it. Your current look is kept as \\\"Previous (auto)\\\" first.\")).action((screen, button) -> {\n   286:             String imported;\n   287:             try {"
+    },
+    {
+      "file": "inventoryreader\\ir\\FilePathManager.java",
+      "line": 235,
+      "function": "initializeRemoteSourcesConfig",
+      "decoded": "https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master",
+      "category": "url",
+      "note": "source=string_scanner signal=literal_url",
+      "context": "   230:     }\n   231: \n   232:     private static void initializeRemoteSourcesConfig() {\n   233:         LinkedHashMap<String, String> neu = new LinkedHashMap<String, String>();\n   234:         neu.put(\"type\", \"neu-zip\");\n   235:         neu.put(\"url\", \"https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master\");\n   236:         LinkedHashMap cfg = new LinkedHashMap();\n   237:         cfg.put(\"sources\", List.of(neu));\n   238:         JsonFiles.write(REMOTE_SOURCES_JSON, cfg);\n   239:     }\n   240: "
+    },
+    {
+      "file": "inventoryreader\\ir\\ForgeSpeed.java",
+      "line": 48,
+      "function": "<unknown>",
+      "decoded": "https://api.hypixel.net/v2/resources/skyblock/election",
+      "category": "url",
+      "note": "source=string_scanner signal=literal_url",
+      "context": "    43: import net.minecraft.world.item.component.ItemLore;\n    44: \n    45: public final class ForgeSpeed {\n    46:     private static final Pattern QUICK_FORGE = Pattern.compile(\"forge,?\\\\s+by ([\\\\d.]+)%\");\n    47:     private static final Pattern PERCENT = Pattern.compile(\"([\\\\d.]+)%\");\n    48:     private static final String ELECTION_URL = \"https://api.hypixel.net/v2/resources/skyblock/election\";\n    49:     private static final String MOLTEN_FORGE = \"Molten Forge\";\n    50:     private static final double MOLTEN_FORGE_DEFAULT = 25.0;\n    51:     private static final long MAYOR_REFRESH_MS = 3600000L;\n    52:     private static final AtomicBoolean FETCHING = new AtomicBoolean(false);\n    53:     private static volatile Data data;"
+    },
+    {
+      "file": "inventoryreader\\ir\\IrCommandManager.java",
+      "line": 43,
+      "function": "commandTree",
+      "decoded": "- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)",
+      "category": "dynamic_execution",
+      "note": "source=string_scanner signal=literal_cli_flag",
+      "context": "    38:     }\n    39: \n    40:     private static LiteralArgumentBuilder<FabricClientCommandSource> commandTree(String name) {\n    41:         return (LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)ClientCommands.literal((String)name).executes(context -> {\n    42:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Skyblock Shopping List commands (/ssl, or /ir):\").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));\n    43:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    44:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl menu: Open the menu (shopping list, resources, recipes, settings)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    45:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl hud: Move or resize the HUD\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    46:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl credits: Show credits\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    47:             return 1;\n    48:         })).then(ClientCommands.literal((String)\"reset\").executes(context -> {"
+    },
+    {
+      "file": "inventoryreader\\ir\\IrCommandManager.java",
+      "line": 44,
+      "function": "commandTree",
+      "decoded": "- /ssl menu: Open the menu (shopping list, resources, recipes, settings)",
+      "category": "dynamic_execution",
+      "note": "source=string_scanner signal=literal_cli_flag",
+      "context": "    39: \n    40:     private static LiteralArgumentBuilder<FabricClientCommandSource> commandTree(String name) {\n    41:         return (LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)ClientCommands.literal((String)name).executes(context -> {\n    42:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Skyblock Shopping List commands (/ssl, or /ir):\").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));\n    43:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    44:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl menu: Open the menu (shopping list, resources, recipes, settings)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    45:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl hud: Move or resize the HUD\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    46:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl credits: Show credits\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    47:             return 1;\n    48:         })).then(ClientCommands.literal((String)\"reset\").executes(context -> {\n    49:             InventoryReader.debug(\"Executing complete mod reset\", new Object[0]);"
+    },
+    {
+      "file": "inventoryreader\\ir\\IrCommandManager.java",
+      "line": 45,
+      "function": "commandTree",
+      "decoded": "- /ssl hud: Move or resize the HUD",
+      "category": "dynamic_execution",
+      "note": "source=string_scanner signal=literal_cli_flag",
+      "context": "    40:     private static LiteralArgumentBuilder<FabricClientCommandSource> commandTree(String name) {\n    41:         return (LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)ClientCommands.literal((String)name).executes(context -> {\n    42:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Skyblock Shopping List commands (/ssl, or /ir):\").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));\n    43:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    44:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl menu: Open the menu (shopping list, resources, recipes, settings)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    45:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl hud: Move or resize the HUD\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    46:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl credits: Show credits\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    47:             return 1;\n    48:         })).then(ClientCommands.literal((String)\"reset\").executes(context -> {\n    49:             InventoryReader.debug(\"Executing complete mod reset\", new Object[0]);\n    50:             FilePathManager.resetData();"
+    },
+    {
+      "file": "inventoryreader\\ir\\IrCommandManager.java",
+      "line": 46,
+      "function": "commandTree",
+      "decoded": "- /ssl credits: Show credits",
+      "category": "dynamic_execution",
+      "note": "source=string_scanner signal=literal_cli_flag",
+      "context": "    41:         return (LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)ClientCommands.literal((String)name).executes(context -> {\n    42:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Skyblock Shopping List commands (/ssl, or /ir):\").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));\n    43:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    44:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl menu: Open the menu (shopping list, resources, recipes, settings)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    45:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl hud: Move or resize the HUD\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    46:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl credits: Show credits\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    47:             return 1;\n    48:         })).then(ClientCommands.literal((String)\"reset\").executes(context -> {\n    49:             InventoryReader.debug(\"Executing complete mod reset\", new Object[0]);\n    50:             FilePathManager.resetData();\n    51:             ProfileManager.clearCaches();"
+    },
+    {
+      "file": "inventoryreader\\ir\\IrCommandManager.java",
+      "line": 67,
+      "function": "commandTree",
+      "decoded": "https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO",
+      "category": "url",
+      "note": "source=string_scanner signal=literal_url",
+      "context": "    62:         }))).then(ClientCommands.literal((String)\"hud\").executes(context -> {\n    63:             InventoryReaderClient.shouldOpenMoveHud = true;\n    64:             return 1;\n    65:         }))).then(ClientCommands.literal((String)\"credits\").executes(context -> {\n    66:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Skyblock Shopping List by Tad, based on Inventory Reader by Scholiboi\").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));\n    67:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Data source: NotEnoughUpdates-REPO\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)).append((Component)Component.literal((String)\" \\u2022 \")).append((Component)Component.literal((String)\"https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO\").setStyle(Style.EMPTY.withColor(ChatFormatting.AQUA))));\n    68:             return 1;\n    69:         }));\n    70:     }\n    71: }\n    72: "
+    },
+    {
+      "file": "inventoryreader\\ir\\SandboxWidget.java",
+      "line": 1290,
+      "function": "drawSection",
+      "decoded": "- Ready",
+      "category": "dynamic_execution",
+      "note": "source=string_scanner signal=literal_cli_flag",
+      "context": "  1285:             SandboxWidget.drawScaled(context, header, SandboxWidget.alignedX(section.align(), width, style.padding, (float)client.font.width((FormattedText)header) * scale), y += 5, scale, style.textShadow);\n  1286:             y += Math.round(13.0f * scale);\n  1287:         }\n  1288:         int lineHeight = Math.round(10.0f * scale);\n  1289:         for (String line : lines) {\n  1290:             int color = line.endsWith(\" - Ready\") ? style.done : section.textColor();\n  1291:             Component text = style.text(line, color, false);\n  1292:             SandboxWidget.drawScaled(context, text, SandboxWidget.alignedX(section.align(), width, style.padding, (float)client.font.width((FormattedText)text) * scale), y, scale, style.textShadow);\n  1293:             y += lineHeight;\n  1294:         }\n  1295:         return y + 2;"
+    },
+    {
+      "file": "inventoryreader\\ir\\recipes\\RemoteRecipeFetcher.java",
+      "line": 81,
+      "function": "<unknown>",
+      "decoded": "https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master",
+      "category": "url",
+      "note": "source=string_scanner signal=literal_url",
+      "context": "    76: import org.slf4j.LoggerFactory;\n    77: \n    78: public final class RemoteRecipeFetcher {\n    79:     private static final Logger LOGGER = LoggerFactory.getLogger((String)\"IR-RemoteRecipeFetcher\");\n    80:     private static final Gson GSON = new Gson();\n    81:     public static final String DEFAULT_NEU_REPO_URL = \"https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master\";\n    82:     private static final String PARSER_VERSION = \"11\";\n    83:     private static final String COIN_ID = \"SKYBLOCK_COIN\";\n    84:     public static final String COINS_NAME = \"Coins\";\n    85:     private static final String HYPIXEL_ITEMS_URL = \"https://api.hypixel.net/v2/resources/skyblock/items\";\n    86:     private static final String[] PET_RARITIES = new String[]{\"Common\", \"Uncommon\", \"Rare\", \"Epic\", \"Legendary\", \"Mythic\"};"
+    },
+    {
+      "file": "inventoryreader\\ir\\recipes\\RemoteRecipeFetcher.java",
+      "line": 85,
+      "function": "<unknown>",
+      "decoded": "https://api.hypixel.net/v2/resources/skyblock/items",
+      "category": "url",
+      "note": "source=string_scanner signal=literal_url",
+      "context": "    80:     private static final Gson GSON = new Gson();\n    81:     public static final String DEFAULT_NEU_REPO_URL = \"https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master\";\n    82:     private static final String PARSER_VERSION = \"11\";\n    83:     private static final String COIN_ID = \"SKYBLOCK_COIN\";\n    84:     public static final String COINS_NAME = \"Coins\";\n    85:     private static final String HYPIXEL_ITEMS_URL = \"https://api.hypixel.net/v2/resources/skyblock/items\";\n    86:     private static final String[] PET_RARITIES = new String[]{\"Common\", \"Uncommon\", \"Rare\", \"Epic\", \"Legendary\", \"Mythic\"};\n    87:     private static final String PARSER_VERSION_KEY = \"parser-version\";\n    88:     private static final long MAX_ZIP_ENTRIES = 200000L;\n    89:     private static final long MAX_EXTRACTED_BYTES = 0x80000000L;\n    90:     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);"
+    },
+    {
+      "file": "inventoryreader\\ir\\recipes\\RemoteRecipeFetcher.java",
+      "line": 473,
+      "function": "fetchNpcSellPrices",
+      "decoded": "content-encoding",
+      "category": "http_header",
+      "note": "source=string_scanner signal=literal_http_header",
+      "context": "   468:                 }\n   469:                 LOGGER.warn(\"NPC sell price fetch HTTP {}\", (Object)resp.statusCode());\n   470:                 return;\n   471:             }\n   472:             InputStream body = resp.body();\n   473:             if (resp.headers().firstValue(\"content-encoding\").orElse(\"\").equalsIgnoreCase(\"gzip\")) {\n   474:                 body = new GZIPInputStream(body);\n   475:             }\n   476:             try (InputStreamReader reader = new InputStreamReader(body, StandardCharsets.UTF_8);){\n   477:                 parsed = (HypixelItems)GSON.fromJson((Reader)reader, HypixelItems.class);\n   478:             }"
+    }
+  ],
+  "behavior_findings": [
+    {
+      "file": "inventoryreader\\ir\\CoinTracker.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ConfigScreen.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ConfigScreen.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\Counts.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\FilePathManager.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\FilePathManager.java",
+      "line": 128,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "   123:                 Files.createDirectories(MOD_DIR.toPath(), new FileAttribute[0]);\n   124:                 File legacyData = new File(legacy, \"data\");\n   125:                 File[] entries = legacyData.listFiles();\n   126:                 if (entries != null) {\n   127:                     for (File entry : entries) {\n   128:                         Files.move(entry.toPath(), new File(MOD_DIR, entry.getName()).toPath(), new CopyOption[0]);\n   129:                     }\n   130:                 }\n   131:                 if ((welcome = new File(legacy, \"welcome_shown.txt\")).exists()) {\n   132:                     Files.move(welcome.toPath(), new File(MOD_DIR, welcome.getName()).toPath(), new CopyOption[0]);\n   133:                 }",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ForgeSpeed.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ForgeSpeed.java",
+      "line": 1,
+      "behavior": "possible_minecraft_identity_exfiltration",
+      "evidence": "Username/UUID read present alongside outbound HTTP activity to non-vendor hosts",
+      "context": "",
+      "severity": "high",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ForgeTracker.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\HudPositionScreen.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\HudPresets.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\HudPresets.java",
+      "line": 259,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "   254:         for (File file2 : files) {\n   255:             Preset preset = (Preset)JsonFiles.read(file2, Preset.class);\n   256:             if (preset == null) continue;\n   257:             String name = HudPresets.cleanName(preset.name);\n   258:             if (name.isEmpty()) {\n   259:                 name = file2.getName().substring(0, file2.getName().length() - 5);\n   260:             }\n   261:             preset.name = name;\n   262:             presets.putIfAbsent(name, preset);\n   263:         }\n   264:         return presets;",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\HudStyle.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\HypixelLocationListener.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\InventoryReaderClient.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\InventoryReaderClient.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\IrCommandManager.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\IrCommandManager.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ItemIds.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ItemNames.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\JsonFiles.java",
+      "line": 109,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "   104:         try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);){\n   105:             Object object = GSON.fromJson((Reader)reader, type);\n   106:             return (T)object;\n   107:         }\n   108:         catch (JsonParseException | IOException e) {\n   109:             InventoryReader.LOGGER.warn(\"Could not read {}: {}\", (Object)file.getName(), (Object)e.toString());\n   110:             return null;\n   111:         }\n   112:     }\n   113: \n   114:     public static boolean write(File file, Object value) {",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\MenuTabs.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\NpcPrices.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ProfileManager.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ProfileManager.java",
+      "line": 172,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "   167:             }\n   168:         }\n   169:     }\n   170: \n   171:     private static File accountDir() {\n   172:         UUID account = Minecraft.getInstance().getUser().getProfileId();\n   173:         if (account == null) {\n   174:             return null;\n   175:         }\n   176:         File accountDir = new File(PROFILES_DIR, account.toString());\n   177:         accountDir.mkdirs();",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ProfileManager.java",
+      "line": 172,
+      "behavior": "minecraft_uuid_access",
+      "evidence": "Reads Minecraft session UUID (method_44717/getProfileId/getUuid/getId)",
+      "context": "   167:             }\n   168:         }\n   169:     }\n   170: \n   171:     private static File accountDir() {\n   172:         UUID account = Minecraft.getInstance().getUser().getProfileId();\n   173:         if (account == null) {\n   174:             return null;\n   175:         }\n   176:         File accountDir = new File(PROFILES_DIR, account.toString());\n   177:         accountDir.mkdirs();",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\RecipeFileGenerator.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\RecipeManager.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\RecipeManager.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ReminderManager.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ReminderManager.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ResourcesManager.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ResourcesManager.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\SackChatListener.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\SackHighlight.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\SackHighlight.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\SackReader.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\SackReader.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\SandboxViewer.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\SandboxViewer.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\SandboxWidget.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\SandboxWidget.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\SavedLists.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ShoppingListScreen.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\ShoppingListScreen.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\SkyblockDetector.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\StorageReader.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\StorageReader.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\StorageViewerMod.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\mixin\\SlotClickMixin.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\recipes\\RemoteRecipeFetcher.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\recipes\\RemoteRecipeFetcher.java",
+      "line": 1,
+      "behavior": "possible_minecraft_identity_exfiltration",
+      "evidence": "Username/UUID read present alongside outbound HTTP activity to non-vendor hosts",
+      "context": "",
+      "severity": "high",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "inventoryreader\\ir\\recipes\\RemoteRecipeFetcher.java",
+      "line": 530,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "   525:                 String stripped;\n   526:                 if (ze.isDirectory()) continue;\n   527:                 if (++entries > 200000L) {\n   528:                     throw new IOException(\"ZIP has too many entries\");\n   529:                 }\n   530:                 String name = ze.getName();\n   531:                 int slash = name.indexOf(47);\n   532:                 if (slash < 0 || (stripped = name.substring(slash + 1)).isBlank()) continue;\n   533:                 Path dest = targetDir.resolve(stripped).normalize();\n   534:                 if (!dest.startsWith(targetDir)) {\n   535:                     LOGGER.error(\"ZIP path traversal blocked: {}\", (Object)name);",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    }
+  ],
+  "artifact_findings": []
+}
