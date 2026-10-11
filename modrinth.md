@@ -54,7 +54,7 @@ SkyblockDB (required mod): its SkyblockAPI library downloads SkyBlock item and r
 
 No player data is sent anywhere.
 
-Security scan: the 5.0.0-integration jar was scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), with no malicious behavior found. [Report and jar hashes](https://github.com/Toakan/Skyblock-Shopping-List/tree/SkyblockAPI-Integration/security/java-triage).
+Security scan: the 5.0.0 jar was scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), with no malicious behavior found. [Report and jar hashes](https://github.com/Toakan/Skyblock-Shopping-List/tree/SkyblockAPI-Integration/security/java-triage).
 
 ## Requirements
 Minecraft 26.2 or 26.3 (one jar for both), Java 25, Fabric Loader 0.19.5+, Fabric API, YetAnotherConfigLib (already installed if you use Skyblocker) the [Hypixel Mod API](https://modrinth.com/mod/hypixel-mod-api) and SkyblockDB 0.4.8+ with [Fabric Language Kotlin](https://modrinth.com/mod/fabric-language-kotlin) (all required: the game won't start without them).

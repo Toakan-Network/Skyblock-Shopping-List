@@ -71,9 +71,10 @@ jobs:
           files: |
             build/libs/!(*-@(dev|sources|javadoc)).jar
 
-          name: Skyblock Shopping List ${{ steps.ver.outputs.v }}
+          name: Skyblock Shopping List ${{ steps.ver.outputs.v }} (beta)
           version: ${{ steps.ver.outputs.v }}
-          version-type: ${{ github.event.release.prerelease && 'beta' || 'release' }}
+          # This branch (built on SkyblockDB) is always a beta on Modrinth, whatever the GitHub release says.
+          version-type: beta
           loaders: fabric
           game-versions: |
             26.2
