@@ -71,7 +71,8 @@ public class HudPositionScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
-        context.fill(0, 0, width, height, 0xFF0E0E0E);
+        // See-through, so the panels can be placed against the game behind them; just dimmed enough for the grid.
+        context.fill(0, 0, width, height, 0x40000000);
         for (int x = 0; x < width; x += 50) context.fill(x, 0, x + 1, height, 0x22FFFFFF);
         for (int y = 0; y < height; y += 50) context.fill(0, y, width, y + 1, 0x22FFFFFF);
         context.fill(0, 0, width, 22, MenuTabs.HEADER_BG);
@@ -94,8 +95,8 @@ public class HudPositionScreen extends Screen {
             float scale = scaleOf(r);
             int w = Math.round(r.width * scale);
             int h = Math.round(r.height * scale);
-            // Opaque backing so the grid doesn't show through a see-through panel colour.
-            context.fill(r.x, r.y, r.x + w, r.y + h, 0xFF0E0E0E);
+            // Faint backing marks the panel's full max height; the panel itself shows as it will on the HUD.
+            context.fill(r.x, r.y, r.x + w, r.y + h, 0x30000000);
             if (widget.renderPanel(context, panel, r.x, r.y, r.width, r.height, scale, true) == 0) {
                 context.fill(r.x, r.y, r.x + w, r.y + h, 0xCC271910);
                 context.text(font, "Shopping list is empty", r.x + 8, r.y + 8, 0xFFFFFFFF, false);
