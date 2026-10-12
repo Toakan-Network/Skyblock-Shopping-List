@@ -325,6 +325,8 @@ public class RecipeManager {
         public long forgeMs;
         /** Shopping-list trees only: held enough only by counting copies still cooking in the Forge. */
         public boolean cooking;
+        /** Shopping-list trees only: of the amount not missing, how many are still cooking in the Forge. */
+        public int cookingCount;
         public long[] forgeCookingEnds = new long[0];
         /**
          * Shopping-list trees only: what unlocks this row's own recipe ("HotM 6"), and the requirements of rows

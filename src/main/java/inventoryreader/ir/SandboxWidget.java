@@ -594,6 +594,7 @@ public class SandboxWidget {
             if (!achieved && finished < held) {
                 // Copies cooking now count towards this entry: it waits on the Forge (and shows its timer).
                 tree.cooking = true;
+                tree.cookingCount = Math.min(held - finished, Math.max(0, tree.required - tree.amount - tree.toCraft));
                 // Only the Forge is left: check again each minute until it is done.
                 if (held >= target) waitingOnForge = true;
             }
@@ -799,6 +800,7 @@ public class SandboxWidget {
                 short_ = true;
                 // Counted as held, but some of it is still in the Forge: not usable yet.
                 node.cooking = true;
+                node.cookingCount = Math.min(used - left, cookingCount);
             }
             finishedLeft.put(key, Math.max(0, left - used));
         }
@@ -1584,14 +1586,15 @@ public class SandboxWidget {
 
     /**
      * The amount shown next to a node, per Settings > Rows > Amount format: still to get ("3×"),
-     * held of needed ("83/5,120"), or the full amount the recipe needs ("6×").
+     * held of needed ("83/5,120"), or the full amount the recipe needs ("6×"). Held leaves out copies still
+     * cooking in the Forge: they aren't made yet (the row's timer shows when they are).
      */
     public static String amountText(RecipeManager.RecipeNode node) {
         boolean uncertain = isUncertain(node);
         return switch (HudStyle.get().amountFormat) {
             case REMAINING -> (uncertain ? "≤" : "") + number((long) node.amount + node.toCraft) + "×";
             case REQUIRED -> number(node.required) + "×";
-            case HAVE_NEED -> (uncertain ? "≥" : "") + number(Math.max(0L, (long) node.required - node.amount - node.toCraft))
+            case HAVE_NEED -> (uncertain ? "≥" : "") + number(Math.max(0L, (long) node.required - node.amount - node.toCraft - node.cookingCount))
                 + "/" + number(node.required);
         };
     }
