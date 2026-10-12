@@ -30,7 +30,12 @@ public final class ItemIds {
      * the inventory is scanned every 2 ticks. ItemStack uses identity equality and Hypixel sends a new stack
      * whenever an item's data changes, so the ID of a stack never goes stale; entries vanish with the stack.
      */
-    private static final Map<ItemStack, String> ID_CACHE = new WeakHashMap<>();
+    private static final Map<ItemStack, Info> ID_CACHE = new WeakHashMap<>();
+    /** Custom data fields naming the parts installed in a drill, as SkyBlock IDs. */
+    private static final List<String> DRILL_PART_KEYS = List.of("drill_part_engine", "drill_part_fuel_tank", "drill_part_upgrade_module");
+
+    /** What is read from a stack's custom data once: its SkyBlock ID and the IDs of parts installed in it. */
+    private record Info(String id, List<String> partIds) {}
 
     private ItemIds() {}
 
@@ -41,30 +46,54 @@ public final class ItemIds {
     }
 
     /** The item's SkyBlock ID (pets in NEU form), from the cache when this stack was seen before. */
-    private static String cachedId(ItemStack stack) {
+    private static Info cachedInfo(ItemStack stack) {
         synchronized (ID_CACHE) {
-            String id = ID_CACHE.get(stack);
-            if (id == null) {
-                id = skyblockId(stack);
-                ID_CACHE.put(stack, id);
+            Info info = ID_CACHE.get(stack);
+            if (info == null) {
+                CompoundTag data = customData(stack);
+                info = new Info(skyblockId(data), partIds(data));
+                ID_CACHE.put(stack, info);
             }
-            return id;
+            return info;
         }
+    }
+
+    private static String cachedId(ItemStack stack) {
+        return cachedInfo(stack).id();
+    }
+
+    private static Map<String, String> names() {
+        Map<String, String> names = namesById;
+        if (names == null) {
+            reload();
+            names = namesById;
+        }
+        return names;
     }
 
     /** The recipe name for this item if its SkyBlock ID is known, otherwise its shown name. */
     public static String nameOf(ItemStack stack) {
         String id = cachedId(stack);
         if (!id.isEmpty()) {
-            Map<String, String> names = namesById;
-            if (names == null) {
-                reload();
-                names = namesById;
-            }
-            String name = names.get(id);
+            String name = names().get(id);
             if (name != null) return name;
         }
         return stack.getHoverName().getString();
+    }
+
+    /**
+     * Adds the stack to {@code counts} under {@link #nameOf}, plus one of each part installed in it (a drill's
+     * engine, fuel tank and upgrade module), which the player holds too.
+     */
+    public static void count(ItemStack stack, Map<String, Integer> counts) {
+        counts.merge(nameOf(stack), stack.getCount(), Integer::sum);
+        List<String> parts = cachedInfo(stack).partIds();
+        if (parts.isEmpty()) return;
+        Map<String, String> names = names();
+        for (String partId : parts) {
+            String name = names.get(partId);
+            if (name != null) counts.merge(name, stack.getCount(), Integer::sum);
+        }
     }
 
     /** True for a real SkyBlock item; menu buttons ("Go Back", "Next Page", glass panes) have no ID. */
@@ -83,8 +112,7 @@ public final class ItemIds {
      * The item's SkyBlock ID. Every pet has the ID "PET" with its type and rarity in the "petInfo" JSON, so pets
      * get the NEU form "TYPE;rarity" ("BEE;4") that the recipe tables use.
      */
-    private static String skyblockId(ItemStack stack) {
-        CompoundTag data = customData(stack);
+    private static String skyblockId(CompoundTag data) {
         String id = data.getStringOr("id", "");
         if (!PET_ID.equals(id)) return id;
         try {
@@ -95,6 +123,16 @@ public final class ItemIds {
             // Missing or unexpected petInfo; fall back to the shown name.
         }
         return id;
+    }
+
+    /** SkyBlock IDs of the parts installed in a drill ("mithril_drill_engine" -> MITHRIL_DRILL_ENGINE); empty for anything else. */
+    private static List<String> partIds(CompoundTag data) {
+        List<String> parts = new java.util.ArrayList<>(0);
+        for (String key : DRILL_PART_KEYS) {
+            String part = data.getStringOr(key, "");
+            if (!part.isBlank()) parts.add(part.toUpperCase(Locale.ROOT));
+        }
+        return parts.isEmpty() ? List.of() : List.copyOf(parts);
     }
 
     private static CompoundTag customData(ItemStack stack) {

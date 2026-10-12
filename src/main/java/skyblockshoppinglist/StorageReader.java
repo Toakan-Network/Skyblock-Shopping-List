@@ -79,7 +79,7 @@ public class StorageReader {
         for (ItemStack stack : MenuSlots.containerStacks(handler)) {
             if (petsOnly ? !ItemIds.isPet(stack) : itemsOnly && !ItemIds.hasSkyblockId(stack)) continue;
             if (wearable && ItemIds.isPet(stack)) continue;
-            newData.merge(ItemIds.nameOf(stack), stack.getCount(), Integer::sum);
+            ItemIds.count(stack, newData);
         }
 
         Map<String, Integer> previous = containers().getOrDefault(title, Map.of());

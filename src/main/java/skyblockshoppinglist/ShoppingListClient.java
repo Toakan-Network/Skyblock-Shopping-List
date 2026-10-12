@@ -118,7 +118,7 @@ public class ShoppingListClient implements ClientModInitializer {
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);
             if (!stack.isEmpty()) {
-                current.merge(ItemIds.nameOf(stack), stack.getCount(), Integer::sum);
+                ItemIds.count(stack, current);
             }
         }
 
