@@ -98,6 +98,15 @@ public class ShoppingListClient implements ClientModInitializer {
         ShoppingList.debug("Initialized {} client components", ShoppingList.NAME);
     }
 
+    /** The keys as bound now, e.g. "[V]", for chat text. */
+    static String openMenuKeyName() { return keyName(openMenuKey); }
+    static String moveHudKeyName() { return keyName(moveHudKey); }
+    static String toggleWidgetKeyName() { return keyName(toggleWidgetKey); }
+
+    private static String keyName(KeyMapping key) {
+        return "[" + key.getTranslatedKeyMessage().getString() + "]";
+    }
+
     /** Forgets the remembered inventory (after a reset deleted the file). */
     public static void clearInventorySnapshot() {
         lastInventory = null;

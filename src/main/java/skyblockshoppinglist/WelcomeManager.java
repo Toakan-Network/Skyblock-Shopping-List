@@ -48,10 +48,10 @@ public class WelcomeManager {
         client.player.sendSystemMessage(Component.literal(""));
 
         MutableComponent commandsText = Component.literal("§6§lCommands:").append(Component.literal("\n§e- Press "));
-        commandsText.append(Component.literal("§b[V]").setStyle(Style.EMPTY.withBold(true).withColor(ChatFormatting.AQUA)));
+        commandsText.append(Component.literal("§b" + ShoppingListClient.openMenuKeyName()).setStyle(Style.EMPTY.withBold(true).withColor(ChatFormatting.AQUA)));
         commandsText.append(Component.literal("§e to open the menu"));
         commandsText.append(Component.literal("\n§e- Press "));
-        commandsText.append(Component.literal("§b[B]").setStyle(Style.EMPTY.withBold(true).withColor(ChatFormatting.AQUA)));
+        commandsText.append(Component.literal("§b" + ShoppingListClient.moveHudKeyName()).setStyle(Style.EMPTY.withBold(true).withColor(ChatFormatting.AQUA)));
         commandsText.append(Component.literal("§e to move the HUD"));
         client.player.sendSystemMessage(commandsText);
 
@@ -73,9 +73,9 @@ public class WelcomeManager {
             Style.EMPTY.withBold(true).withColor(ChatFormatting.RED)
         );
         client.player.sendSystemMessage(warningText);
-        client.player.sendSystemMessage(Component.literal("§e1. Press §b[V]§e and click recipes to add them to your shopping list"));
+        client.player.sendSystemMessage(Component.literal("§e1. Press §b" + ShoppingListClient.openMenuKeyName() + "§e and click recipes to add them to your shopping list"));
         client.player.sendSystemMessage(Component.literal("§e2. Check or correct your counts in 'Your Resources'"));
-        client.player.sendSystemMessage(Component.literal("§e3. Press §b[H]§e to show the shopping list on screen"));
+        client.player.sendSystemMessage(Component.literal("§e3. Press §b" + ShoppingListClient.toggleWidgetKeyName() + "§e to show the shopping list on screen"));
 
         try {
             WELCOME_FLAG_FILE.createNewFile();
