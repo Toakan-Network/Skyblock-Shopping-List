@@ -61,7 +61,7 @@ Skyblock Shopping List grew out of [Inventory Reader](https://github.com/Scholib
 3. Launch Minecraft with the Fabric profile.
 
 ## First-time setup
-The mod only knows what you have shown it. Open your backpacks and ender chest pages once in SkyBlock, plus each Accessory Bag page, each wardrobe page and the Stats & Equipment menu (for worn necklace, cloak, belt and gloves). Worn armor counts with your inventory, and parts installed in a drill (engine, fuel tank, upgrade module) count wherever the drill is. After that, counts stay up to date from your inventory, from the containers you open, and from the `[Sacks]` chat summaries.
+The mod only knows what you have shown it. Open your backpacks and ender chest pages once in SkyBlock, plus each Accessory Bag page, each wardrobe page and the Stats & Equipment menu (for worn necklace, cloak, belt and gloves). Worn armor counts with your inventory, and what is fitted in an item and comes back out on removal (drill engine, fuel tank and upgrade module, socketed gemstones) counts wherever the item is. After that, counts stay up to date from your inventory, from the containers you open, and from the `[Sacks]` chat summaries.
 
 You don't need to open every sack. When you join SkyBlock and each time you add a recipe, one chat line names the sacks your list's materials live in (e.g. "Open your Enchanted Mining Sack for accurate counts."), and until you open them:
 - rows for those materials are grey with `≥` (have at least, e.g. `≥12/160`) or `≤` (still need at most) instead of a number that may be too low,
