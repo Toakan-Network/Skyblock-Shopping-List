@@ -1,6 +1,7 @@
 package skyblockshoppinglist;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /** Small helpers for item counts. */
@@ -27,5 +28,23 @@ public final class Counts {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    /** 999 -> "999", 5120 -> "5.1k", 512000 -> "512k", 500000000 -> "500m", 1500000000 -> "1.5b". */
+    static String shortNumber(long value) {
+        long abs = Math.abs(value);
+        if (abs < 1000) return Long.toString(value);
+        String[] units = {"k", "m", "b", "t"};
+        double scaled = value;
+        int unit = -1;
+        while (Math.abs(scaled) >= 1000 && unit < units.length - 1) {
+            scaled /= 1000;
+            unit++;
+        }
+        // One decimal below 100 (5.1k, 12.5m), none above (512k); always rounded towards zero.
+        String text = Math.abs(scaled) < 100 ? String.format(Locale.ROOT, "%.1f", (long) (scaled * 10) / 10.0)
+            : Long.toString((long) scaled);
+        if (text.endsWith(".0")) text = text.substring(0, text.length() - 2);
+        return text + units[unit];
     }
 }

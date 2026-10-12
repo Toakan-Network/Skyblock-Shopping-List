@@ -215,7 +215,7 @@ public class RecipeManager {
     }
 
 
-    private Map<String, Map<String, Integer>> sanitizeRecipes(Map<String, Map<String, Integer>> input) {
+    static Map<String, Map<String, Integer>> sanitizeRecipes(Map<String, Map<String, Integer>> input) {
         if (input == null || input.isEmpty()) return Collections.emptyMap();
 
         // Pass 1: drop entire entries that are known decompression recipes ---
@@ -275,7 +275,7 @@ public class RecipeManager {
      * Performs a DFS over the recipe graph and removes the specific ingredient edge
      * that creates each detected cycle, leaving the rest of the recipe intact.
      */
-    private void breakRemainingCycles(Map<String, Map<String, Integer>> recipes) {
+    private static void breakRemainingCycles(Map<String, Map<String, Integer>> recipes) {
         Set<String> visited = new HashSet<>();
         Set<String> inStack = new LinkedHashSet<>();
         for (String start : new ArrayList<>(recipes.keySet())) {
@@ -285,7 +285,7 @@ public class RecipeManager {
         }
     }
 
-    private void dfsCycleBreak(String node, Map<String, Map<String, Integer>> recipes,
+    private static void dfsCycleBreak(String node, Map<String, Map<String, Integer>> recipes,
                                 Set<String> visited, Set<String> inStack) {
         visited.add(node);
         inStack.add(node);

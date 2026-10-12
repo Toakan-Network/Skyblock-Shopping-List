@@ -58,6 +58,11 @@ dependencies {
 	// YetAnotherConfigLib for the Settings screen. Required at runtime ("depends" in fabric.mod.json), not bundled.
 	implementation "dev.isxander:yet-another-config-lib:${project.yacl_version}"
 
+	// Unit tests for the plain logic (counts, names, recipe graph); nothing here ships in the jar.
+	testImplementation platform("org.junit:junit-bom:5.14.2")
+	testImplementation "org.junit.jupiter:junit-jupiter"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+
 }
 
 processResources {
@@ -66,6 +71,10 @@ processResources {
 	filesMatching("fabric.mod.json") {
 		expand "version": project.version
 	}
+}
+
+test {
+	useJUnitPlatform()
 }
 
 tasks.withType(JavaCompile).configureEach {

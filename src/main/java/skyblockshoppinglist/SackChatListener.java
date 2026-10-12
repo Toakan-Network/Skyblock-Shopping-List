@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 
+import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -51,6 +52,18 @@ public final class SackChatListener {
         Set<String> hoverTexts = new LinkedHashSet<>();
         collectHoverTexts(message, hoverTexts);
 
+        Map<String, Integer> deltas = parseHoverTexts(hoverTexts);
+        if (deltas.isEmpty()) {
+            // Logged so a changed message format can be diagnosed from latest.log.
+            ShoppingList.debug("Unrecognised [Sacks] message: {} | hover: {}", text, hoverTexts);
+            return;
+        }
+        ShoppingList.debug("[Sacks] read: {}", deltas);
+        SackReader.getInstance().applyChatDeltas(deltas);
+    }
+
+    /** Item name to signed change, from the hover lists of a "[Sacks]" message ("+64 Coal (Mining Sack)"). */
+    static Map<String, Integer> parseHoverTexts(Collection<String> hoverTexts) {
         Map<String, Integer> deltas = new LinkedHashMap<>();
         for (String hover : hoverTexts) {
             // Lines without their own sign take it from the nearest "Added"/"Removed" heading.
@@ -66,14 +79,7 @@ public final class SackChatListener {
                 deltas.merge(ItemNames.clean(m.group(3)), sign * count, Integer::sum);
             }
         }
-
-        if (deltas.isEmpty()) {
-            // Logged so a changed message format can be diagnosed from latest.log.
-            ShoppingList.debug("Unrecognised [Sacks] message: {} | hover: {}", text, hoverTexts);
-            return;
-        }
-        ShoppingList.debug("[Sacks] read: {}", deltas);
-        SackReader.getInstance().applyChatDeltas(deltas);
+        return deltas;
     }
 
     /** Collects the text of every show-text hover in the component tree, each distinct text once. */
