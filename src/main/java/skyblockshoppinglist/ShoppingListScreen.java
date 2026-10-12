@@ -390,12 +390,14 @@ public class ShoppingListScreen extends Screen {
         Component name = SandboxWidget.fitName(font, style, node.name, nameColor, bold, room);
         context.text(font, name, nameX, y + 4, 0xFFFFFFFF, style.textShadow);
         context.text(font, tag, nameX + font.width(name), y + 4, 0xFFFFFFFF, style.textShadow);
-        if (lockWidth > 0) {
-            SandboxWidget.drawLock(context, nameX + font.width(name) + font.width(tag), y + 4, nameColor);
-            // Only inside the scrolled preview box, so a row scrolled out of view never shows a tooltip.
-            boolean hovered = mouseX >= rowX && mouseX <= rowX + nodeWidth && mouseY >= y && mouseY <= y + 16
-                && mouseY >= treeViewY && mouseY <= treeViewY + treeViewHeight;
-            if (hovered) context.setComponentTooltipForNextFrame(font, lockTooltip(node), mouseX, mouseY);
+        if (lockWidth > 0) SandboxWidget.drawLock(context, nameX + font.width(name) + font.width(tag), y + 4, nameColor);
+        // Only inside the scrolled preview box, so a row scrolled out of view never shows a tooltip.
+        boolean hovered = mouseX >= rowX && mouseX <= rowX + nodeWidth && mouseY >= y && mouseY <= y + 16
+            && mouseY >= treeViewY && mouseY <= treeViewY + treeViewHeight;
+        if (hovered) {
+            // What unlocks the recipe, when it needs something; otherwise the item's description.
+            List<Component> tooltip = lockWidth > 0 ? lockTooltip(node) : ItemDescriptions.tooltip(node.name);
+            if (!tooltip.isEmpty()) context.setComponentTooltipForNextFrame(font, tooltip, mouseX, mouseY);
         }
 
         y += 16;

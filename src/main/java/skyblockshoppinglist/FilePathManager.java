@@ -65,6 +65,8 @@ public class FilePathManager {
     public static final File REMOTE_SHOP_JSON = new File(DATA_DIR, "recipes_remote_shop.json");
     /** Item name to what unlocks its recipe ("Coal III", "HotM 2"), from NEU's crafttext; written by the recipe fetch. */
     public static final File ITEM_REQUIREMENTS_JSON = new File(DATA_DIR, "item_requirements.json");
+    /** Item name to its NEU lore lines (colour codes kept), for the menu's hover tooltips; written by the recipe fetch. */
+    public static final File ITEM_LORE_JSON = new File(DATA_DIR, "item_lore.json");
     /** Item name to the cheapest coins-only NPC shop price per item, written by the recipe fetch. */
     public static final File NPC_BUY_PRICES_JSON = new File(DATA_DIR, "npc_buy_prices.json");
     /** Item name to what an NPC pays per item, from Hypixel's item list. */

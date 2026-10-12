@@ -152,6 +152,11 @@ final class RecipePicker {
             int color = highlighted ? 0xFFFFFFFF : MenuTabs.TEXT;
             context.text(font, fitPlain(font, recipe, rowRight - LIST_X - 16, color), LIST_X + 8, y + 6, 0xFFFFFFFF, false);
         }
+        String hovered = nameAt(mouseX, mouseY);
+        if (hovered != null) {
+            List<Component> tooltip = ItemDescriptions.tooltip(hovered);
+            if (!tooltip.isEmpty()) context.setComponentTooltipForNextFrame(font, tooltip, mouseX, mouseY);
+        }
         if (scrolls) {
             int barX = right - 1 - SCROLLBAR;
             int top = LIST_TOP;

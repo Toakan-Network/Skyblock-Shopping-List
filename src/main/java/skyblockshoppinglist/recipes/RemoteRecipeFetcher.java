@@ -42,7 +42,7 @@ public final class RemoteRecipeFetcher {
      * Bump when the way recipes are extracted from the repo changes, so cached snapshots are rebuilt
      * even if the remote reports "not modified".
      */
-    private static final String PARSER_VERSION = "11";
+    private static final String PARSER_VERSION = "12";
     /** NEU's pseudo item for coin costs in shop recipes. */
     private static final String COIN_ID = "SKYBLOCK_COIN";
     public static final String COINS_NAME = "Coins";
@@ -297,6 +297,22 @@ public final class RemoteRecipeFetcher {
                 if (!text.isEmpty()) requirements.putIfAbsent(recipeNameById.getOrDefault(id, id), text);
             }
             changed |= writeSnapshot(requirements, FilePathManager.ITEM_REQUIREMENTS_JSON, meta);
+            // Lore for the menu's hover tooltips, only for items the recipes name (outputs and ingredients).
+            java.util.Set<String> used = new java.util.HashSet<>();
+            for (Map<String, Map<String, Integer>> recipes : List.of(craftingByInternal, forgeByInternal, shopByInternal)) {
+                recipes.forEach((id, ingredients) -> {
+                    used.add(id);
+                    used.addAll(ingredients.keySet());
+                });
+            }
+            Map<String, List<String>> lore = new LinkedHashMap<>();
+            for (NEUItem item : neuRepo.getItems().getItems().values()) {
+                String id = item.getSkyblockItemId();
+                List<String> lines = item.getLore();
+                if (id == null || !used.contains(id) || lines == null || lines.isEmpty()) continue;
+                lore.putIfAbsent(recipeNameById.getOrDefault(id, id), lines);
+            }
+            changed |= writeSnapshot(lore, FilePathManager.ITEM_LORE_JSON, meta);
             Map<String, Double> buyPrices = new LinkedHashMap<>();
             buyPriceByInternal.forEach((id, coins) -> buyPrices.put(recipeNameById.getOrDefault(id, id), coins));
             changed |= writeSnapshot(buyPrices, FilePathManager.NPC_BUY_PRICES_JSON, meta);

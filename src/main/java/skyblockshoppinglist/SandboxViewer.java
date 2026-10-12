@@ -653,6 +653,11 @@ public class SandboxViewer extends Screen {
             context.outline(x - 5, y, nodeWidth + 5, lineHeight, BORDER_COLOR);
             if (isMouseOver(x - 5, y, nodeWidth, lineHeight)) {
                 context.fill(x - 5, y, x + nodeWidth, y + lineHeight, SELECTED_BG);
+                // Only inside the scrolled area, so a row scrolled out of view never shows a tooltip.
+                if (lastMouseY >= treeAreaTop() && lastMouseY <= treeAreaBottom()) {
+                    List<Component> tooltip = ItemDescriptions.tooltip(name);
+                    if (!tooltip.isEmpty()) context.setComponentTooltipForNextFrame(font, tooltip, lastMouseX, lastMouseY);
+                }
             }
             if (hasIngredients) {
                 clickableElements.add(new ClickableElement(x - 5, y, nodeWidth, lineHeight, () -> toggleNodeExpanded(fullPath)));
@@ -671,6 +676,15 @@ public class SandboxViewer extends Screen {
             endY = childY - 4;
         }
         return endY;
+    }
+
+    /** Top and bottom of the scrolled materials-and-tree area of the current tab. */
+    private int treeAreaTop() {
+        return mode == Mode.FORGE ? forgeCombinedAreaY : recipeCombinedAreaY;
+    }
+
+    private int treeAreaBottom() {
+        return mode == Mode.FORGE ? forgeCombinedAreaY + forgeCombinedAreaHeight : recipeCombinedAreaY + recipeCombinedAreaHeight;
     }
 
     private void drawCenteredText(GuiGraphicsExtractor context, String text, int centerX, int y, int color) {
