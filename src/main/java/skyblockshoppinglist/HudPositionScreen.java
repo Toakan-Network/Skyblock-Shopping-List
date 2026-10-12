@@ -12,7 +12,8 @@ import net.minecraft.network.chat.Component;
 
 /**
  * "Move HUD": drag a panel to move it, a corner to scale it (keeps its shape), an edge to resize it. Shows every active panel (the shopping list,
- * plus Craftable / Forging when they have their own). Opened by B and from Settings.
+ * plus Craftable / Forging when they have their own). Opened by B and from Settings. A dragged panel snaps to the screen edges and
+ * centre and to the other panels' edges (see {@link PanelSnap}); holding Shift places it freely.
  */
 public class HudPositionScreen extends Screen {
     private static final int GOLD = MenuTabs.GOLD;
@@ -40,6 +41,11 @@ public class HudPositionScreen extends Screen {
     private int dragOffsetX, dragOffsetY;
     private int startMouseX, startMouseY;
     private SandboxWidget.PanelRect startRect;
+    /** Drawn height of each panel last frame (GUI pixels), so snapping uses the bottom edge the player sees. */
+    private final Map<SandboxWidget.Panel, Integer> drawnHeights = new EnumMap<>(SandboxWidget.Panel.class);
+    /** The lines the dragged panel snapped to, drawn as guides; -1 when not snapped. */
+    private int guideX = -1;
+    private int guideY = -1;
 
     /** @param parent screen to return to on Done, or null to close. */
     public HudPositionScreen(Screen parent) {
@@ -71,17 +77,15 @@ public class HudPositionScreen extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
-        // See-through, so the panels can be placed against the game behind them; just dimmed enough for the grid.
+        // See-through, so the panels can be placed against the game behind them; dimmed a little so the handles stand out.
         context.fill(0, 0, width, height, 0x40000000);
-        for (int x = 0; x < width; x += 50) context.fill(x, 0, x + 1, height, 0x22FFFFFF);
-        for (int y = 0; y < height; y += 50) context.fill(0, y, width, y + 1, 0x22FFFFFF);
         context.fill(0, 0, width, 22, MenuTabs.HEADER_BG);
         context.outline(0, 0, width, 22, MenuTabs.HEADER_BORDER);
         context.text(font, "Move HUD", 8, 7, GOLD, false);
         // Hint and position in the title bar, shortened to whatever fits left of the buttons.
         SandboxWidget.PanelRect mainRect = rects.get(SandboxWidget.Panel.MAIN);
         SandboxWidget.PanelRect shown = active != null && rects.containsKey(active) ? rects.get(active) : mainRect;
-        String hint = "Drag to move, corner to scale, edge to resize";
+        String hint = "Drag to move (Shift: no snap), corner to scale, edge to resize";
         if (shown != null) {
             hint += "   X=" + shown.x + " Y=" + shown.y + " W=" + shown.width + " H=" + shown.height
                 + " Scale=" + shown.scalePercent() + "%";
@@ -97,10 +101,12 @@ public class HudPositionScreen extends Screen {
             int h = Math.round(r.height * scale);
             // Faint backing marks the panel's full max height; the panel itself shows as it will on the HUD.
             context.fill(r.x, r.y, r.x + w, r.y + h, 0x30000000);
-            if (widget.renderPanel(context, panel, r.x, r.y, r.width, r.height, scale, true) == 0) {
+            int drawn = widget.renderPanel(context, panel, r.x, r.y, r.width, r.height, scale, true);
+            if (drawn == 0) {
                 context.fill(r.x, r.y, r.x + w, r.y + h, 0xCC271910);
                 context.text(font, "Shopping list is empty", r.x + 8, r.y + 8, 0xFFFFFFFF, false);
             }
+            drawnHeights.put(panel, drawn == 0 ? h : Math.min(h, Math.round(drawn * scale)));
             boolean busy = panel == active && (dragging || resizing != Handle.NONE);
             context.outline(r.x, r.y, w, h, busy ? 0xFFFFDD00 : 0x88FFFFFF);
             // White grips mid-edge (resize), gold squares on the corners (scale).
@@ -114,7 +120,44 @@ public class HudPositionScreen extends Screen {
                 context.fill(c[0] - HANDLE / 2, c[1] - HANDLE / 2, c[0] + HANDLE / 2, c[1] + HANDLE / 2, GOLD);
             }
         }
+        if (dragging) {
+            if (guideX >= 0) context.fill(guideX, 0, guideX + 1, height, SNAP_GUIDE);
+            if (guideY >= 0) context.fill(0, guideY, width, guideY + 1, SNAP_GUIDE);
+        }
         super.extractRenderState(context, mouseX, mouseY, delta);
+    }
+
+    private static final int SNAP_GUIDE = 0xFF55FFFF;
+
+    /** Vertical lines a panel can snap to: screen edges and centre, and every other panel's sides and centre. */
+    private int[] linesX(SandboxWidget.Panel moving) {
+        List<Integer> lines = new ArrayList<>(List.of(0, width / 2, width));
+        rects.forEach((panel, r) -> {
+            if (panel == moving) return;
+            int w = Math.round(r.width * scaleOf(r));
+            lines.add(r.x);
+            lines.add(r.x + w / 2);
+            lines.add(r.x + w);
+        });
+        return lines.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    /** Horizontal lines: screen edges and middle, and every other panel's top, middle and drawn bottom. */
+    private int[] linesY(SandboxWidget.Panel moving) {
+        List<Integer> lines = new ArrayList<>(List.of(0, height / 2, height));
+        rects.forEach((panel, r) -> {
+            if (panel == moving) return;
+            int h = drawnHeight(panel, r);
+            lines.add(r.y);
+            lines.add(r.y + h / 2);
+            lines.add(r.y + h);
+        });
+        return lines.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    private int drawnHeight(SandboxWidget.Panel panel, SandboxWidget.PanelRect r) {
+        Integer drawn = drawnHeights.get(panel);
+        return drawn != null ? drawn : Math.round(r.height * scaleOf(r));
     }
 
     /** HUD units -> GUI pixels for a working rect, whose scale may not be saved yet. */
@@ -162,8 +205,20 @@ public class HudPositionScreen extends Screen {
         int mouseY = (int) ctx.y();
         SandboxWidget.PanelRect r = rects.get(active);
         if (dragging) {
-            r.x = Math.max(0, Math.min(width - 20, mouseX - dragOffsetX));
-            r.y = Math.max(0, Math.min(height - 20, mouseY - dragOffsetY));
+            int x = mouseX - dragOffsetX;
+            int y = mouseY - dragOffsetY;
+            guideX = -1;
+            guideY = -1;
+            if (!ctx.hasShiftDown()) {
+                PanelSnap.Result snapX = PanelSnap.snap(x, Math.round(r.width * scaleOf(r)), linesX(active));
+                PanelSnap.Result snapY = PanelSnap.snap(y, drawnHeight(active, r), linesY(active));
+                x = snapX.pos();
+                y = snapY.pos();
+                guideX = snapX.line();
+                guideY = snapY.line();
+            }
+            r.x = Math.max(0, Math.min(width - 20, x));
+            r.y = Math.max(0, Math.min(height - 20, y));
             return true;
         }
         float startScale = scaleOf(startRect);
@@ -198,6 +253,8 @@ public class HudPositionScreen extends Screen {
             rects.put(active, widget.getPanelRect(active));
             dragging = false;
             resizing = Handle.NONE;
+            guideX = -1;
+            guideY = -1;
             return true;
         }
         return super.mouseReleased(ctx);
