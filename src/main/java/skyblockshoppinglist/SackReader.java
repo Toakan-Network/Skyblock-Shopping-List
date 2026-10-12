@@ -25,6 +25,7 @@ public class SackReader {
     private static final Type MAP_TYPE = new TypeToken<Map<String, Integer>>() {}.getType();
     private static final SackReader INSTANCE = new SackReader();
 
+    /** Count per item, by {@link ItemNames#normalize} key (sack menus and chat spell some items differently). */
     private Map<String, Integer> snapshot;
     /** Epoch ms of the last sack menu read, 0 if never; null until loaded. */
     private Long lastRead;
@@ -50,7 +51,11 @@ public class SackReader {
     private Map<String, Integer> snapshot() {
         if (snapshot == null) {
             Map<String, Integer> loaded = JsonFiles.read(FilePathManager.sacksJson(), MAP_TYPE);
-            snapshot = loaded != null ? new LinkedHashMap<>(loaded) : new LinkedHashMap<>();
+            snapshot = new LinkedHashMap<>();
+            // Files from before 4.29.5 used the shown name as key; one key per item now.
+            if (loaded != null) loaded.forEach((name, count) -> {
+                if (name != null && count != null) snapshot.merge(ItemNames.normalize(name), count, Math::max);
+            });
         }
         return snapshot;
     }
@@ -142,7 +147,7 @@ public class SackReader {
         Map<String, Integer> snap = snapshot();
         Map<String, Integer> deltas = new LinkedHashMap<>();
         current.forEach((name, count) -> {
-            Integer previous = snap.put(name, count);
+            Integer previous = snap.put(ItemNames.normalize(name), count);
             int delta = count - (previous == null ? 0 : previous);
             if (delta != 0) deltas.put(name, delta);
         });
@@ -157,7 +162,7 @@ public class SackReader {
     public synchronized void applyChatDeltas(Map<String, Integer> deltas) {
         if (deltas.isEmpty()) return;
         Map<String, Integer> snap = snapshot();
-        deltas.forEach((name, delta) -> snap.merge(ItemNames.clean(name), delta, Integer::sum));
+        deltas.forEach((name, delta) -> snap.merge(ItemNames.normalize(name), delta, Integer::sum));
         ResourcesManager.getInstance().saveData(deltas);
         Map<String, Integer> copy = new LinkedHashMap<>(snap);
         JsonFiles.writeAsync(FilePathManager.sacksJson(), () -> copy);
