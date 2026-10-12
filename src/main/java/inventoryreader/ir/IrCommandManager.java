@@ -17,8 +17,6 @@ public final class IrCommandManager {
     public static void register() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
             dispatcher.register(commandTree("ssl"));
-            // Name from when the mod was called Inventory Reader.
-            dispatcher.register(commandTree("ir"));
         });
     }
 
@@ -26,7 +24,7 @@ public final class IrCommandManager {
         return
             literal(name)
                 .executes(context -> {
-                    context.getSource().sendFeedback(Component.literal(InventoryReader.NAME + " commands (/ssl, or /ir):")
+                    context.getSource().sendFeedback(Component.literal(InventoryReader.NAME + " commands (/ssl):")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
                     context.getSource().sendFeedback(Component.literal("- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));
@@ -55,13 +53,6 @@ public final class IrCommandManager {
                 .then(literal("menu")
                     .executes(context -> {
                         // Deferred to the next tick: the chat screen closes after the command runs.
-                        InventoryReaderClient.shouldOpenMenu = true;
-                        return 1;
-                    })
-                )
-                // Older name for the menu.
-                .then(literal("widget")
-                    .executes(context -> {
                         InventoryReaderClient.shouldOpenMenu = true;
                         return 1;
                     })

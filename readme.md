@@ -79,7 +79,7 @@ Everything goes back to normal as soon as each sack has been opened once.
 | `/ssl reset` | Delete the current profile's tracked data and the HUD settings |
 | `/ssl credits` | Show credits |
 
-`/ir` still works as an alias for `/ssl`, and `/ssl widget` for `/ssl menu`. Keys can be rebound under Options > Controls > Key Binds > Skyblock Shopping List (or Settings → Key binds...).
+Keys can be rebound under Options > Controls > Key Binds > Skyblock Shopping List (or Settings → Key binds...).
 
 ## SkyBlock only
 The mod only runs on Hypixel SkyBlock. It uses the official Hypixel Mod API's location event (Hypixel's own signal), so the Hypixel Mod API is required; the game won't start without it. In lobbies, other Hypixel games and other servers the HUD is hidden, the keys do nothing and nothing is tracked, so other inventories never change your counts. The `/ssl` commands still work everywhere.
