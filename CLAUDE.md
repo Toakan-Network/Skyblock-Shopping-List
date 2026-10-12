@@ -27,7 +27,7 @@ When a change adds or changes something a player would notice, update the docs w
 small fixes don't need a docs note.
 - How each feature works (menu tabs, settings, appearance, HUD sections, recipes, coins) is described in the
   GitHub wiki (`git@github.com:Toakan/Skyblock-Shopping-List.wiki.git`, cloned next to this repo as
-  `../InventoryReader.wiki`). Update the wiki page in step with the change, as its own commit there.
+  `../ShoppingList.wiki`). Update the wiki page in step with the change, as its own commit there.
 - `readme.md` and `modrinth.md` (synced to the Modrinth description) list features by title only, each linking
   to its wiki page. Add or rename a title there when a feature is added or renamed. The readme keeps install,
   first-time setup, keys, Hypixel rules, data, network, security and license.
