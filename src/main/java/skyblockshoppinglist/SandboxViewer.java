@@ -15,15 +15,19 @@ import net.minecraft.network.chat.Component;
 
 public class SandboxViewer extends Screen {
 
-    private static final int PANEL_BG = 0xFF232323;
-    private static final int ITEM_BG = 0xFF303030;
-    private static final int ITEM_BG_ALT = 0xFF383838;
-    private static final int SELECTED_BG = 0xFF5F7FA0;
-    private static final int BORDER_COLOR = 0xFF555555;
-    private static final int TITLE_BG = 0xFF2A4153;
+    private static final int PANEL_BG = MenuTabs.PANEL_BG;
+    private static final int ITEM_BG = MenuTabs.ROW_BG;
+    private static final int ITEM_BG_ALT = MenuTabs.ROW_BG_ALT;
+    private static final int SELECTED_BG = MenuTabs.SELECTED_BG;
+    private static final int BORDER_COLOR = MenuTabs.BORDER;
     private static final int GOLD = MenuTabs.GOLD;
     private static final int WHITE = 0xFFFFFFFF;
-    private static final int TEXT_SECONDARY = 0xFFDDDDDD;
+    private static final int TEXT_SECONDARY = MenuTabs.TEXT;
+    private static final int KEY_TAB = ShoppingListClient.inputCode("KEY_TAB");
+    private static final int KEY_RETURN = ShoppingListClient.inputCode("KEY_RETURN");
+    private static final int KEY_NUMPADENTER = ShoppingListClient.inputCode("KEY_NUMPADENTER");
+    /** Top of the right-hand panel on the Recipes and Forge tabs. */
+    private static final int PANEL_TOP = MenuTabs.CONTROLS_Y;
     private static final int SUCCESS_GREEN = 0xFF6EFF6E;
     private static final int ERROR_RED = 0xFFFF6B6B;
 
@@ -46,9 +50,8 @@ public class SandboxViewer extends Screen {
     private List<ResourcesManager.ResourceEntry> prunedFor;
     private String resourceSearchTerm = "";
 
-    private List<String> recipeNames = new ArrayList<>();
-    private List<String> filteredRecipeNames = new ArrayList<>();
-    private String recipeSearchTerm = "";
+    /** Recipes and Forge tabs: search, filters and the recipe list on the left; its × box is the craft amount. */
+    private RecipePicker picker;
     private String selectedRecipe = null;
     private RecipeManager.RecipeNode expandedRecipeTree = null;
     private Map<String, Integer> simpleRecipe = null;
@@ -59,7 +62,6 @@ public class SandboxViewer extends Screen {
     private final List<String> messages = new ArrayList<>();
 
     private EditBox searchBox;
-    private EditBox amountField;
     private final Map<String, EditBox> resourceAmountFields = new HashMap<>();
     private String activeTextField = null;
     private int scrollOffset = 0;
@@ -97,8 +99,7 @@ public class SandboxViewer extends Screen {
 
         switch (mode) {
             case RESOURCES -> initModifyResources();
-            case RECIPES -> initRecipeViewer();
-            case FORGE -> initForgeMode();
+            case RECIPES, FORGE -> initRecipeTabs();
         }
     }
 
@@ -114,49 +115,33 @@ public class SandboxViewer extends Screen {
     public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {}
 
 
-    /** The recipe search box and the craft-amount box, shared by the Recipes and Forge tabs. */
-    private void addRecipeSearchAndAmount() {
-        searchBox = new EditBox(this.font, 30, 56, 180, 18, Component.literal(""));
-        searchBox.setHint(Component.literal("Search recipes..."));
-        // init() runs again on every recipe click and resize; keep what was typed (set before the responder,
-        // so the list keeps its scroll position).
-        searchBox.setValue(recipeSearchTerm);
-        searchBox.setResponder(this::onRecipeSearchChanged);
-        this.addRenderableWidget(searchBox);
-
-        amountField = new EditBox(this.font, 215, 56, 35, 18, Component.literal("1"));
-        amountField.setValue(String.valueOf(craftAmount));
-        amountField.setResponder(this::onAmountChanged);
-        this.addRenderableWidget(amountField);
-    }
-
-    private void initRecipeViewer() {
-        addRecipeSearchAndAmount();
-
+    /**
+     * Recipes and Forge tabs: the recipe picker on the left, and along the bottom the HUD switch and Add to list, where
+     * the List tab has its HUD switch and Clear list.
+     */
+    private void initRecipeTabs() {
+        if (picker == null) picker = new RecipePicker(font, craftAmount, this::setCraftAmount);
+        picker.init(this::addRenderableWidget, width, height);
+        addHudButton();
         this.addRenderableWidget(Button.builder(Component.literal("Add to list"), button -> addSelectedToList())
-            .bounds(this.width - 110, 56, 100, 18).build());
-
+            .bounds(width / 2 - 60, height - MenuTabs.BOTTOM_BAR, 120, 20).build());
         loadRecipes();
-    }
-
-    private void initForgeMode() {
-        loadRecipes();
-        if (selectedRecipe != null && remainingResult == null) {
+        if (mode == Mode.FORGE && selectedRecipe != null && remainingResult == null) {
             checkRecipeRequirements();
         }
+    }
 
-        addRecipeSearchAndAmount();
+    /** The HUD on/off switch, bottom left in every tab. */
+    private void addHudButton() {
+        SandboxWidget widget = SandboxWidget.getInstance();
+        this.addRenderableWidget(Button.builder(hudLabel(), button -> {
+            widget.setEnabled(!widget.isEnabled());
+            button.setMessage(hudLabel());
+        }).bounds(MenuTabs.LEFT_X, height - MenuTabs.BOTTOM_BAR, 150, 20).build());
+    }
 
-        this.addRenderableWidget(Button.builder(
-            Component.literal(SandboxWidget.getInstance().isEnabled() ? "HUD: ON" : "HUD: OFF"),
-            button -> {
-                SandboxWidget.getInstance().setEnabled(!SandboxWidget.getInstance().isEnabled());
-                button.setMessage(Component.literal(SandboxWidget.getInstance().isEnabled() ? "HUD: ON" : "HUD: OFF"));
-            }
-        ).bounds(this.width - 85, 56, 75, 18).build());
-
-        this.addRenderableWidget(Button.builder(Component.literal("Add to list"), button -> addSelectedToList())
-            .bounds(this.width - 170, 56, 80, 18).build());
+    private static Component hudLabel() {
+        return Component.literal("HUD: " + (SandboxWidget.getInstance().isEnabled() ? "ON" : "OFF"));
     }
 
     private void addSelectedToList() {
@@ -180,7 +165,7 @@ public class SandboxViewer extends Screen {
         resourceAmountFields.clear();
         activeTextField = null;
 
-        searchBox = new EditBox(this.font, 30, 56, 210, 18, Component.literal("Search Resources"));
+        searchBox = new EditBox(this.font, MenuTabs.LEFT_X, MenuTabs.CONTROLS_Y, 210, 20, Component.literal("Search Resources"));
         searchBox.setHint(Component.literal("Search resources..."));
         searchBox.setValue(resourceSearchTerm);
         searchBox.setResponder(this::onResourceSearchChanged);
@@ -190,9 +175,10 @@ public class SandboxViewer extends Screen {
             showAllResources = !showAllResources;
             loadResources();
             button.setMessage(showAllLabel());
-        }).bounds(this.width - 130, 56, 110, 18)
+        }).bounds(MenuTabs.LEFT_X + 216, MenuTabs.CONTROLS_Y, 110, 20)
           .tooltip(Tooltip.create(Component.literal("OFF: only items you have. ON: every tracked item, so you can set one you have none of.")))
           .build());
+        addHudButton();
 
         loadResources();
     }
@@ -211,9 +197,6 @@ public class SandboxViewer extends Screen {
     }
 
     private void loadRecipes() {
-        recipeNames = recipeManager.getRecipeNames();
-        filterRecipes();
-
         if (selectedRecipe != null) {
             expandedRecipeTree = recipeManager.expandRecipe(selectedRecipe, craftAmount);
             simpleRecipe = recipeManager.getSimpleRecipe(selectedRecipe, craftAmount);
@@ -231,20 +214,6 @@ public class SandboxViewer extends Screen {
         if (scrollOffset > maxOffset) scrollOffset = maxOffset;
     }
 
-    private void filterRecipes() {
-        if (recipeSearchTerm.isEmpty()) {
-            filteredRecipeNames = new ArrayList<>(recipeNames);
-        } else {
-            String term = recipeSearchTerm.toLowerCase(Locale.ROOT);
-            filteredRecipeNames = recipeNames.stream()
-                .filter(name -> name.toLowerCase(Locale.ROOT).contains(term))
-                .collect(Collectors.toList());
-        }
-        int maxVisible = getRecipeMaxVisibleItems();
-        int maxOffset = Math.max(0, filteredRecipeNames.size() - maxVisible);
-        if (scrollOffset > maxOffset) scrollOffset = maxOffset;
-    }
-
     private void onResourceSearchChanged(String text) {
         resourceSearchTerm = text;
 
@@ -252,19 +221,8 @@ public class SandboxViewer extends Screen {
         loadResources();
     }
 
-    private void onRecipeSearchChanged(String text) {
-        recipeSearchTerm = text;
-    scrollOffset = 0;
-    filterRecipes();
-    }
-
-    private void onAmountChanged(String text) {
-        try {
-            craftAmount = Math.max(1, Integer.parseInt(text));
-        } catch (NumberFormatException e) {
-            craftAmount = 1;
-        }
-
+    private void setCraftAmount(int amount) {
+        craftAmount = Math.max(1, amount);
         if (selectedRecipe != null) {
             expandedRecipeTree = recipeManager.expandRecipe(selectedRecipe, craftAmount);
             simpleRecipe = recipeManager.getSimpleRecipe(selectedRecipe, craftAmount);
@@ -317,6 +275,15 @@ public class SandboxViewer extends Screen {
         double mouseX = ctx.x();
         double mouseY = ctx.y();
 
+        if (picker != null && mode != Mode.RESOURCES) {
+            if (picker.mouseClicked(ctx)) return true;
+            String recipe = picker.nameAt(mouseX, mouseY);
+            if (recipe != null) {
+                selectRecipe(recipe);
+                return true;
+            }
+        }
+
         if (mode == Mode.RESOURCES) {
             String previousActiveField = activeTextField;
             activeTextField = null;
@@ -362,12 +329,12 @@ public class SandboxViewer extends Screen {
         if (mode == Mode.RESOURCES && activeTextField != null) {
             EditBox field = resourceAmountFields.get(activeTextField);
             if (field != null && field.isFocused()) {
-                if (keyCode == 258) { // Tab – move between fields
+                if (keyCode == KEY_TAB) { // move between fields
                     boolean shiftPressed = (modifiers & 1) != 0;
                     moveToNextTextField(shiftPressed);
                     return true;
                 }
-                if (keyCode == 257 || keyCode == 335) { // Enter – confirm and advance
+                if (keyCode == KEY_RETURN || keyCode == KEY_NUMPADENTER) { // confirm and advance
                     field.setFocused(false);
                     moveToNextTextField(false);
                     return true;
@@ -431,14 +398,15 @@ public class SandboxViewer extends Screen {
         return super.charTyped(event);
     }
 
+    /** Rows of the Resources table between its header (under the controls row) and the bottom buttons. */
     private int getResourceMaxVisibleItems() {
-        int listHeight = Math.max(0, this.height - 10 - 139);
+        int listHeight = Math.max(0, panelBottom() - (MenuTabs.FILTER_Y + 24));
         return Math.max(1, listHeight / 30);
     }
 
-    private int getRecipeMaxVisibleItems() {
-        int listHeight = Math.max(0, this.height - 10 - 150);
-        return Math.max(1, listHeight / 24);
+    /** Bottom of the content panels, just above the bottom buttons. */
+    private int panelBottom() {
+        return this.height - MenuTabs.BOTTOM_BAR - 8;
     }
 
     @Override
@@ -461,17 +429,11 @@ public class SandboxViewer extends Screen {
             }
         }
 
-        int maxVisibleItems;
-        int maxItems;
-        if (mode == Mode.RESOURCES) {
-            maxVisibleItems = getResourceMaxVisibleItems();
-            maxItems = filteredResources.size();
-        } else {
-            maxVisibleItems = getRecipeMaxVisibleItems();
-            maxItems = filteredRecipeNames.size();
-        }
+        if (picker != null && mode != Mode.RESOURCES && picker.mouseScrolled(mouseX, mouseY, verticalAmount)) return true;
+        int maxVisibleItems = getResourceMaxVisibleItems();
+        int maxItems = filteredResources.size();
 
-        if (maxItems > maxVisibleItems) {
+        if (mode == Mode.RESOURCES && maxItems > maxVisibleItems) {
             scrollOffset -= (int) verticalAmount;
             scrollOffset = Math.max(0, Math.min(scrollOffset, Math.max(0, maxItems - maxVisibleItems)));
             return true;
@@ -480,7 +442,6 @@ public class SandboxViewer extends Screen {
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
-    private static final int CONTENT_Y = 80;
     private int lastMouseX;
     private int lastMouseY;
 
@@ -489,28 +450,16 @@ public class SandboxViewer extends Screen {
         lastMouseX = mouseX;
         lastMouseY = mouseY;
         try {
-            context.fill(0, 0, this.width, this.height, 0xFF0E0E0E);
-
-            MenuTabs.renderHeader(context, font, this.width, tab());
-            context.fill(0, MenuTabs.HEADER_BOTTOM, this.width, 78, 0xFF121212);
-            context.fill(0, 77, this.width, 78, BORDER_COLOR);
-
-            if (mode != Mode.RESOURCES) {
-                context.text(font, "x", 204, 62, TEXT_SECONDARY, false);
-            }
-
-            int contentX = 20;
-            int contentWidth = this.width - 40;
-            int contentHeight = this.height - CONTENT_Y - 10;
-            context.fill(contentX, CONTENT_Y, contentX + contentWidth, CONTENT_Y + contentHeight, PANEL_BG);
-            context.outline(contentX, CONTENT_Y, contentWidth, contentHeight, BORDER_COLOR);
-
+            MenuTabs.renderBackground(context, font, this.width, this.height, tab());
             clickableElements.clear();
 
             switch (mode) {
-                case RESOURCES -> renderModifyResources(context, contentX, CONTENT_Y, contentWidth, contentHeight);
-                case RECIPES   -> renderRecipeViewer(context, contentX, CONTENT_Y, contentWidth, contentHeight);
-                case FORGE     -> renderForgeMode(context, contentX, CONTENT_Y, contentWidth, contentHeight);
+                case RESOURCES -> {
+                    MenuTabs.sectionTitle(context, font, "Your resources", MenuTabs.LEFT_X, MenuTabs.SECTION_Y);
+                    int contentWidth = this.width - 2 * MenuTabs.LEFT_X;
+                    renderModifyResources(context, MenuTabs.LEFT_X, MenuTabs.FILTER_Y, contentWidth, panelBottom() - MenuTabs.FILTER_Y);
+                }
+                case RECIPES, FORGE -> renderRecipeTabs(context, mouseX, mouseY);
             }
 
             super.extractRenderState(context, mouseX, mouseY, delta);
@@ -527,104 +476,33 @@ public class SandboxViewer extends Screen {
         return mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + height;
     }
 
-    private void renderRecipeViewer(GuiGraphicsExtractor context, int contentX, int contentY, int contentWidth, int contentHeight) {
-        int leftPanelWidth = 220;
-        int leftPanelX = contentX + 10;
-        int rightPanelX = contentX + leftPanelWidth + 20;
-
-        context.fill(contentX + leftPanelWidth + 10, contentY, contentX + leftPanelWidth + 11, contentY + contentHeight, BORDER_COLOR);
-
-        renderRecipeList(context, leftPanelX, contentY, leftPanelWidth, contentHeight);
-
-        if (selectedRecipe != null && expandedRecipeTree != null) {
-            renderRecipeDetails(context, rightPanelX, contentY, contentWidth - leftPanelWidth - 30, contentHeight);
+    /** Recipes and Forge tabs: the picker on the left, the selected recipe in a panel on the right. */
+    private void renderRecipeTabs(GuiGraphicsExtractor context, int mouseX, int mouseY) {
+        picker.render(context, mouseX, mouseY, "Pick a recipe", Set.of(), selectedRecipe);
+        int x = picker.rightColumnX();
+        int width = Math.max(120, this.width - x - MenuTabs.LEFT_X);
+        int height = panelBottom() - PANEL_TOP;
+        MenuTabs.sectionTitle(context, font, selectedRecipe != null ? selectedRecipe : (mode == Mode.FORGE ? "Forge" : "Recipe"),
+            x, MenuTabs.SECTION_Y);
+        boolean ready = selectedRecipe != null && (mode == Mode.FORGE ? remainingResult != null : expandedRecipeTree != null);
+        if (!ready) {
+            MenuTabs.panel(context, x, PANEL_TOP, width, height);
+            drawCenteredText(context, mode == Mode.FORGE ? "Select a recipe to forge" : "Select a recipe from the list",
+                x + width / 2, PANEL_TOP + height / 2, TEXT_SECONDARY);
+        } else if (mode == Mode.FORGE) {
+            renderForgeDetails(context, x, PANEL_TOP, width, height);
         } else {
-            drawCenteredText(context, "Select a recipe from the list", rightPanelX + (contentWidth - leftPanelWidth - 30) / 2, contentY + contentHeight / 2, TEXT_SECONDARY);
-        }
-    }
-
-    private void renderForgeMode(GuiGraphicsExtractor context, int contentX, int contentY, int contentWidth, int contentHeight) {
-        int leftPanelWidth = 220;
-        int leftPanelX = contentX + 10;
-        int rightPanelX = contentX + leftPanelWidth + 20;
-
-        context.fill(contentX + leftPanelWidth + 10, contentY, contentX + leftPanelWidth + 11, contentY + contentHeight, BORDER_COLOR);
-
-        renderRecipeList(context, leftPanelX, contentY, leftPanelWidth, contentHeight);
-
-        if (selectedRecipe == null || remainingResult == null) {
-            drawCenteredText(context, "Select a recipe to forge", rightPanelX + (contentWidth - leftPanelWidth - 40) / 2, contentY + contentHeight / 2, TEXT_SECONDARY);
-            return;
-        }
-
-        renderForgeDetails(context, rightPanelX, contentY, contentWidth - leftPanelWidth - 40, contentHeight);
-    }
-
-    private void renderRecipeList(GuiGraphicsExtractor context, int x, int y, int width, int height) {
-        int recipeListY = y + 40;
-        int lineHeight = 24;
-
-        context.fill(x, recipeListY, x + width - 10, recipeListY + 24, TITLE_BG);
-        context.outline(x, recipeListY, width - 10, 24, BORDER_COLOR);
-        context.text(font, "Available Recipes", x + 10, recipeListY + 8, GOLD, false);
-
-        recipeListY += 30;
-
-        int maxVisibleItems = getRecipeMaxVisibleItems();
-        int totalItems = filteredRecipeNames.size();
-
-        // Only the visible slice is drawn; no need to walk the whole filtered list every frame.
-        int lastIndex = Math.min(totalItems, scrollOffset + maxVisibleItems);
-        for (int visibleIndex = Math.max(0, scrollOffset); visibleIndex < lastIndex; visibleIndex++) {
-            String name = filteredRecipeNames.get(visibleIndex);
-            int itemY = recipeListY + (visibleIndex - scrollOffset) * lineHeight;
-            boolean isSelected = name.equals(selectedRecipe);
-            int itemBgColor = (visibleIndex % 2 == 0) ? ITEM_BG : ITEM_BG_ALT;
-            context.fill(x, itemY, x + width - 16, itemY + lineHeight - 2, itemBgColor);
-
-            if (isSelected) {
-                context.fill(x, itemY, x + width - 16, itemY + lineHeight - 2, SELECTED_BG);
-            }
-            if (isMouseOver(x, itemY, width - 16, lineHeight - 2) && !isSelected) {
-                context.fill(x, itemY, x + width - 16, itemY + lineHeight - 2, 0x32FFFFFF);
-            }
-
-            final String currentName = name;
-            clickableElements.add(new ClickableElement(x, itemY, width - 16, lineHeight - 2, () -> selectRecipe(currentName)));
-
-            int color = isSelected ? WHITE : TEXT_SECONDARY;
-            Component displayName = SandboxWidget.fitName(font,
-                t -> Component.literal(t).setStyle(net.minecraft.network.chat.Style.EMPTY.withColor(color & 0xFFFFFF)), name, width - 30);
-            context.text(font, displayName, x + 8, itemY + (lineHeight - font.lineHeight) / 2, 0xFFFFFFFF, false);
-        }
-
-        if (totalItems > maxVisibleItems) {
-            int scrollbarWidth = 6;
-            int scrollbarX = x + width - 16;
-            int listStartY = recipeListY;
-            int listHeight = y + height - listStartY;
-
-            context.fill(scrollbarX, listStartY, scrollbarX + scrollbarWidth, listStartY + listHeight, ITEM_BG_ALT);
-
-            int thumbHeight = Math.max(10, listHeight * maxVisibleItems / totalItems);
-            int thumbY = listStartY + scrollOffset * (listHeight - thumbHeight) / (totalItems - maxVisibleItems);
-            context.fill(scrollbarX, thumbY, scrollbarX + scrollbarWidth, thumbY + thumbHeight, BORDER_COLOR);
+            renderRecipeDetails(context, x, PANEL_TOP, width, height);
         }
     }
 
     private void renderRecipeDetails(GuiGraphicsExtractor context, int x, int y, int width, int height) {
-        int rightColumnY = y + 10;
-
-        context.fill(x, rightColumnY, x + width, rightColumnY + 40, TITLE_BG);
-        context.outline(x, rightColumnY, width, 40, BORDER_COLOR);
-        drawCenteredText(context, selectedRecipe, x + width / 2, rightColumnY + 15, GOLD);
-        rightColumnY += 50;
         recipeCombinedAreaX = x;
-        recipeCombinedAreaY = rightColumnY;
+        recipeCombinedAreaY = y;
         recipeCombinedAreaWidth = width;
-        recipeCombinedAreaHeight = y + height - rightColumnY - 10;
+        recipeCombinedAreaHeight = height;
 
-        int[] scroll = renderMaterialsAndTree(context, x, width, recipeCombinedAreaX, recipeCombinedAreaY,
+        int[] scroll = renderMaterialsAndTree(context, x + 6, width - 12, recipeCombinedAreaX, recipeCombinedAreaY,
             recipeCombinedAreaWidth, recipeCombinedAreaHeight, recipeCombinedScrollOffset, expandedRecipeTree,
             "Crafting Tree (Click to expand)");
         recipeCombinedMaxScroll = scroll[0];
@@ -632,12 +510,7 @@ public class SandboxViewer extends Screen {
     }
 
     private void renderForgeDetails(GuiGraphicsExtractor context, int x, int y, int width, int height) {
-        int rightColumnY = y + 10;
-
-        context.fill(x, rightColumnY, x + width, rightColumnY + 40, TITLE_BG);
-        context.outline(x, rightColumnY, width, 40, BORDER_COLOR);
-        drawCenteredText(context, selectedRecipe, x + width / 2, rightColumnY + 15, GOLD);
-        rightColumnY += 50;
+        int rightColumnY = y;
 
         context.fill(x, rightColumnY, x + width, rightColumnY + 60, ITEM_BG);
         context.outline(x, rightColumnY, width, 60, BORDER_COLOR);
@@ -669,9 +542,9 @@ public class SandboxViewer extends Screen {
         forgeCombinedAreaX = x;
         forgeCombinedAreaY = rightColumnY;
         forgeCombinedAreaWidth = width;
-        forgeCombinedAreaHeight = y + height - rightColumnY - 10;
+        forgeCombinedAreaHeight = y + height - rightColumnY;
 
-        int[] scroll = renderMaterialsAndTree(context, x, width, forgeCombinedAreaX, forgeCombinedAreaY,
+        int[] scroll = renderMaterialsAndTree(context, x + 6, width - 12, forgeCombinedAreaX, forgeCombinedAreaY,
             forgeCombinedAreaWidth, forgeCombinedAreaHeight, forgeCombinedScrollOffset,
             remainingResult != null ? remainingResult.full_recipe : null, "Required Recipe Tree (Click to Expand)");
         forgeCombinedMaxScroll = scroll[0];
@@ -838,7 +711,7 @@ public class SandboxViewer extends Screen {
             resourceAmountFields.entrySet().removeIf(entry -> !currentResourceKeys.contains(entry.getKey()));
         }
 
-        int gridStartY = contentY + 35;
+        int gridStartY = contentY;
         int totalItems = filteredResources.size();
         int maxVisibleItems = getResourceMaxVisibleItems();
         int startIndex = Math.min(scrollOffset, Math.max(0, totalItems - maxVisibleItems));
@@ -853,6 +726,7 @@ public class SandboxViewer extends Screen {
 
         int listStartY = gridStartY + headerHeight;
         context.fill(contentX, listStartY, contentX + leftPanelWidth, contentY + contentHeight, PANEL_BG);
+        context.outline(contentX, gridStartY, leftPanelWidth, contentHeight, BORDER_COLOR);
 
         if (totalItems == 0) {
             drawCenteredText(context, "No resources found", contentX + leftPanelWidth / 2, listStartY + 30, TEXT_SECONDARY);

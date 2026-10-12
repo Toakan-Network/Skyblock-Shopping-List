@@ -2,8 +2,6 @@ package skyblockshoppinglist;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -22,29 +20,8 @@ import net.minecraft.network.chat.Style;
 public class ShoppingListScreen extends Screen {
     private final SandboxWidget widget;
     private final RecipeManager recipeManager;
-    private EditBox searchField;
-    private List<String> filteredRecipes;
-    private int scrollOffset = 0;
-    /** Recipe rows that fit between the search box and the bottom buttons; set in init(). */
-    private int MAX_RECIPES_SHOWN = 10;
-    private static final int MOUSE_BUTTON_RIGHT = ShoppingListClient.inputCode("MOUSE_BUTTON_RIGHT");
-    private static final int LIST_X = 20;
-    /** Top of the first recipe row; rows are {@link #ROW_HEIGHT} tall. Drawing and clicks both use these. */
-    private static final int LIST_TOP = 107;
-    /** Filter buttons row, between the search box and the recipe list. */
-    private static final int FILTER_Y = 79;
-    private static final int ROW_HEIGHT = 20;
-    /** Left column (search + recipe list) right edge; set in init() from the screen width. */
-    private int listRight = 270;
-    private String searchText = "";
-    /** Search filters; kept across init() like the search text, not saved. */
-    private boolean matchUses = false;
-    private TypeFilter typeFilter = TypeFilter.ALL;
-    private RarityFilter rarityFilter = RarityFilter.ALL;
-    private OwnedFilter ownedFilter = OwnedFilter.ALL;
-    private Button matchButton, typeButton, rarityButton, ownedButton;
-    /** How many of a recipe one click adds. */
-    private int addAmount = 1;
+    /** Search, filters and the recipe list on the left; its × box is how many of a recipe one click adds. */
+    private RecipePicker picker;
     /** Recipe names the shopping-list rows were built for; rows are rebuilt when the list changes. */
     private List<String> builtRows = List.of();
     /** {@link #builtRows} as a set, for the per-frame "already on the list" check. */
@@ -75,7 +52,6 @@ public class ShoppingListScreen extends Screen {
         super(Component.literal(ShoppingList.NAME));
         this.widget = SandboxWidget.getInstance();
         this.recipeManager = RecipeManager.getInstance();
-        this.filteredRecipes = new ArrayList<>(recipeManager.getRecipeNames());
     }
 
     @Override
@@ -85,7 +61,7 @@ public class ShoppingListScreen extends Screen {
         addRenderableWidget(Button.builder(hudLabel(), button -> {
             widget.setEnabled(!widget.isEnabled());
             button.setMessage(hudLabel());
-        }).bounds(20, height - 30, 150, 20).build());
+        }).bounds(MenuTabs.LEFT_X, height - MenuTabs.BOTTOM_BAR, 150, 20).build());
     }
 
     private Component hudLabel() {
@@ -93,31 +69,9 @@ public class ShoppingListScreen extends Screen {
     }
 
     private void initRecipeTab() {
-        // Left column takes up to 250px, less on narrow screens; the right column gets the rest.
-        int listWidth = Math.max(150, Math.min(250, (width - 60) / 2));
-        listRight = LIST_X + listWidth;
-        treeViewX = listRight + 20;
-        MAX_RECIPES_SHOWN = Math.max(3, (height - 40 - LIST_TOP - 15) / ROW_HEIGHT);
-        searchField = new EditBox(font, LIST_X, 55, listWidth - 54, 20, Component.literal(""));
-        searchField.setMaxLength(50);
-        searchField.setHint(searchHint());
-        searchField.setValue(searchText);
-        searchField.setResponder(this::updateFilteredRecipes);
-        addRenderableWidget(searchField);
-        initFilterRow(listWidth);
-
-        // How many to add when a recipe is clicked.
-        EditBox amountBox = new EditBox(font, listRight - 40, 55, 40, 20, Component.literal("Amount"));
-        amountBox.setMaxLength(6);
-        amountBox.setValue(String.valueOf(addAmount));
-        amountBox.setResponder(text -> {
-            try {
-                addAmount = Math.max(1, Integer.parseInt(text.trim()));
-            } catch (NumberFormatException ignored) {
-                addAmount = 1;
-            }
-        });
-        addRenderableWidget(amountBox);
+        if (picker == null) picker = new RecipePicker(font, 1, amount -> {});
+        picker.init(this::addRenderableWidget, width, height);
+        treeViewX = picker.rightColumnX();
 
         // Shopping list panel (right column, above the preview): name, move up/down, amount box and remove
         // button per row. Order is priority: rows higher up get shared stock first.
@@ -186,7 +140,7 @@ public class ShoppingListScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Clear list"), button -> {
             widget.clearList();
             rebuildWidgets();
-        }).bounds(width / 2 - 60, height - 30, 120, 20).build());
+        }).bounds(width / 2 - 60, height - MenuTabs.BOTTOM_BAR, 120, 20).build());
         initSavedLists(list);
     }
 
@@ -292,140 +246,6 @@ public class ShoppingListScreen extends Screen {
     public void extractBackground(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
     }
 
-    private Component searchHint() {
-        return Component.literal(matchUses ? "Search ingredients..." : "Search recipes...");
-    }
-
-    /** Four cycle buttons: match by name or ingredient, type group, rarity, owned. Left click steps forward, right click back. */
-    private void initFilterRow(int listWidth) {
-        int gap = 2;
-        int w = (listWidth - 3 * gap) / 4;
-        int x = LIST_X;
-        matchButton = addRenderableWidget(Button.builder(Component.literal(matchUses ? "Uses" : "Name"), button -> cycleFilter(button, 1))
-            .bounds(x, FILTER_Y, w, 18)
-            .tooltip(Tooltip.create(Component.literal("Name: search item names.\nUses: search ingredients, e.g. coal finds Torch.")))
-            .build());
-        x += w + gap;
-        typeButton = addRenderableWidget(Button.builder(Component.literal(typeFilter.label), button -> cycleFilter(button, 1))
-            .bounds(x, FILTER_Y, w, 18)
-            .tooltip(Tooltip.create(Component.literal("Item type: Armor, Accessory, Pet, Weapon, Tool, Equipment or Other.")))
-            .build());
-        x += w + gap;
-        rarityButton = addRenderableWidget(Button.builder(Component.literal(rarityFilter.label), button -> cycleFilter(button, 1))
-            .bounds(x, FILTER_Y, w, 18)
-            .tooltip(Tooltip.create(Component.literal("Rarity: Common to Divine, or Special.")))
-            .build());
-        x += w + gap;
-        ownedButton = addRenderableWidget(Button.builder(Component.literal(ownedFilter.label), button -> cycleFilter(button, 1))
-            .bounds(x, FILTER_Y, listRight - x, 18)
-            .tooltip(Tooltip.create(Component.literal("Owned: items you have at least one of (inventory, sacks, storage).\nMissing: items you have none of.")))
-            .build());
-    }
-
-    /** Steps the filter behind {@code button} by {@code step} (1 forward, -1 back), wrapping around, and re-filters. */
-    private void cycleFilter(Button button, int step) {
-        if (button == matchButton) {
-            matchUses = !matchUses;
-            button.setMessage(Component.literal(matchUses ? "Uses" : "Name"));
-            searchField.setHint(searchHint());
-        } else if (button == typeButton) {
-            typeFilter = TypeFilter.values()[Math.floorMod(typeFilter.ordinal() + step, TypeFilter.values().length)];
-            button.setMessage(Component.literal(typeFilter.label));
-        } else if (button == rarityButton) {
-            rarityFilter = RarityFilter.values()[Math.floorMod(rarityFilter.ordinal() + step, RarityFilter.values().length)];
-            button.setMessage(Component.literal(rarityFilter.label));
-        } else if (button == ownedButton) {
-            ownedFilter = OwnedFilter.values()[Math.floorMod(ownedFilter.ordinal() + step, OwnedFilter.values().length)];
-            button.setMessage(Component.literal(ownedFilter.label));
-        } else {
-            return;
-        }
-        updateFilteredRecipes(searchText);
-    }
-
-    private void updateFilteredRecipes(String searchTerm) {
-        searchText = searchTerm == null ? "" : searchTerm;
-        String term = searchText.toLowerCase(Locale.ROOT);
-        ResourcesManager resources = ResourcesManager.getInstance();
-        this.filteredRecipes = recipeManager.getRecipeNames().stream()
-            .filter(name -> term.isEmpty()
-                || (matchUses ? recipeManager.usesIngredient(name, term) : name.toLowerCase(Locale.ROOT).contains(term)))
-            .filter(name -> typeFilter.matches(recipeManager.getType(name)))
-            .filter(name -> rarityFilter.matches(recipeManager.getRarity(name)))
-            .filter(name -> ownedFilter == OwnedFilter.ALL
-                || (resources.getResourceByName(name) > 0) == (ownedFilter == OwnedFilter.OWNED))
-            .collect(Collectors.toList());
-        scrollOffset = 0;
-    }
-
-    /** Groups of NEU item types ("HELMET" also covers "DUNGEON HELMET"); Other is any type in no group. */
-    private enum TypeFilter {
-        ALL("Type"),
-        ARMOR("Armor", "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS"),
-        ACCESSORY("Acc.", "ACCESSORY", "HATCESSORY"),
-        PET("Pet", "PET"),
-        WEAPON("Weapon", "SWORD", "LONGSWORD", "BOW", "WAND"),
-        TOOL("Tool", "PICKAXE", "AXE", "DRILL", "SHOVEL", "HOE", "FARMING TOOL", "FISHING ROD"),
-        EQUIPMENT("Equip", "NECKLACE", "CLOAK", "BELT", "GLOVES", "BRACELET"),
-        OTHER("Other");
-
-        final String label;
-        final List<String> types;
-
-        TypeFilter(String label, String... types) {
-            this.label = label;
-            this.types = List.of(types);
-        }
-
-        boolean has(String type) {
-            for (String t : types) {
-                if (type.equals(t) || type.endsWith(" " + t)) return true;
-            }
-            return false;
-        }
-
-        boolean matches(String type) {
-            return switch (this) {
-                case ALL -> true;
-                case OTHER -> {
-                    if (type.isEmpty()) yield false;
-                    for (TypeFilter group : values()) if (group.has(type)) yield false;
-                    yield true;
-                }
-                default -> has(type);
-            };
-        }
-    }
-
-    private enum RarityFilter {
-        ALL("Rarity", ""), COMMON("Com", "COMMON"), UNCOMMON("Unc", "UNCOMMON"), RARE("Rare", "RARE"),
-        EPIC("Epic", "EPIC"), LEGENDARY("Leg", "LEGENDARY"), MYTHIC("Myth", "MYTHIC"), DIVINE("Div", "DIVINE"),
-        SPECIAL("Spec", "SPECIAL");
-
-        final String label;
-        final String rarity;
-
-        RarityFilter(String label, String rarity) {
-            this.label = label;
-            this.rarity = rarity;
-        }
-
-        /** Special also covers Very Special. */
-        boolean matches(String r) {
-            return this == ALL || r.equals(rarity) || r.endsWith(" " + rarity);
-        }
-    }
-
-    private enum OwnedFilter {
-        ALL("All"), MISSING("Missing"), OWNED("Owned");
-
-        final String label;
-
-        OwnedFilter(String label) {
-            this.label = label;
-        }
-    }
-
     @Override
     public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         renderRecipeTab(context, mouseX, mouseY);
@@ -433,76 +253,13 @@ public class ShoppingListScreen extends Screen {
     }
 
     private void renderRecipeTab(GuiGraphicsExtractor context, int mouseX, int mouseY) {
-        context.fill(0, 0, width, height, 0xFF0E0E0E);
-        context.outline(0, 0, width, height, 0x88608C35);
-
-        MenuTabs.renderHeader(context, font, width, MenuTabs.Tab.SHOPPING_LIST);
-
-        context.text(font,
-            Component.literal("Click a recipe to add it").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD).withBold(true)),
-            20, 47, GOLD, false);
-        context.text(font, "×", listRight - 50, 61, 0xFFCCCCCC, false);
+        MenuTabs.renderBackground(context, font, width, height, MenuTabs.Tab.SHOPPING_LIST);
+        picker.render(context, mouseX, mouseY, "Click a recipe to add it", builtRowSet, null);
         renderListPanel(context);
         renderSavedLists(context);
-        context.text(font,
-            Component.literal("Preview").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD).withBold(true)),
-            treeViewX, treeViewY - 13, GOLD, false);
-        int yPos = LIST_TOP;
-        int itemHeight = ROW_HEIGHT;
-        int endIndex = Math.min(scrollOffset + MAX_RECIPES_SHOWN, filteredRecipes.size());
-        java.util.Set<String> inList = builtRowSet;
+        MenuTabs.sectionTitle(context, font, "Preview", treeViewX, treeViewY - 13);
 
-        context.fill(LIST_X, yPos - 5, listRight, yPos + MAX_RECIPES_SHOWN * itemHeight + 15, 0xFC271910);
-
-        int listBorderColor = 0xFFDAA520;
-        for (int i = 0; i < 2; i++) {
-            context.outline(20 - i,
-                yPos - 5 - i,
-                listRight - LIST_X + i * 2,
-                MAX_RECIPES_SHOWN * itemHeight + 20 + i * 2,
-                listBorderColor
-            );
-        }
-        if (filteredRecipes.isEmpty()) {
-            context.text(font, "No recipes found", 30, yPos + 10, 0xFFAAAAAA, false);
-        } else {
-            for (int i = scrollOffset; i < endIndex; i++) {
-                String recipe = filteredRecipes.get(i);
-                boolean isSelected = inList.contains(recipe);
-                if (isSelected) {
-                    context.fill(LIST_X, yPos, listRight, yPos + itemHeight, 0x99608C35);
-                    context.text(font, fitPlain(recipe, listRight - LIST_X - 20, 0xFFFFB728), LIST_X + 10, yPos + 5, 0xFFFFFFFF, false);
-                } else {
-                    boolean isHovered = mouseX >= LIST_X && mouseX <= listRight && mouseY >= yPos && mouseY <= yPos + itemHeight;
-                    if (isHovered) {
-                        context.fill(LIST_X, yPos, listRight, yPos + itemHeight, 0x553E6428);
-                    }
-                    context.text(font, fitPlain(recipe, listRight - LIST_X - 20, 0xFFE0E0E0), LIST_X + 10, yPos + 5, 0xFFFFFFFF, false);
-                }
-                yPos += itemHeight;
-            }
-            if (scrollOffset > 0) {
-                String up = "▲";
-                context.text(font, up, (LIST_X + listRight) / 2 - font.width(up) / 2, 75, GOLD, false);
-            }
-            if (endIndex < filteredRecipes.size()) {
-                String down = "▼";
-                context.text(font, down, (LIST_X + listRight) / 2 - font.width(down) / 2, yPos + 5, GOLD, false);
-            }
-        }
-
-        context.fill(treeViewX, treeViewY, treeViewX + treeViewWidth, treeViewY + treeViewHeight, 0xFC271910);
-
-        int treeBorderColor = 0xFFDAA520;
-        int borderThickness = 2;
-        for (int i = 0; i < borderThickness; i++) {
-            context.outline(treeViewX - i,
-                treeViewY - i,
-                treeViewWidth + i * 2,
-                treeViewHeight + i * 2,
-                treeBorderColor
-            );
-        }
+        MenuTabs.panel(context, treeViewX, treeViewY, treeViewWidth, treeViewHeight);
 
         context.enableScissor(
             treeViewX,
@@ -530,13 +287,13 @@ public class ShoppingListScreen extends Screen {
                 int scrollbarWidth = 12;
                 int scrollbarHeight = Math.max(40, treeViewHeight * treeViewHeight / totalHeight);
                 int scrollbarY = treeViewY + (int)((treeViewHeight - scrollbarHeight) * ((float)treeScrollOffset / (totalHeight - treeViewHeight + 20)));
-                context.fill(treeViewX + treeViewWidth - scrollbarWidth - 4, treeViewY, treeViewX + treeViewWidth - 4, treeViewY + treeViewHeight, 0x55FFFFFF);
-                context.fill(treeViewX + treeViewWidth - scrollbarWidth - 4, scrollbarY, treeViewX + treeViewWidth - 4, scrollbarY + scrollbarHeight, 0xFFDAA520);
+                context.fill(treeViewX + treeViewWidth - scrollbarWidth - 4, treeViewY, treeViewX + treeViewWidth - 4, treeViewY + treeViewHeight, MenuTabs.ROW_BG_ALT);
+                context.fill(treeViewX + treeViewWidth - scrollbarWidth - 4, scrollbarY, treeViewX + treeViewWidth - 4, scrollbarY + scrollbarHeight, MenuTabs.BORDER);
             }
         } else if (!builtRows.isEmpty()) {
-            context.text(font, "Working out the list...", treeViewX + 20, treeViewY + 20, 0xFFAAAAAA, false);
+            context.text(font, "Working out the list...", treeViewX + 20, treeViewY + 20, MenuTabs.TEXT_DIM, false);
         } else {
-            context.text(font, "Click recipes on the left", treeViewX + 10, treeViewY + 20, 0xFFAAAAAA, false);
+            context.text(font, "Click recipes on the left", treeViewX + 10, treeViewY + 20, MenuTabs.TEXT_DIM, false);
         }
         context.disableScissor();
         List<String> prices = widget.getNpcPriceLines();
@@ -546,40 +303,36 @@ public class ShoppingListScreen extends Screen {
         }
     }
 
-    /** {@code text} in the default font, cut with "..." to fit {@code width}. */
     private Component fitPlain(String text, int width, int color) {
-        Style style = Style.EMPTY.withColor(color & 0xFFFFFF);
-        return SandboxWidget.fitName(font, t -> Component.literal(t).setStyle(style), text, width);
+        return RecipePicker.fitPlain(font, text, width, color);
     }
 
     private void renderListPanel(GuiGraphicsExtractor context) {
         // Names as of the last rebuild (tick() rebuilds when the list changes): no copy of the list per frame.
         List<String> list = builtRows;
         String header = "Shopping list (" + list.size() + "/" + widget.getMaxRecipes() + ")";
-        context.text(font, Component.literal(header).setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD).withBold(true)),
-            treeViewX, 47, GOLD, false);
+        MenuTabs.sectionTitle(context, font, header, treeViewX, MenuTabs.SECTION_Y);
         int rows = Math.min(list.size(), PANEL_MAX_ROWS);
         if (rows == 0) {
-            context.text(font, "Empty - click a recipe on the left to add it", treeViewX + 4, PANEL_TOP + 5, 0xFFAAAAAA, false);
+            context.text(font, "Empty - click a recipe on the left to add it", treeViewX + 4, PANEL_TOP + 5, MenuTabs.TEXT_DIM, false);
             return;
         }
         for (int i = 0; i < rows; i++) {
             int y = PANEL_TOP + i * PANEL_ROW;
-            context.fill(treeViewX, y - 2, treeViewX + treeViewWidth, y + 20, i % 2 == 0 ? 0xFC271910 : 0xFC2E1F14);
-            context.text(font, fitPlain(list.get(i), listNameWidth, 0xFFE0E0E0), treeViewX + 4, y + 5, 0xFFFFFFFF, false);
+            context.fill(treeViewX, y - 2, treeViewX + treeViewWidth, y + 20, i % 2 == 0 ? MenuTabs.ROW_BG : MenuTabs.ROW_BG_ALT);
+            context.text(font, fitPlain(list.get(i), listNameWidth, MenuTabs.TEXT), treeViewX + 4, y + 5, 0xFFFFFFFF, false);
         }
         if (list.size() > rows) {
-            context.text(font, "+" + (list.size() - rows) + " more", treeViewX + 4, PANEL_TOP + rows * PANEL_ROW, 0xFFAAAAAA, false);
+            context.text(font, "+" + (list.size() - rows) + " more", treeViewX + 4, PANEL_TOP + rows * PANEL_ROW, MenuTabs.TEXT_DIM, false);
         }
     }
 
     private void renderSavedLists(GuiGraphicsExtractor context) {
         if (savedWidth == 0) return;
-        context.text(font, Component.literal("Saved lists").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD).withBold(true)),
-            savedX, 47, GOLD, false);
+        MenuTabs.sectionTitle(context, font, "Saved lists", savedX, MenuTabs.SECTION_Y);
         int count = SavedLists.names().size();
         if (count == 0) {
-            context.text(font, fitPlain("Name the list and click Save", savedWidth, 0xFFAAAAAA), savedX, SAVED_TOP + 5, 0xFFFFFFFF, false);
+            context.text(font, fitPlain("Name the list and click Save", savedWidth, MenuTabs.TEXT_DIM), savedX, SAVED_TOP + 5, 0xFFFFFFFF, false);
             return;
         }
         if (savedScroll > 0) {
@@ -674,16 +427,7 @@ public class ShoppingListScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
-        if (mouseX >= LIST_X && mouseX <= listRight && mouseY >= LIST_TOP - 5) {
-            // Wheel down (negative) moves the list down, matching the tree view and vanilla lists.
-            if (verticalAmount > 0 && scrollOffset > 0) {
-                scrollOffset--;
-                return true;
-            } else if (verticalAmount < 0 && scrollOffset + MAX_RECIPES_SHOWN < filteredRecipes.size()) {
-                scrollOffset++;
-                return true;
-            }
-        }
+        if (picker.mouseScrolled(mouseX, mouseY, verticalAmount)) return true;
         if (savedWidth > 0 && mouseX >= savedX && mouseX <= savedX + savedWidth && mouseY >= SAVED_TOP && verticalAmount != 0) {
             int max = Math.max(0, SavedLists.names().size() - savedRowsShown);
             int next = Math.max(0, Math.min(max, savedScroll + (verticalAmount < 0 ? 1 : -1)));
@@ -712,33 +456,21 @@ public class ShoppingListScreen extends Screen {
     public boolean mouseClicked(MouseButtonEvent ctx, boolean doubleClick) {
         double mouseX = ctx.x();
         double mouseY = ctx.y();
-        if (ctx.button() == MOUSE_BUTTON_RIGHT) {
-            for (Button button : new Button[] {matchButton, typeButton, rarityButton, ownedButton}) {
-                if (button != null && button.isMouseOver(mouseX, mouseY)) {
-                    button.playDownSound(Minecraft.getInstance().getSoundManager());
-                    cycleFilter(button, -1);
-                    return true;
+        if (picker.mouseClicked(ctx)) return true;
+        String recipe = picker.nameAt(mouseX, mouseY);
+        if (recipe != null) {
+            SandboxWidget.AddResult result = widget.addToList(recipe, picker.amount());
+            if (result == SandboxWidget.AddResult.FULL) {
+                Minecraft client = Minecraft.getInstance();
+                if (client.player != null) {
+                    client.player.sendOverlayMessage(Component.literal("Shopping list full ("
+                        + widget.getShoppingList().size() + "/" + widget.getMaxRecipes() + ")")
+                        .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
                 }
+            } else {
+                rebuildWidgets();
             }
-        }
-        if (mouseX >= LIST_X && mouseX <= listRight && mouseY >= LIST_TOP && mouseY < LIST_TOP + MAX_RECIPES_SHOWN * ROW_HEIGHT) {
-            int recipeIndex = (int) ((mouseY - LIST_TOP) / ROW_HEIGHT);
-            int actualIndex = scrollOffset + recipeIndex;
-            if (actualIndex >= 0 && actualIndex < filteredRecipes.size() && recipeIndex < MAX_RECIPES_SHOWN) {
-                String recipe = filteredRecipes.get(actualIndex);
-                SandboxWidget.AddResult result = widget.addToList(recipe, addAmount);
-                if (result == SandboxWidget.AddResult.FULL) {
-                    Minecraft client = Minecraft.getInstance();
-                    if (client.player != null) {
-                        client.player.sendOverlayMessage(Component.literal("Shopping list full ("
-                            + widget.getShoppingList().size() + "/" + widget.getMaxRecipes() + ")")
-                            .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
-                    }
-                } else {
-                    rebuildWidgets();
-                }
-                return true;
-            }
+            return true;
         }
         if (!tops().isEmpty() && mouseX >= treeViewX && mouseX <= treeViewX + treeViewWidth &&
             mouseY >= treeViewY && mouseY <= treeViewY + treeViewHeight) {

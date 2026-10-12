@@ -39,6 +39,24 @@ public final class MenuTabs {
     public static final int GOLD = 0xFFFFB728;
     public static final int HEADER_BG = 0xFF17293A;
     public static final int HEADER_BORDER = 0xFF223344;
+    public static final int SCREEN_BG = 0xFF0E0E0E;
+    public static final int PANEL_BG = 0xFF232323;
+    public static final int ROW_BG = 0xFF303030;
+    public static final int ROW_BG_ALT = 0xFF383838;
+    public static final int SELECTED_BG = 0xFF5F7FA0;
+    public static final int HOVER = 0x32FFFFFF;
+    public static final int BORDER = 0xFF555555;
+    public static final int TITLE_BG = 0xFF2A4153;
+    public static final int TEXT = 0xFFDDDDDD;
+    public static final int TEXT_DIM = 0xFFAAAAAA;
+
+    /** Layout every tab shares: section titles, then the controls row, then the filter row; buttons along the bottom. */
+    public static final int SECTION_Y = 47;
+    public static final int CONTROLS_Y = 55;
+    public static final int FILTER_Y = 79;
+    public static final int LEFT_X = 20;
+    /** Distance of the bottom button row from the bottom of the screen. */
+    public static final int BOTTOM_BAR = 30;
 
     private MenuTabs() {}
 
@@ -80,6 +98,24 @@ public final class MenuTabs {
         int width = tabWidth(screenWidth);
         int x = LEFT + active.ordinal() * (width + GAP);
         context.fill(x, HEADER_BOTTOM - 2, x + width, HEADER_BOTTOM, 0xFF5FAF3F);
+    }
+
+    /** Screen background and the title bar with tabs; every tab draws this first. */
+    public static void renderBackground(GuiGraphicsExtractor context, Font font, int screenWidth, int screenHeight, Tab active) {
+        context.fill(0, 0, screenWidth, screenHeight, SCREEN_BG);
+        renderHeader(context, font, screenWidth, active);
+    }
+
+    /** A bold gold label above a section, at {@link #SECTION_Y} in every tab. */
+    public static void sectionTitle(GuiGraphicsExtractor context, Font font, String text, int x, int y) {
+        context.text(font, Component.literal(text).setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD).withBold(true)),
+            x, y, GOLD, false);
+    }
+
+    /** A content panel: dark fill and a grey frame. */
+    public static void panel(GuiGraphicsExtractor context, int x, int y, int width, int height) {
+        context.fill(x, y, x + width, y + height, PANEL_BG);
+        context.outline(x, y, width, height, BORDER);
     }
 
     private static int tabWidth(int screenWidth) {
