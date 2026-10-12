@@ -325,6 +325,11 @@ public class RecipeManager {
         public long forgeMs;
         /** Shopping-list trees only: held enough only by counting copies still cooking in the Forge. */
         public boolean cooking;
+        /**
+         * Shopping-list trees only: still missing, and its count depends on a sack not read yet. Worked out with the
+         * tree, so the HUD doesn't look it up every frame.
+         */
+        public boolean uncertain;
         public long[] forgeCookingEnds = new long[0];
         /**
          * Shopping-list trees only: what unlocks this row's own recipe ("HotM 6"), and the requirements of rows

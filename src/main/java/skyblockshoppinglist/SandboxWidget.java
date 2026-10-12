@@ -664,6 +664,8 @@ public class SandboxWidget {
             tops.add(tree);
             expandedNodes.putIfAbsent(makePathKey(LIST_KEY, tree.name), true);
         }
+        SackReader sacks = SackReader.getInstance();
+        for (RecipeManager.RecipeNode top : tops) setUncertain(top, sacks, 0);
         Set<String> itemNames = new HashSet<>();
         for (RecipeManager.RecipeNode tree : response.trees) collectNames(tree, itemNames);
         updateNeededSacks(response.trees, toasts);
@@ -704,6 +706,15 @@ public class SandboxWidget {
                 sackPromptDue = false;
                 ReminderManager.promptSacks(unread);
             });
+        }
+    }
+
+    /** Fills {@link RecipeManager.RecipeNode#uncertain} for this row and every row under it. */
+    private static void setUncertain(RecipeManager.RecipeNode node, SackReader sacks, int depth) {
+        if (node == null || depth > RecipeManager.MAX_DEPTH) return;
+        node.uncertain = (node.amount > 0 || node.toCraft > 0) && sacks.isUncertain(node.name);
+        if (node.ingredients != null) {
+            for (RecipeManager.RecipeNode child : node.ingredients) setUncertain(child, sacks, depth + 1);
         }
     }
 
@@ -1631,7 +1642,7 @@ public class SandboxWidget {
      * have more than shown.
      */
     public static boolean isUncertain(RecipeManager.RecipeNode node) {
-        return (node.amount > 0 || node.toCraft > 0) && SackReader.getInstance().isUncertain(node.name);
+        return node.uncertain;
     }
 
     /**
