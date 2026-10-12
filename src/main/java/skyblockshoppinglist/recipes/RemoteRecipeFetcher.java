@@ -110,7 +110,7 @@ public final class RemoteRecipeFetcher {
             if (!isHttps(url)) { LOGGER.warn("Ignoring non-https recipe source {}", url); return false; }
             Map<String, String> meta = readMeta(FilePathManager.REMOTE_META_JSON);
             String etagKey = "etag::" + url;
-            String etag = cacheIsCurrent(meta) ? meta.getOrDefault(etagKey, "") : "";
+            String etag = cacheIsCurrent(meta) && hasSnapshot() ? meta.getOrDefault(etagKey, "") : "";
 
             HttpRequest.Builder b = HttpRequest.newBuilder(URI.create(url))
                     .timeout(Duration.ofSeconds(15))
@@ -145,7 +145,7 @@ public final class RemoteRecipeFetcher {
     private static boolean fetchNeuZip(String url) {
         try {
             Map<String, String> meta = readMeta(FilePathManager.REMOTE_META_JSON);
-            boolean cacheCurrent = cacheIsCurrent(meta);
+            boolean cacheCurrent = cacheIsCurrent(meta) && hasSnapshot();
 
             InputStream inputStream;
             String metaKey;
@@ -560,6 +560,11 @@ public final class RemoteRecipeFetcher {
 
     private static boolean cacheIsCurrent(Map<String, String> meta) {
         return PARSER_VERSION.equals(meta.get(PARSER_VERSION_KEY));
+    }
+
+    /** False when the recipe file was deleted: a "not modified" answer would then leave no recipes at all. */
+    private static boolean hasSnapshot() {
+        return FilePathManager.REMOTE_RECIPES_JSON.isFile();
     }
 
     private static boolean isHttps(String url) {
