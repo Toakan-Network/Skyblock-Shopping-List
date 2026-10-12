@@ -180,6 +180,10 @@ public final class ConfigScreen {
                 .option(toggle("Auto-remove",
                     "Take a recipe off the list once you have made the amount you asked for.",
                     true, widget::isAutoRemove, widget::setAutoRemove))
+                .option(toggle("Deepest steps first",
+                    "Give items you hold or have cooking in the Forge to the step you make first (the deepest one "
+                        + "in a recipe tree) instead of the first row that needs them.",
+                    false, widget::isStockDeepestFirst, widget::setStockDeepestFirst))
                 .option(toggle("SkyBlock Item List button",
                     "With the SkyBlock Item List mod installed, show a ☰ button on its recipes that adds the item "
                         + "to your shopping list.",

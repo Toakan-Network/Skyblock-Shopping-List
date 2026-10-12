@@ -85,6 +85,8 @@ public class SandboxWidget {
     private volatile int totalLevel = 0;
     private volatile boolean notifications = true;
     private volatile boolean autoRemove = true;
+    /** Held stock goes to the deepest steps of a tree first, instead of the first row that needs it. */
+    private volatile boolean stockDeepestFirst = false;
     private volatile boolean staleSackWarning = true;
     private volatile boolean itemListButton = true;
     private volatile int maxRecipes = 3;
@@ -379,6 +381,7 @@ public class SandboxWidget {
         config.totalLevel = totalLevel;
         config.notifications = notifications;
         config.autoRemove = autoRemove;
+        config.stockDeepestFirst = stockDeepestFirst;
         config.staleSackWarning = staleSackWarning;
         config.itemListButton = itemListButton;
         config.debugLogging = InventoryReader.debugLogging;
@@ -409,6 +412,7 @@ public class SandboxWidget {
         else if (config.totalMode == TotalMode.INGREDIENTS) this.totalLevel = 1;
         if (config.notifications != null) this.notifications = config.notifications;
         if (config.autoRemove != null) this.autoRemove = config.autoRemove;
+        if (config.stockDeepestFirst != null) this.stockDeepestFirst = config.stockDeepestFirst;
         if (config.staleSackWarning != null) this.staleSackWarning = config.staleSackWarning;
         if (config.itemListButton != null) this.itemListButton = config.itemListButton;
         InventoryReader.debugLogging = Boolean.TRUE.equals(config.debugLogging);
@@ -463,6 +467,7 @@ public class SandboxWidget {
         totalLevel = 0;
         notifications = true;
         autoRemove = true;
+        stockDeepestFirst = false;
         staleSackWarning = true;
         itemListButton = true;
         InventoryReader.debugLogging = false;
@@ -499,6 +504,7 @@ public class SandboxWidget {
         TotalMode totalMode;
         Boolean notifications;
         Boolean autoRemove;
+        Boolean stockDeepestFirst;
         /** Read only: the list-wide Have total / Add more switch from 4.20.6, now set per entry. */
         Boolean haveTotal;
         Boolean staleSackWarning;
@@ -568,7 +574,10 @@ public class SandboxWidget {
             return;
         }
 
-        ResourcesManager.ShoppingResponse response = resourcesManager.getShoppingList(entries);
+        boolean deepestFirst = stockDeepestFirst;
+        ResourcesManager.ShoppingResponse response = resourcesManager.getShoppingList(entries, deepestFirst);
+        // Memo for the stock order, so cooking copies are marked on the rows that got the stock.
+        Map<String, Integer> heights = deepestFirst ? new HashMap<>() : null;
         boolean announce = baselineSet;
         baselineSet = true;
 
@@ -594,7 +603,6 @@ public class SandboxWidget {
             if (!achieved && finished < held) {
                 // Copies cooking now count towards this entry: it waits on the Forge (and shows its timer).
                 tree.cooking = true;
-                tree.cookingCount = Math.min(held - finished, Math.max(0, tree.required - tree.amount - tree.toCraft));
                 // Only the Forge is left: check again each minute until it is done.
                 if (held >= target) waitingOnForge = true;
             }
@@ -611,7 +619,7 @@ public class SandboxWidget {
                 && tree.ingredients.stream().allMatch(child -> child.amount <= 0);
             // Forge items count as owned while cooking, but can't be used until they are done: hold the pop-up
             // only if this recipe needs more of an item than is already finished.
-            if (!cooking.isEmpty() && needsCooking(tree, cooking, finishedLeft) && ready) {
+            if (!cooking.isEmpty() && needsCooking(tree, cooking, finishedLeft, heights) && ready) {
                 ready = false;
                 waitingOnForge = true;
             }
@@ -775,19 +783,34 @@ public class SandboxWidget {
     /**
      * True if the tree takes more of a cooking item from stock than is already finished. Uses up
      * {@code finishedLeft} as it goes (every node is visited), so later recipes only get what is left. The root
-     * is skipped: it never draws on stock of itself.
+     * is skipped: it never draws on stock of itself. Rows are visited in the order they claimed stock
+     * ({@code heights} as in {@link ResourcesManager#stockOrder}).
      */
-    private boolean needsCooking(RecipeManager.RecipeNode root, Map<String, Integer> cooking, Map<String, Integer> finishedLeft) {
+    private boolean needsCooking(RecipeManager.RecipeNode root, Map<String, Integer> cooking, Map<String, Integer> finishedLeft,
+                                 Map<String, Integer> heights) {
         boolean short_ = false;
         if (root.ingredients != null) {
-            for (RecipeManager.RecipeNode child : root.ingredients) {
-                if (useStock(child, cooking, finishedLeft)) short_ = true;
+            for (RecipeManager.RecipeNode child : inStockOrder(root.ingredients, heights)) {
+                if (useStock(child, cooking, finishedLeft, heights)) short_ = true;
             }
         }
         return short_;
     }
 
-    private boolean useStock(RecipeManager.RecipeNode node, Map<String, Integer> cooking, Map<String, Integer> finishedLeft) {
+    /** A row's children in the order they claim held stock (as listed when {@code heights} is null). */
+    private static List<RecipeManager.RecipeNode> inStockOrder(List<RecipeManager.RecipeNode> children,
+                                                               Map<String, Integer> heights) {
+        if (heights == null) return children;
+        List<String> names = children.stream().map(c -> c.name).toList();
+        List<RecipeManager.RecipeNode> out = new ArrayList<>();
+        for (int k : ResourcesManager.stockOrder(names, RecipeManager.getInstance().getAllRecipes(), heights)) {
+            out.add(children.get(k));
+        }
+        return out;
+    }
+
+    private boolean useStock(RecipeManager.RecipeNode node, Map<String, Integer> cooking, Map<String, Integer> finishedLeft,
+                             Map<String, Integer> heights) {
         boolean short_ = false;
         String key = ItemNames.normalize(node.name);
         Integer cookingCount = cooking.get(key);
@@ -800,13 +823,12 @@ public class SandboxWidget {
                 short_ = true;
                 // Counted as held, but some of it is still in the Forge: not usable yet.
                 node.cooking = true;
-                node.cookingCount = Math.min(used - left, cookingCount);
             }
             finishedLeft.put(key, Math.max(0, left - used));
         }
         if (node.ingredients != null) {
-            for (RecipeManager.RecipeNode child : node.ingredients) {
-                if (useStock(child, cooking, finishedLeft)) short_ = true;
+            for (RecipeManager.RecipeNode child : inStockOrder(node.ingredients, heights)) {
+                if (useStock(child, cooking, finishedLeft, heights)) short_ = true;
             }
         }
         return short_;
@@ -1560,6 +1582,12 @@ public class SandboxWidget {
         requestRefresh();
         saveConfiguration();
     }
+    public boolean isStockDeepestFirst() { return stockDeepestFirst; }
+    public void setStockDeepestFirst(boolean stockDeepestFirst) {
+        this.stockDeepestFirst = stockDeepestFirst;
+        requestRefresh();
+        saveConfiguration();
+    }
     public boolean isStaleSackWarning() { return staleSackWarning; }
     public void setStaleSackWarning(boolean staleSackWarning) {
         this.staleSackWarning = staleSackWarning;
@@ -1586,15 +1614,14 @@ public class SandboxWidget {
 
     /**
      * The amount shown next to a node, per Settings > Rows > Amount format: still to get ("3×"),
-     * held of needed ("83/5,120"), or the full amount the recipe needs ("6×"). Held leaves out copies still
-     * cooking in the Forge: they aren't made yet (the row's timer shows when they are).
+     * held of needed ("83/5,120"), or the full amount the recipe needs ("6×").
      */
     public static String amountText(RecipeManager.RecipeNode node) {
         boolean uncertain = isUncertain(node);
         return switch (HudStyle.get().amountFormat) {
             case REMAINING -> (uncertain ? "≤" : "") + number((long) node.amount + node.toCraft) + "×";
             case REQUIRED -> number(node.required) + "×";
-            case HAVE_NEED -> (uncertain ? "≥" : "") + number(Math.max(0L, (long) node.required - node.amount - node.toCraft - node.cookingCount))
+            case HAVE_NEED -> (uncertain ? "≥" : "") + number(Math.max(0L, (long) node.required - node.amount - node.toCraft))
                 + "/" + number(node.required);
         };
     }

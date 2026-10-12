@@ -191,21 +191,24 @@ public class ResourcesManager {
         // Add more, counted from what is held now (in the same snapshot the calculation uses): exactly amt to make.
         Map<String, Integer> snapshot = getAllResources();
         ShoppingListEntry entry = new ShoppingListEntry(name, amt, heldIn(snapshot, name), false);
-        ShoppingResponse response = getShoppingList(List.of(entry), snapshot);
+        ShoppingResponse response = getShoppingList(List.of(entry), snapshot,
+            SandboxWidget.getInstance().isStockDeepestFirst());
         return new RemainingResponse(name, response.trees.get(0), response.craftable);
     }
 
     /**
      * Works out what is still missing for every entry together. Stock is shared: entries are handled in list
-     * order and each one only gets what earlier entries left over, so nothing is counted twice.
+     * order and each one only gets what earlier entries left over, so nothing is counted twice. Within a tree,
+     * held stock goes to rows in recipe order, or with {@code deepestFirst} to the deepest steps first.
      */
-    public ShoppingResponse getShoppingList(List<ShoppingListEntry> entries) {
+    public ShoppingResponse getShoppingList(List<ShoppingListEntry> entries, boolean deepestFirst) {
         // One snapshot for the whole calculation, so a change mid-way can't make "owned" and "available" disagree.
-        return getShoppingList(entries, getAllResources());
+        return getShoppingList(entries, getAllResources(), deepestFirst);
     }
 
     /** As above, worked out from {@code snapshot} (item counts, never changed here). */
-    private ShoppingResponse getShoppingList(List<ShoppingListEntry> entries, Map<String, Integer> snapshot) {
+    private ShoppingResponse getShoppingList(List<ShoppingListEntry> entries, Map<String, Integer> snapshot,
+                                             boolean deepestFirst) {
         Map<String, Map<String, Integer>> forging = RecipeManager.getInstance().getAllRecipes();
         // Every item in the trees, by the name the recipes use, with the count it is tracked under (which may be
         // another spelling, e.g. "☘ Fine Jade Gemstone" for "Fine Jade Gemstone").
@@ -252,6 +255,7 @@ public class ResourcesManager {
             if (fromStock[i] > 0) owned.merge(entries.get(i).recipe, -fromStock[i], Integer::sum);
         }
         List<RecipeManager.RecipeNode> trees = new ArrayList<>();
+        Map<String, Integer> heights = deepestFirst ? new HashMap<>() : null;
         for (int i = 0; i < entries.size(); i++) {
             ShoppingListEntry entry = entries.get(i);
             List<RecipeManager.RecipeNode> ingredients = new ArrayList<>();
@@ -259,10 +263,8 @@ public class ResourcesManager {
             if (recipe != null) {
                 // Expand both what is missing and what can be crafted now, so the steps still to do show.
                 giveBack(recipe, craftedNow[i], highestPossibleResources);
-                for (Map.Entry<String, Integer> ingredient : recipe.entrySet()) {
-                    ingredients.add(expandRequiredRecipe(ingredient.getKey(), ingredient.getValue() * (toCraft[i] + craftedNow[i]),
-                        forging, highestPossibleResources, owned, 1));
-                }
+                ingredients = expandIngredients(recipe, toCraft[i] + craftedNow[i], forging, highestPossibleResources,
+                    owned, 1, heights);
             }
             RecipeManager.RecipeNode root = new RecipeManager.RecipeNode(entry.recipe, toCraft[i], required[i], ingredients);
             root.toCraft = craftedNow[i];
@@ -475,7 +477,7 @@ public class ResourcesManager {
      */
     private RecipeManager.RecipeNode expandRequiredRecipe(String currentName, int needed, Map<String, Map<String, Integer>> forging,
                                                           Map<String, Integer> highestPossibleResources, Map<String, Integer> owned,
-                                                          int depth) {
+                                                          int depth, Map<String, Integer> heights) {
         int have = highestPossibleResources.getOrDefault(currentName, 0);
         int fromStock = Math.max(0, Math.min(have, needed));
         highestPossibleResources.put(currentName, have - fromStock);
@@ -490,17 +492,62 @@ public class ResourcesManager {
         if (recipe == null || depth > RecipeManager.MAX_DEPTH || missing + fromStock - fromHeld <= 0) {
             node = new RecipeManager.RecipeNode(currentName, missing, needed, Collections.emptyList());
         } else {
-            List<RecipeManager.RecipeNode> ingredients = new ArrayList<>();
             int toCraft = fromStock - fromHeld;
             giveBack(recipe, toCraft, highestPossibleResources);
-            for (Map.Entry<String, Integer> entry : recipe.entrySet()) {
-                ingredients.add(expandRequiredRecipe(entry.getKey(), entry.getValue() * (missing + toCraft), forging,
-                    highestPossibleResources, owned, depth + 1));
-            }
+            List<RecipeManager.RecipeNode> ingredients = expandIngredients(recipe, missing + toCraft, forging,
+                highestPossibleResources, owned, depth + 1, heights);
             node = new RecipeManager.RecipeNode(currentName, missing, needed, ingredients);
         }
         node.toCraft = fromStock - fromHeld;
         return node;
+    }
+
+    /**
+     * {@code times} of a recipe's ingredients as rows, in recipe order. They claim held stock in recipe order, or
+     * with {@code heights} (deepest steps first) the one with the most crafting steps under it first.
+     */
+    private List<RecipeManager.RecipeNode> expandIngredients(Map<String, Integer> recipe, int times,
+                                                             Map<String, Map<String, Integer>> forging,
+                                                             Map<String, Integer> highestPossibleResources,
+                                                             Map<String, Integer> owned, int depth, Map<String, Integer> heights) {
+        List<String> names = new ArrayList<>(recipe.keySet());
+        RecipeManager.RecipeNode[] rows = new RecipeManager.RecipeNode[names.size()];
+        for (int k : stockOrder(names, forging, heights)) {
+            rows[k] = expandRequiredRecipe(names.get(k), recipe.get(names.get(k)) * times, forging,
+                highestPossibleResources, owned, depth, heights);
+        }
+        return new ArrayList<>(java.util.Arrays.asList(rows));
+    }
+
+    /**
+     * Indices of {@code names} in the order they claim held stock: as listed, or with {@code heights} (a memo for
+     * {@link #height}, null for list order) the most crafting steps under it first, ties as listed. Deeper steps
+     * are made first, so they are first in line.
+     */
+    static List<Integer> stockOrder(List<String> names, Map<String, Map<String, Integer>> forging,
+                                    Map<String, Integer> heights) {
+        List<Integer> order = new ArrayList<>();
+        for (int i = 0; i < names.size(); i++) order.add(i);
+        if (heights != null) {
+            // List.sort is stable, so equal heights keep recipe order.
+            order.sort((a, b) -> Integer.compare(height(names.get(b), forging, heights, 0),
+                height(names.get(a), forging, heights, 0)));
+        }
+        return order;
+    }
+
+    /** Crafting steps under an item: 0 with no recipe, otherwise 1 + its tallest ingredient. */
+    static int height(String item, Map<String, Map<String, Integer>> forging, Map<String, Integer> heights, int depth) {
+        Integer known = heights.get(item);
+        if (known != null) return known;
+        Map<String, Integer> recipe = forging.get(item);
+        if (recipe == null || depth > RecipeManager.MAX_DEPTH) return 0;
+        // Reached again inside its own tree (a recipe cycle): counts as 0 there.
+        heights.put(item, 0);
+        int tallest = 0;
+        for (String ingredient : recipe.keySet()) tallest = Math.max(tallest, height(ingredient, forging, heights, depth + 1));
+        heights.put(item, tallest + 1);
+        return tallest + 1;
     }
 
     /** Adds {@code target} and everything in its recipe tree to {@code names}; each item once (stops cycles). */
