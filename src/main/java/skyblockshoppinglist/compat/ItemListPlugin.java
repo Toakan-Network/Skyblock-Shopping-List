@@ -48,7 +48,7 @@ public final class ItemListPlugin implements Plugin {
     /** The shopping list's name for the item, or null when the list doesn't know it. */
     private static String recipeName(ItemStack stack) {
         String name = ItemIds.nameOf(stack);
-        return RecipeManager.getInstance().getRecipeNames().contains(name) ? name : null;
+        return RecipeManager.getInstance().getItemNames().contains(name) ? name : null;
     }
 
     private static void add(String name) {
