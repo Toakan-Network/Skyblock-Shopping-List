@@ -38,7 +38,7 @@ How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-
 **Coming from Inventory Reader?** This mod grew out of [Inventory Reader](https://github.com/Scholiboi/InventoryReader) by Scholiboi. Remove the old jar before installing; your data is moved to `config/skyblock-shopping-list/` automatically on first launch.
 
 ## Getting started
-The mod only knows what you have shown it. Open each of your sacks, backpacks and ender chest pages once on SkyBlock, plus each Accessory Bag page, each wardrobe page and the Stats & Equipment menu (for worn equipment). After that, counts stay up to date from your inventory, the containers you open and the `[Sacks]` chat summaries (keep those enabled in your SkyBlock settings).
+The mod only knows what you have shown it. Open your backpacks and ender chest pages once on SkyBlock, plus each Accessory Bag page, each wardrobe page and the Stats & Equipment menu (for worn equipment). Sacks only need opening when your list needs them: a chat line names which ones. After that, counts stay up to date from your inventory, the containers you open and the `[Sacks]` chat summaries (keep those enabled in your SkyBlock settings).
 
 ## Keys and commands
 | Key / command | Action |

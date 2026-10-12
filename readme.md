@@ -116,6 +116,7 @@ Each SkyBlock profile keeps its own data in `profiles/<account>/<profile>/`, so 
 - `item_requirements.json`: what unlocks each recipe (collection, HotM or slayer level), from the NEU repository
 - `npc_buy_prices.json`, `npc_sell_prices.json`: coins per item to buy from NPC shops (NEU repository) and that NPCs pay (Hypixel's item list)
 - `forge_times.json`: base forge time of each forge item, from the NEU repository
+- `item_lore.json`: item descriptions shown when you hover a recipe in the menu, from the NEU repository
 - `remote_sources.json`, `remote_sources_meta.json`: recipe source list and download cache state
 - `neu-repo-extracted/`: the unpacked NEU repository, only while it is being parsed (deleted afterwards)
 
