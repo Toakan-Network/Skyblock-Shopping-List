@@ -298,9 +298,22 @@ public class SandboxWidget {
     /** Every list change: an update worked out for the list before it is thrown away, then a fresh one is queued. */
     private void listChanged() {
         listGeneration++;
+        pruneExpandedNodes();
         requestRefresh();
         saveConfiguration();
         saveShoppingList();
+    }
+    /** Forgets which rows were expanded under recipes no longer on the list, so widget_config.json doesn't grow forever. */
+    private void pruneExpandedNodes() {
+        Set<String> roots = new HashSet<>();
+        roots.add("Total");
+        for (ShoppingListEntry e : shoppingList) roots.add(e.recipe);
+        String prefix = LIST_KEY + ">";
+        expandedNodes.keySet().removeIf(key -> {
+            if (!key.startsWith(prefix)) return false;
+            int end = key.indexOf('>', prefix.length());
+            return !roots.contains(end < 0 ? key.substring(prefix.length()) : key.substring(prefix.length(), end));
+        });
     }
     /** The list lives with the SkyBlock profile (shopping_list.json in its folder). */
     private synchronized void saveShoppingList() {
