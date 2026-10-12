@@ -78,10 +78,15 @@ public class ResourcesManager {
         version.incrementAndGet();
         // This map and the file it came from go together, so after a profile switch a late save of the old
         // profile's counts still lands in the old profile's file. The copy is made on the writer thread.
+        // Zero counts are left out: most are recipe names, which seedResources() adds back on every load.
         Map<String, Integer> map = resources;
         JsonFiles.writeAsync(loadedFrom, () -> {
             synchronized (this) {
-                return new LinkedHashMap<>(map);
+                Map<String, Integer> copy = new LinkedHashMap<>();
+                map.forEach((name, count) -> {
+                    if (count != null && count != 0) copy.put(name, count);
+                });
+                return copy;
             }
         });
     }
