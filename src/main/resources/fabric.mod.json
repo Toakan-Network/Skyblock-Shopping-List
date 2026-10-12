@@ -20,13 +20,13 @@
 	"environment": "client",
 	"entrypoints": {
 		"client": [
-			"inventoryreader.ir.InventoryReaderClient"
+			"skyblockshoppinglist.ShoppingListClient"
 		],
 		"skyblock-item-list": [
-			"inventoryreader.ir.compat.ItemListPlugin"
+			"skyblockshoppinglist.compat.ItemListPlugin"
 		],
 		"modmenu": [
-			"inventoryreader.ir.compat.ModMenuCompat"
+			"skyblockshoppinglist.compat.ModMenuCompat"
 		]
 	},
 	"mixins": [

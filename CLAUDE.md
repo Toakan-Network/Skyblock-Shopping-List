@@ -1,6 +1,6 @@
 # Skyblock Shopping List (formerly InventoryReader)
 
-Fabric client mod (mod id `skyblock-shopping-list`, Java package `inventoryreader.ir`) for Hypixel SkyBlock, Minecraft 26.2 and 26.3 from one jar (Loom 1.17, Java 25). Build with `./gradlew build`.
+Fabric client mod (mod id `skyblock-shopping-list`, Java package `skyblockshoppinglist`) for Hypixel SkyBlock, Minecraft 26.2 and 26.3 from one jar (Loom 1.17, Java 25). Build with `./gradlew build`.
 
 ## Versioning
 `mod_version` in `gradle.properties` is MAJOR.MINOR.PATCH, bumped in the same commit as the change:
@@ -41,6 +41,6 @@ Tracking, the HUD and keybinds run only on SkyBlock (`SkyblockDetector`).
 One jar covers 26.2 and 26.3 (`"minecraft": ["~26.2", "~26.3"]`). It is built against 26.2, the lower bound.
 - No `org.lwjgl.glfw`: 26.3 moved to SDL, so GLFW is missing there.
 - Don't reference `InputConstants` key or mouse codes directly. Their values differ between versions and
-  javac inlines them, so read them with `InventoryReaderClient.inputCode("KEY_V")`.
+  javac inlines them, so read them with `ShoppingListClient.inputCode("KEY_V")`.
 - Before a release, compile against 26.3 too (swap `minecraft_version`, `fabric_version` and `yacl_version`)
   and test in a 26.3 client.

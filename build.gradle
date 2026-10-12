@@ -47,12 +47,12 @@ dependencies {
 	compileOnly "net.hypixel:mod-api:1.0.2"
 
 	// SkyBlock Item List plugin API (optional): adds a "☰" button to its recipes and keeps its item grid off the
-	// HUD panels. Only ItemList ever loads inventoryreader.ir.compat.ItemListPlugin (fabric.mod.json entrypoint),
+	// HUD panels. Only ItemList ever loads skyblockshoppinglist.compat.ItemListPlugin (fabric.mod.json entrypoint),
 	// so nothing here is needed without it.
 	compileOnly "com.operationpotato:skyblock-item-list-api:${project.itemlist_version}"
 
 	// Mod Menu (optional): its "Configure" button opens Settings. Only Mod Menu loads
-	// inventoryreader.ir.compat.ModMenuCompat (fabric.mod.json entrypoint).
+	// skyblockshoppinglist.compat.ModMenuCompat (fabric.mod.json entrypoint).
 	compileOnly("com.terraformersmc:modmenu:${project.modmenu_version}") { transitive = false }
 
 	// YetAnotherConfigLib for the Settings screen. Required at runtime ("depends" in fabric.mod.json), not bundled.
