@@ -12,6 +12,7 @@ import io.github.moulberry.repo.data.NEUKatUpgradeRecipe;
 import io.github.moulberry.repo.data.NEUItem;
 import io.github.moulberry.repo.data.NEURecipe;
 import skyblockshoppinglist.FilePathManager;
+import skyblockshoppinglist.ShoppingList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class RemoteRecipeFetcher {
-    private static final Logger LOGGER = LoggerFactory.getLogger("IR-RemoteRecipeFetcher");
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShoppingList.MOD_ID + "/RemoteRecipeFetcher");
     private static final Gson GSON = new Gson();
     public static final String DEFAULT_NEU_REPO_URL = "https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master";
     /**
@@ -54,7 +55,7 @@ public final class RemoteRecipeFetcher {
     private static final long MAX_EXTRACTED_BYTES = 2L * 1024 * 1024 * 1024;
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r, "IR-RecipeFetch");
+        Thread t = new Thread(r, "ShoppingList-RecipeFetch");
         t.setDaemon(true);
         return t;
     });

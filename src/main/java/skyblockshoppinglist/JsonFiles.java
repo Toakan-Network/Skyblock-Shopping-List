@@ -32,7 +32,7 @@ public final class JsonFiles {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     /** The one thread that writes files, so two writers can never share a ".tmp" file. */
     private static final ExecutorService WRITER = Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r, "IR-Writer");
+        Thread t = new Thread(r, "ShoppingList-Writer");
         t.setDaemon(true);
         return t;
     });

@@ -129,7 +129,7 @@ public class SandboxWidget {
     private SandboxWidget() {
         this.resourcesManager = ResourcesManager.getInstance();
         this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "IR-WidgetUpdate");
+            Thread t = new Thread(r, "ShoppingList-HudUpdate");
             t.setDaemon(true);
             return t;
         });
