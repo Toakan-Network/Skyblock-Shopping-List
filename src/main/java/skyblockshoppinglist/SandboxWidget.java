@@ -1658,10 +1658,6 @@ public class SandboxWidget {
         return node.uncertain;
     }
 
-    /**
-     * Forge time still ahead for a row, per Settings > Rows > Forge times: "[25hrs]", "[45m]" or
-     * "[<1m]"; empty when there is none or the setting hides it for this row (level 0 = the top rows).
-     */
     /** Room a padlock takes after a row's text, in font pixels: a gap, the 5 px lock and a pixel after it. */
     public static final int LOCK_WIDTH = 9;
 
@@ -1707,15 +1703,19 @@ public class SandboxWidget {
         context.fill(left + 2, y + 4, left + 3, y + 6, 0xFF000000 | (~color & 0xFFFFFF)); // keyhole
     }
 
+    /**
+     * Forge time still ahead for a row, per Settings > Rows > Forge times: "[25hrs]", "[45m]" or
+     * "[<1m]", rounded up so it never shows less than is left; empty when there is none or the setting hides it for this row (level 0 = the top rows).
+     */
     public static String forgeText(RecipeManager.RecipeNode node, int level) {
         HudStyle.ForgeTimes mode = HudStyle.get().forgeTimes;
         if (mode == HudStyle.ForgeTimes.OFF || (mode == HudStyle.ForgeTimes.TOP_LEVEL && level > 0)) return "";
         long left = node.forgeLeft(System.currentTimeMillis());
         if (left <= 0) return "";
-        long minutes = left / 60_000;
-        if (minutes < 1) return "[<1m]";
+        if (left < 60_000) return "[<1m]";
+        long minutes = (left + 59_999) / 60_000;
         if (minutes < 60) return "[" + minutes + "m]";
-        return "[" + (minutes / 60) + "hrs]";
+        return "[" + ((minutes + 59) / 60) + "hrs]";
     }
 
     /**
