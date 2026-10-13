@@ -91,6 +91,7 @@ public class ShoppingListClient implements ClientModInitializer {
         // Saves run on a background thread; make sure the last ones reach the disk before the game closes.
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> JsonFiles.flush());
         CoinTracker.register();
+        PowderTracker.register();
         ReminderManager.initialize();
         WelcomeManager.initialize();
         SandboxWidget.getInstance();

@@ -23,6 +23,7 @@ Nothing in the mod is limited to Ironman profiles. On a regular profile it works
 - [Forge times](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forge-times)
 - [Recipes beyond the crafting table](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#recipes)
 - [Coins count as an item](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#coins)
+- [Powder goals](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#powder)
 - [Pop-ups](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#pop-ups)
 - [Fully customisable look](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
 - [Presets and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)

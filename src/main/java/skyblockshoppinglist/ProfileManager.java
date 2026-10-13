@@ -150,6 +150,7 @@ public final class ProfileManager {
         StorageReader.getInstance().clear();
         SackReader.getInstance().clear();
         CoinTracker.clear();
+        PowderTracker.clear();
         ForgeTracker.clear();
         ForgeSpeed.clear();
         ShoppingListClient.clearInventorySnapshot();

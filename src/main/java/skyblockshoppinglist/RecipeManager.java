@@ -68,6 +68,8 @@ public class RecipeManager {
 
             Set<String> allNames = new LinkedHashSet<>(sanitized.keySet());
             for (Map<String, Integer> m : sanitized.values()) allNames.addAll(m.keySet());
+            // Powder has no recipe but can be a goal on the list; PowderTracker keeps its count.
+            allNames.addAll(PowderTracker.NAMES);
             itemNames = Collections.unmodifiableSet(allNames);
             // Ingredient-only items (shop currencies such as Agatha's Coupon) can be added to the list too.
             // Sorted once here: the recipe pickers ask for the list on every keystroke.
