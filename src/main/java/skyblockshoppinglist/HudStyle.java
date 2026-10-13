@@ -6,9 +6,12 @@ import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.FormattedCharSequence;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -114,6 +117,16 @@ public final class HudStyle {
     private transient FontDescription fontDescription;
     /** The font id {@link #fontDescription} was made from (the preview changes {@link #font} on the fly). */
     private transient String fontDescriptionId;
+    /** Text ready to draw, by text, colour and boldness; render thread only. Made for {@link #preparedFont}. */
+    private transient Map<PreparedKey, Prepared> prepared;
+    private transient String preparedFont;
+
+    /** Text laid out for drawing (visual order) and its width in font pixels. */
+    public record Prepared(FormattedCharSequence seq, int width) {
+        public static final Prepared EMPTY = new Prepared(FormattedCharSequence.EMPTY, 0);
+    }
+
+    private record PreparedKey(String text, int color, boolean bold) {}
 
     /** The active style, loaded from disk on first use. */
     public static HudStyle get() {
@@ -246,6 +259,27 @@ public final class HudStyle {
     /** Text in the chosen font and colour. Unknown font ids fall back to Minecraft's default font. */
     public Component text(String text, int color, boolean bold) {
         return Component.literal(text).setStyle(Style.EMPTY.withColor(color & 0xFFFFFF).withBold(bold).withFont(fontDescription()));
+    }
+
+    /**
+     * {@link #text} laid out for drawing, kept so the HUD doesn't reorder and measure the same text every frame.
+     * Render thread only.
+     */
+    public Prepared prepared(String text, int color, boolean bold) {
+        if (prepared == null || !font.equals(preparedFont)) {
+            prepared = new HashMap<>();
+            preparedFont = font;
+        }
+        PreparedKey key = new PreparedKey(text, color, bold);
+        Prepared result = prepared.get(key);
+        if (result == null) {
+            // Amounts and forge times change, so old entries pile up; start over rather than grow without end.
+            if (prepared.size() >= 1024) prepared.clear();
+            FormattedCharSequence seq = text(text, color, bold).getVisualOrderText();
+            result = new Prepared(seq, Minecraft.getInstance().font.width(seq));
+            prepared.put(key, result);
+        }
+        return result;
     }
 
     private FontDescription fontDescription() {

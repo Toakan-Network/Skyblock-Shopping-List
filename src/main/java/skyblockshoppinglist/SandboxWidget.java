@@ -1324,6 +1324,8 @@ public class SandboxWidget {
         context.pose().translate(x, y);
         context.pose().scale(scale, scale);
 
+        // Its own stratum, so the panel isn't tested against everything vanilla and other mods drew before it.
+        context.nextStratum();
         RoundedBox.fill(context, 0, 0, width, panelHeight, style.panelRadius, style.panelBackground);
         RoundedBox.fill(context, 0, 0, width, TITLE_BAR, style.panelRadius, true, false, style.headerBackground);
         for (int i = 0; i < style.panelBorderWidth; i++) {
@@ -1331,8 +1333,8 @@ public class SandboxWidget {
             RoundedBox.outline(context, -i, -i, width + i * 2, panelHeight + i * 2,
                 style.panelRadius > 0 ? style.panelRadius + i : 0, style.panelBorder);
         }
-        Component titleText = style.text(title, style.titleText, true);
-        int titleWidth = client.font.width(titleText);
+        HudStyle.Prepared titleText = style.prepared(title, style.titleText, true);
+        int titleWidth = titleText.width();
         float titleScale = Math.min(style.titleScale, (float) (width - 10) / Math.max(1, titleWidth));
         drawScaled(context, titleText, alignedX(style.titleAlign, width, 5, titleWidth * titleScale),
             (TITLE_BAR - 8 * titleScale) / 2f, titleScale, style.textShadow);
@@ -1361,8 +1363,8 @@ public class SandboxWidget {
             }
         }
         if (empty) {
-            Component hint = style.text("(nothing yet)", style.itemText, false);
-            drawScaled(context, hint, (width - client.font.width(hint)) / 2f, cursorY + 2, 1f, style.textShadow);
+            HudStyle.Prepared hint = style.prepared("(nothing yet)", style.itemText, false);
+            drawScaled(context, hint, (width - hint.width()) / 2f, cursorY + 2, 1f, style.textShadow);
         }
         for (int i = 0; i < sections.size(); i++) {
             cursorY = drawSection(context, sections.get(i), wrapped.get(i), width, cursorY, ownPanel);
@@ -1372,12 +1374,12 @@ public class SandboxWidget {
         if (naturalHeight > panelHeight) {
             // Cut off: tell the player there is more (raise the max height in Move HUD, or collapse rows).
             context.nextStratum();
-            Component more = style.text("…", style.itemText, true);
+            HudStyle.Prepared more = style.prepared("…", style.itemText, true);
             // At least twice the radius tall, or RoundedBox clamps the curve and the bottom corners change shape.
             int coverHeight = Math.max(9, style.panelRadius * 2);
             RoundedBox.fill(context, 0, panelHeight - coverHeight, width, coverHeight, style.panelRadius, false, true,
                 style.panelBackground);
-            drawScaled(context, more, (width - client.font.width(more)) / 2f, panelHeight - 9, 1f, style.textShadow);
+            drawScaled(context, more, (width - more.width()) / 2f, panelHeight - 9, 1f, style.textShadow);
         }
         context.pose().popMatrix();
         return panelHeight;
@@ -1477,16 +1479,16 @@ public class SandboxWidget {
         if (!ownPanel) {
             context.fill(0, y, width, y + 1, style.divider);
             y += 5;
-            Component header = style.text(section.header() + " -", section.headerColor(), true);
-            drawScaled(context, header, alignedX(section.align(), width, style.padding, client.font.width(header) * scale),
+            HudStyle.Prepared header = style.prepared(section.header() + " -", section.headerColor(), true);
+            drawScaled(context, header, alignedX(section.align(), width, style.padding, header.width() * scale),
                 y, scale, style.textShadow);
             y += Math.round(13 * scale);
         }
         int lineHeight = Math.round(10 * scale);
         for (String line : lines) {
             int color = line.endsWith(" - Ready") ? style.done : section.textColor();
-            Component text = style.text(line, color, false);
-            drawScaled(context, text, alignedX(section.align(), width, style.padding, client.font.width(text) * scale),
+            HudStyle.Prepared text = style.prepared(line, color, false);
+            drawScaled(context, text, alignedX(section.align(), width, style.padding, text.width() * scale),
                 y, scale, style.textShadow);
             y += lineHeight;
         }
@@ -1570,46 +1572,48 @@ public class SandboxWidget {
         float rowScale = currentTreeScale * style.textScale;
         int iconOffset = hasChildren ? Math.max(14, Math.round(25 * currentTreeScale)) : Math.max(6, Math.round(10 * currentTreeScale));
         if (hasChildren) {
-            drawScaled(context, style.text(isExpanded ? "▼" : "▶", style.itemText, false),
+            drawScaled(context, style.prepared(isExpanded ? "▼" : "▶", style.itemText, false),
                 x + indent + Math.max(3, Math.round(5 * currentTreeScale)), textY(y, nodeHeight, rowScale), rowScale, style.textShadow);
         }
 
         int nameColor = level == 0 ? style.rootText : hasEnough ? style.itemText : statusColor;
-        Component mark = style.showMarks ? style.text(hasEnough || (node.amount <= 0 && !node.cooking) ? "✔ " : "✖ ", statusColor, false) : Component.empty();
-        Component amount = style.text(amountText(node) + " ", statusColor, false);
+        HudStyle.Prepared mark = style.showMarks
+            ? style.prepared(hasEnough || (node.amount <= 0 && !node.cooking) ? "✔ " : "✖ ", statusColor, false)
+            : HudStyle.Prepared.EMPTY;
+        HudStyle.Prepared amount = style.prepared(amountText(node) + " ", statusColor, false);
         boolean bold = level == 0 && style.boldRootNames;
-        Component name = style.text(node.name, nameColor, bold);
+        HudStyle.Prepared name = style.prepared(node.name, nameColor, bold);
         String forge = forgeText(node, level);
-        Component tag = forge.isEmpty() ? Component.empty() : style.text(forge, nameColor, false);
+        HudStyle.Prepared tag = forge.isEmpty() ? HudStyle.Prepared.EMPTY : style.prepared(forge, nameColor, false);
         int lockWidth = showsLock(node) ? LOCK_WIDTH : 0;
         if (level == 0 && "Total".equals(node.name)) {
             // How far the sack scan for this list has got; gone once every needed sack has been opened.
             String sacks = sacksReadTag();
-            if (!sacks.isEmpty()) tag = style.text(sacks, UNCERTAIN_COLOR, false);
+            if (!sacks.isEmpty()) tag = style.prepared(sacks, UNCERTAIN_COLOR, false);
         }
-        int markWidth = client.font.width(mark);
-        int amountWidth = client.font.width(amount);
-        int tagWidth = client.font.width(tag);
+        int markWidth = mark.width();
+        int amountWidth = amount.width();
+        int tagWidth = tag.width();
         int maxTextWidth = Math.max(10, nodeWidth - iconOffset);
         float textScale;
         if (forge.isEmpty()) {
-            int totalTextWidth = markWidth + amountWidth + client.font.width(name) + tagWidth + lockWidth;
+            int totalTextWidth = markWidth + amountWidth + name.width() + tagWidth + lockWidth;
             textScale = Math.min(rowScale, (float) maxTextWidth / Math.max(1, totalTextWidth));
         } else {
             // The forge time always shows; a long name is cut short to make room instead of shrinking the row.
             textScale = rowScale;
             int room = Math.round(maxTextWidth / rowScale) - markWidth - amountWidth - tagWidth - lockWidth;
-            name = fitName(client.font, style, node.name, nameColor, bold, room);
+            name = fitName(style, node.name, nameColor, bold, room);
         }
-        int nameWidth = client.font.width(name);
+        int nameWidth = name.width();
 
         context.pose().pushMatrix();
         context.pose().translate(x + indent + iconOffset, textY(y, nodeHeight, textScale));
         context.pose().scale(textScale, textScale);
-        context.text(client.font, mark, 0, 0, 0xFFFFFFFF, style.textShadow);
-        context.text(client.font, amount, markWidth, 0, 0xFFFFFFFF, style.textShadow);
-        context.text(client.font, name, markWidth + amountWidth, 0, 0xFFFFFFFF, style.textShadow);
-        context.text(client.font, tag, markWidth + amountWidth + nameWidth, 0, 0xFFFFFFFF, style.textShadow);
+        context.text(client.font, mark.seq(), 0, 0, 0xFFFFFFFF, style.textShadow);
+        context.text(client.font, amount.seq(), markWidth, 0, 0xFFFFFFFF, style.textShadow);
+        context.text(client.font, name.seq(), markWidth + amountWidth, 0, 0xFFFFFFFF, style.textShadow);
+        context.text(client.font, tag.seq(), markWidth + amountWidth + nameWidth, 0, 0xFFFFFFFF, style.textShadow);
         if (lockWidth > 0) drawLock(context, markWidth + amountWidth + nameWidth + tagWidth, 0, nameColor);
         context.pose().popMatrix();
         y += nodeHeight + currentRowGap;
@@ -1652,11 +1656,11 @@ public class SandboxWidget {
         return rowY + Math.max(0, (rowHeight - 8 * scale) / 2f);
     }
 
-    private static void drawScaled(GuiGraphicsExtractor context, Component text, float x, float y, float scale, boolean shadow) {
+    private static void drawScaled(GuiGraphicsExtractor context, HudStyle.Prepared text, float x, float y, float scale, boolean shadow) {
         context.pose().pushMatrix();
         context.pose().translate(x, y);
         context.pose().scale(scale, scale);
-        context.text(Minecraft.getInstance().font, text, 0, 0, 0xFFFFFFFF, shadow);
+        context.text(Minecraft.getInstance().font, text.seq(), 0, 0, 0xFFFFFFFF, shadow);
         context.pose().popMatrix();
     }
 
@@ -1805,6 +1809,20 @@ public class SandboxWidget {
      */
     static Component fitName(Font font, HudStyle style, String name, int color, boolean bold, int room) {
         return fitName(font, text -> style.text(text, color, bold), name, room);
+    }
+
+    /** As above, prepared for the HUD: every width comes from the style's cache, so a frame measures nothing new. */
+    private static HudStyle.Prepared fitName(HudStyle style, String name, int color, boolean bold, int room) {
+        HudStyle.Prepared full = style.prepared(name + " ", color, bold);
+        if (full.width() <= room) return full;
+        int lo = 0;
+        int hi = name.length();
+        while (lo < hi) {
+            int mid = (lo + hi + 1) >>> 1;
+            if (style.prepared(name.substring(0, mid).stripTrailing() + "...", color, bold).width() <= room) lo = mid;
+            else hi = mid - 1;
+        }
+        return style.prepared(name.substring(0, lo).stripTrailing() + "...", color, bold);
     }
 
     /** As above, with {@code make} turning text into a styled component (screens use their own style). */
