@@ -7,19 +7,13 @@ import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * Saved HUD setups: the look ({@link HudStyle}) plus each panel's size and scale, never positions (those depend on
@@ -192,15 +186,8 @@ public final class HudPresets {
 
     /** Copies the current setup to the clipboard as a share code. */
     public static void copyCode() {
-        String json = CODE_GSON.toJson(capture("Shared look"));
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        try (GZIPOutputStream gzip = new GZIPOutputStream(bytes)) {
-            gzip.write(json.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
         Minecraft.getInstance().keyboardHandler.setClipboard(
-            CODE_PREFIX + Base64.getEncoder().encodeToString(bytes.toByteArray()));
+            ShareCodes.encode(CODE_PREFIX, CODE_GSON.toJson(capture("Shared look"))));
     }
 
     /**
@@ -218,23 +205,14 @@ public final class HudPresets {
     }
 
     static Preset decode(String code) {
-        if (code == null) return null;
-        code = code.trim();
-        if (!code.startsWith(CODE_PREFIX) || code.length() - CODE_PREFIX.length() > MAX_CODE_CHARS) return null;
+        String json = ShareCodes.decode(CODE_PREFIX, code, MAX_CODE_CHARS, MAX_JSON_BYTES);
+        if (json == null) return null;
         try {
-            byte[] packed = Base64.getDecoder().decode(code.substring(CODE_PREFIX.length()));
-            String json;
-            try (GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(packed))) {
-                // One byte over the limit tells an oversized preset from one that just fits.
-                byte[] raw = gzip.readNBytes(MAX_JSON_BYTES + 1);
-                if (raw.length > MAX_JSON_BYTES) return null;
-                json = new String(raw, StandardCharsets.UTF_8);
-            }
             Preset preset = CODE_GSON.fromJson(json, Preset.class);
             if (preset == null || preset.style == null) return null;
             preset.name = cleanName(preset.name);
             return preset;
-        } catch (IllegalArgumentException | IOException | JsonParseException e) {
+        } catch (JsonParseException e) {
             return null;
         }
     }

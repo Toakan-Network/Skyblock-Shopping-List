@@ -14,7 +14,7 @@ Nothing in the mod is limited to Ironman profiles. On a regular profile it works
 - [Shopping list HUD](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD)
 - [Easy start: no need to open every sack](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#first-things-to-open)
 - [Recipe filters](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
-- [Saved lists](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
+- [Saved lists and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
 - [Per-profile data](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#per-profile-data)
 - [Craftable](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#craftable)
 - [Forging](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forging)

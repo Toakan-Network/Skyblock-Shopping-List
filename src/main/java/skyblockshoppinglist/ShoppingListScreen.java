@@ -144,15 +144,18 @@ public class ShoppingListScreen extends Screen {
         initSavedLists(list);
     }
 
-    /** Saved lists column: a name box and Save, then one row per saved list (click to load it, × to delete). */
+    /**
+     * Saved lists column: a name box, Save and Paste (import a share code), then one row per saved list (click to
+     * load it, Copy for its share code, × to delete).
+     */
     private void initSavedLists(List<ShoppingListEntry> list) {
         savedX = treeViewX + treeViewWidth + 20;
         savedWidth = Math.min(200, width - savedX - 20);
-        if (savedWidth < 120) {
+        if (savedWidth < 150) {
             savedWidth = 0;
             return;
         }
-        EditBox nameBox = new EditBox(font, savedX, 55, savedWidth - 44, 20, Component.literal("List name"));
+        EditBox nameBox = new EditBox(font, savedX, 55, savedWidth - 88, 20, Component.literal("List name"));
         nameBox.setMaxLength(SavedLists.NAME_LIMIT);
         nameBox.setHint(Component.literal("List name..."));
         nameBox.setValue(saveName);
@@ -164,8 +167,21 @@ public class ShoppingListScreen extends Screen {
             SavedLists.save(name, current);
             pendingDelete = null;
             rebuildWidgets();
-        }).bounds(savedX + savedWidth - 40, 55, 40, 20)
+        }).bounds(savedX + savedWidth - 84, 55, 40, 20)
           .tooltip(Tooltip.create(Component.literal("Save the shopping list under this name. A saved list with the same name is replaced.")))
+          .build();
+        Button paste = Button.builder(Component.literal("Paste"), button -> {
+            SavedLists.Import imported = SavedLists.importCode(Minecraft.getInstance().keyboardHandler.getClipboard());
+            if (imported == null) {
+                HudPresets.toast("No list code", "The clipboard doesn't hold a saved list code with known recipes.");
+                return;
+            }
+            HudPresets.toast("Saved list imported", "\"" + imported.name() + "\": " + imported.added() + " recipe(s)"
+                + (imported.unknown() > 0 ? ", " + imported.unknown() + " unknown left out" : ""));
+            pendingDelete = null;
+            rebuildWidgets();
+        }).bounds(savedX + savedWidth - 40, 55, 40, 20)
+          .tooltip(Tooltip.create(Component.literal("Save a list from a share code on the clipboard. Your shopping list is not changed.")))
           .build();
         save.active = !saveName.isBlank() && !list.isEmpty();
         nameBox.setResponder(text -> {
@@ -174,6 +190,7 @@ public class ShoppingListScreen extends Screen {
         });
         addRenderableWidget(nameBox);
         addRenderableWidget(save);
+        addRenderableWidget(paste);
 
         List<String> names = SavedLists.names();
         savedRowsShown = Math.max(1, (height - 40 - SAVED_TOP) / PANEL_ROW);
@@ -182,10 +199,18 @@ public class ShoppingListScreen extends Screen {
         for (int i = savedScroll; i < end; i++) {
             String name = names.get(i);
             int y = SAVED_TOP + (i - savedScroll) * PANEL_ROW;
-            addRenderableWidget(Button.builder(fitPlain(name, savedWidth - 34, 0xFFFFFFFF), button -> loadSaved(name))
-                .bounds(savedX, y, savedWidth - 24, 18)
+            addRenderableWidget(Button.builder(fitPlain(name, savedWidth - 70, 0xFFFFFFFF), button -> loadSaved(name))
+                .bounds(savedX, y, savedWidth - 60, 18)
                 .tooltip(Tooltip.create(Component.literal("Load \"" + name + "\": replaces the shopping list.")))
                 .build());
+            addRenderableWidget(Button.builder(Component.literal("Copy"), button -> {
+                String code = SavedLists.code(name);
+                if (code == null) return;
+                Minecraft.getInstance().keyboardHandler.setClipboard(code);
+                HudPresets.toast("List code copied", "Paste it anywhere to share \"" + name + "\".");
+            }).bounds(savedX + savedWidth - 56, y, 32, 18)
+              .tooltip(Tooltip.create(Component.literal("Copy \"" + name + "\" as a share code.")))
+              .build());
             boolean armed = name.equals(pendingDelete);
             addRenderableWidget(Button.builder(Component.literal(armed ? "?" : "×"), button -> {
                 if (name.equals(pendingDelete)) {
