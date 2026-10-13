@@ -156,6 +156,29 @@ public class ResourcesManager {
         if (dirty) changed();
     }
 
+    /**
+     * Sets each item's count to {@code expected} (a full recount from its sources), fixing drift a missed change
+     * left behind. Returns how far each count moved, leaving out those already right.
+     */
+    public synchronized Map<String, Integer> correct(Map<String, Integer> expected) {
+        loaded();
+        Map<String, Integer> corrections = new LinkedHashMap<>();
+        expected.forEach((name, count) -> {
+            if (ItemNames.isJunk(name)) return;
+            String key = resolve(name);
+            int old = key == null ? 0 : resources.getOrDefault(key, 0);
+            if (old == count) return;
+            if (key == null) {
+                key = ItemNames.clean(name);
+                keyByNormalized.putIfAbsent(ItemNames.normalize(key), key);
+            }
+            resources.put(key, count);
+            corrections.put(key, count - old);
+        });
+        if (!corrections.isEmpty()) changed();
+        return corrections;
+    }
+
     public synchronized Map<String, Integer> getAllResources() {
         return new LinkedHashMap<>(loaded());
     }

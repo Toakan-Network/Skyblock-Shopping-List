@@ -116,8 +116,16 @@ public class SackReader {
         List<String> scanned;
     }
 
-    /** Reads every sack item's stored amount from an open sack menu. */
-    public synchronized void readSack(AbstractContainerMenu handler, String title) {
+    /**
+     * Reads every sack item's stored amount from an open sack menu, then corrects their counts. The correction runs
+     * outside this lock, as it reaches the list (whose update thread also asks this reader).
+     */
+    public void readSack(AbstractContainerMenu handler, String title) {
+        Map<String, Integer> read = readSackCounts(handler, title);
+        if (!read.isEmpty()) correctTotals(read);
+    }
+
+    private synchronized Map<String, Integer> readSackCounts(AbstractContainerMenu handler, String title) {
         Map<String, Integer> current = new LinkedHashMap<>();
         boolean gemstoneSack = title.contains("Gemstone");
         for (ItemStack stack : MenuSlots.containerStacks(handler)) {
@@ -130,7 +138,7 @@ public class SackReader {
                 readStoredLore(ItemNames.clean(ItemIds.nameOf(stack)), lore.lines(), current);
             }
         }
-        if (current.isEmpty()) return;
+        if (current.isEmpty()) return current;
 
         loadMeta();
         boolean grew = false;
@@ -156,6 +164,27 @@ public class SackReader {
             Map<String, Integer> copy = new LinkedHashMap<>(snap);
             JsonFiles.writeAsync(FilePathManager.sacksJson(), () -> copy);
         }
+        return current;
+    }
+
+    /**
+     * Sets the count of each item just read to what its sources hold: this sack, the inventory and the stored
+     * containers. Counts are kept as running totals, so a change missed once (the snapshot was already right, so
+     * the delta above is 0) would otherwise stay wrong for good. Add more entries move their starting point by the
+     * same amount, so the fix isn't counted as gathered.
+     */
+    private static void correctTotals(Map<String, Integer> sack) {
+        Map<String, Integer> elsewhere = new HashMap<>();
+        ShoppingListClient.inventoryCounts().forEach((name, count) ->
+            elsewhere.merge(ItemNames.normalize(name), count, Integer::sum));
+        StorageReader.getInstance().counts().forEach((name, count) ->
+            elsewhere.merge(ItemNames.normalize(name), count, Integer::sum));
+        Map<String, Integer> expected = new LinkedHashMap<>();
+        sack.forEach((name, count) -> expected.put(name, count + elsewhere.getOrDefault(ItemNames.normalize(name), 0)));
+        Map<String, Integer> corrections = ResourcesManager.getInstance().correct(expected);
+        if (corrections.isEmpty()) return;
+        ShoppingList.debug("[Sacks] corrected: {}", corrections);
+        SandboxWidget.getInstance().shiftStartCounts(corrections);
     }
 
     /** Applies "[Sacks]" chat deltas to both the snapshot and the resource counts. */

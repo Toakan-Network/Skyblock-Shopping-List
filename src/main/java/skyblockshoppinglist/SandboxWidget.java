@@ -208,6 +208,23 @@ public class SandboxWidget {
             }
         }
     }
+    /**
+     * After counts were corrected (item to how far they moved): Add more entries for those items move their starting
+     * point the same way, so a fixed count isn't taken as copies made or lost. Not a player edit, so always allowed.
+     */
+    public synchronized void shiftStartCounts(Map<String, Integer> corrections) {
+        Map<String, Integer> byName = new HashMap<>();
+        corrections.forEach((name, delta) -> byName.merge(ItemNames.normalize(name), delta, Integer::sum));
+        boolean changed = false;
+        for (int i = 0; i < shoppingList.size(); i++) {
+            ShoppingListEntry e = shoppingList.get(i);
+            Integer delta = byName.get(ItemNames.normalize(e.recipe));
+            if (e.isHaveTotal() || delta == null || delta == 0) continue;
+            shoppingList.set(i, new ShoppingListEntry(e.recipe, e.amount, e.startCount + delta, false));
+            changed = true;
+        }
+        if (changed) listChanged();
+    }
     /** Switches one entry between Have total (held copies count) and Add more (make this many more). */
     public synchronized void setEntryHaveTotal(String recipe, boolean haveTotal) {
         if (!editable()) return;

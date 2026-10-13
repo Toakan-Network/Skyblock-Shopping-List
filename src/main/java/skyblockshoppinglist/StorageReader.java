@@ -149,6 +149,19 @@ public class StorageReader {
         return counts;
     }
 
+    /**
+     * What every container adds to the item counts, by display name: the same totals {@link #saveContainerContents}
+     * has passed on change by change.
+     */
+    public synchronized Map<String, Integer> counts() {
+        Map<String, Integer> counts = new HashMap<>(wearableCounts());
+        containers().forEach((key, items) -> {
+            if (key.equals(WORN_KEY) || isWearableMenu(key)) return;
+            items.forEach((name, count) -> counts.merge(name, count, Integer::sum));
+        });
+        return counts;
+    }
+
     /** How many of each item the player wears as armor. */
     private static Map<String, Integer> armorCounts() {
         Map<String, Integer> counts = new HashMap<>();

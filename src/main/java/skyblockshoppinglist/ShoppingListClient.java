@@ -113,6 +113,20 @@ public class ShoppingListClient implements ClientModInitializer {
         lastInventory = null;
     }
 
+    /** The inventory as last counted (what its changes so far have been passed on against). */
+    static Map<String, Integer> inventoryCounts() {
+        return new HashMap<>(loadedInventory());
+    }
+
+    private static Map<String, Integer> loadedInventory() {
+        if (lastInventory == null) {
+            Map<String, Map<String, Integer>> saved = JsonFiles.read(FilePathManager.inventoryJson(), DATA_TYPE);
+            Map<String, Integer> previous = saved != null ? saved.get(INVENTORY_KEY) : null;
+            lastInventory = previous != null ? previous : new HashMap<>();
+        }
+        return lastInventory;
+    }
+
     private static void checkInventory(Minecraft client) {
         Inventory inventory = client.player.getInventory();
         Map<String, Integer> current = new HashMap<>();
@@ -123,12 +137,7 @@ public class ShoppingListClient implements ClientModInitializer {
             }
         }
 
-        if (lastInventory == null) {
-            Map<String, Map<String, Integer>> saved = JsonFiles.read(FilePathManager.inventoryJson(), DATA_TYPE);
-            Map<String, Integer> previous = saved != null ? saved.get(INVENTORY_KEY) : null;
-            lastInventory = previous != null ? previous : new HashMap<>();
-        }
-        if (current.equals(lastInventory)) return;
+        if (current.equals(loadedInventory())) return;
 
         Map<String, Integer> changes = Counts.diff(lastInventory, current);
 
