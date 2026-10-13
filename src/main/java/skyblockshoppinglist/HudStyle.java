@@ -46,6 +46,8 @@ public final class HudStyle {
 
     /** Which rows show the forge time still ahead, e.g. [25hrs]. */
     public enum ForgeTimes { OFF, TOP_LEVEL, ALL }
+    /** Which rows get a progress bar behind them: none, the top row, the top row and its ingredients, or all. */
+    public enum ProgressBars { OFF, TOP_LEVEL, FIRST_LEVEL, ALL }
     /** How the HUD size reacts to the window: with its height, with GUI Scale, or not at all. */
     public enum Sizing { WINDOW, GUI_SCALE, FIXED }
 
@@ -97,6 +99,9 @@ public final class HudStyle {
     public ForgeTimes forgeTimes = ForgeTimes.ALL;
     /** Done ingredient rows (green) aren't drawn on the HUD. */
     public boolean hideFinished = true;
+    /** Progress bars on the recipe trees, and separately on the Total. */
+    public ProgressBars progressBars = ProgressBars.OFF;
+    public ProgressBars totalProgressBars = ProgressBars.OFF;
     // Panel placement is layout, so presets carry it.
     public Placement craftablePlacement = Placement.MAIN_PANEL;
     public Placement forgingPlacement = Placement.MAIN_PANEL;
@@ -188,6 +193,8 @@ public final class HudStyle {
         showRequirements = from.showRequirements;
         forgeTimes = from.forgeTimes;
         hideFinished = from.hideFinished;
+        progressBars = from.progressBars;
+        totalProgressBars = from.totalProgressBars;
     }
 
     /** Forgets the in-memory copy (after a reset deleted the file). */
@@ -218,6 +225,8 @@ public final class HudStyle {
         if (font == null || Identifier.tryParse(font) == null) font = DEFAULT_FONT;
         if (amountFormat == null) amountFormat = AmountFormat.REMAINING;
         if (forgeTimes == null) forgeTimes = ForgeTimes.ALL;
+        if (progressBars == null) progressBars = ProgressBars.OFF;
+        if (totalProgressBars == null) totalProgressBars = ProgressBars.OFF;
         // Files from before HUD sizing: Follow GUI Scale ON keeps following it, OFF gets the new default.
         if (followGuiScale != null) {
             if (Boolean.TRUE.equals(followGuiScale)) sizing = Sizing.GUI_SCALE;

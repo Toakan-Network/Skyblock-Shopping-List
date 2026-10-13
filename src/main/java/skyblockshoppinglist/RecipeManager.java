@@ -333,6 +333,11 @@ public class RecipeManager {
          * tree, so the HUD doesn't look it up every frame.
          */
         public boolean uncertain;
+        /**
+         * Shopping-list trees only: how far along this row is (0 to 1), counted in raw materials under it; what is
+         * already held counts as done. Worked out with the tree for the HUD progress bars.
+         */
+        public float progress;
         public long[] forgeCookingEnds = new long[0];
         /**
          * Shopping-list trees only: what unlocks this row's own recipe ("HotM 6"), and the requirements of rows

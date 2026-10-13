@@ -679,6 +679,7 @@ public class SandboxWidget {
         }
         SackReader sacks = SackReader.getInstance();
         for (RecipeManager.RecipeNode top : tops) setUncertain(top, sacks, 0);
+        for (RecipeManager.RecipeNode top : tops) setProgress(top, 0);
         Set<String> itemNames = new HashSet<>();
         for (RecipeManager.RecipeNode tree : response.trees) collectNames(tree, itemNames);
         updateNeededSacks(response.trees, toasts);
@@ -729,6 +730,40 @@ public class SandboxWidget {
         if (node.ingredients != null) {
             for (RecipeManager.RecipeNode child : node.ingredients) setUncertain(child, sacks, depth + 1);
         }
+    }
+
+    /**
+     * Fills {@link RecipeManager.RecipeNode#progress} for this row and every row under it. Returns the raw materials
+     * this row stands for, {have, need}, so the row above weighs its ingredients by raw count: 0/1 Flawless Ruby over
+     * 21/80 Fine Ruby is 26% done, like the Fine Ruby row. Ingredients only cover what is still left to get or make,
+     * so the part of a row already held counts as done.
+     */
+    private static double[] setProgress(RecipeManager.RecipeNode node, int depth) {
+        if (node == null) return new double[] {0, 0};
+        double required = Math.max(0, node.required);
+        double left = Math.min(required, Math.max(0L, (long) node.amount + node.toCraft));
+        double childHave = 0;
+        double childNeed = 0;
+        if (node.ingredients != null && depth < RecipeManager.MAX_DEPTH) {
+            for (RecipeManager.RecipeNode child : node.ingredients) {
+                double[] raw = setProgress(child, depth + 1);
+                childHave += raw[0];
+                childNeed += raw[1];
+            }
+        }
+        if (required <= 0 || left <= 0) {
+            node.progress = 1f;
+            return new double[] {required, required};
+        }
+        if (childNeed <= 0) {
+            // A raw material (or a row with nothing expanded under it): what is held of what is needed.
+            node.progress = (float) ((required - left) / required);
+            return new double[] {required - left, required};
+        }
+        node.progress = (float) ((required - left) / required + left / required * (childHave / childNeed));
+        // Raw materials for the whole row: the ingredients cover the part left, so scale them up to all of it.
+        double need = childNeed * required / left;
+        return new double[] {need * node.progress, need};
     }
 
     private static void collectMissing(RecipeManager.RecipeNode node, Set<String> out, int depth) {
@@ -1496,6 +1531,13 @@ public class SandboxWidget {
 
         if (style.showRowBoxes) {
             RoundedBox.fill(context, x + indent, y, nodeWidth, nodeHeight, style.rowRadius, style.rowBackground);
+        }
+        int barWidth = showsBar(node, level, pathKey) ? Math.round(nodeWidth * Math.clamp(node.progress, 0f, 1f)) : 0;
+        if (barWidth > 0) {
+            RoundedBox.fill(context, x + indent, y, barWidth, nodeHeight, Math.min(style.rowRadius, barWidth / 2),
+                (statusColor & 0x00FFFFFF) | 0x55000000);
+        }
+        if (style.showRowBoxes) {
             int border = progressBorderColor(node, showRemaining);
             for (int i = 0; i < style.rowBorderWidth; i++) {
                 RoundedBox.outline(context, x + indent + i, y + i, nodeWidth - 2 * i, nodeHeight - 2 * i,
@@ -1564,6 +1606,23 @@ public class SandboxWidget {
             }
         }
         return y;
+    }
+
+    /**
+     * Settings > Rows > Progress bars / Total progress bars: whether this row gets a bar behind it. Levels count
+     * from the top row of its tree (the Total row for the Total), also when the Total has its own panel.
+     */
+    private static boolean showsBar(RecipeManager.RecipeNode node, int level, String pathKey) {
+        HudStyle style = HudStyle.get();
+        String totalKey = makePathKey(LIST_KEY, "Total");
+        boolean inTotal = level == 0 ? "Total".equals(node.name)
+            : pathKey.equals(totalKey) || pathKey.startsWith(totalKey + ">");
+        return switch (inTotal ? style.totalProgressBars : style.progressBars) {
+            case OFF -> false;
+            case TOP_LEVEL -> level == 0;
+            case FIRST_LEVEL -> level <= 1;
+            case ALL -> true;
+        };
     }
 
     /** Top of text of the given scale, centred in a row. */

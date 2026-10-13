@@ -154,6 +154,14 @@ public final class ConfigScreen {
                     + "in the recipe trees and the Total. Recipe rows always show, and so do rows from a sack not read "
                     + "yet. The List tab still shows everything.", d.hideFinished,
                     s -> s.hideFinished, (s, v) -> s.hideFinished = v))
+                .option(progressBars("Progress bars", "Fills each recipe row's background with how far along it is, "
+                    + "counted in the raw materials under it: 21/80 Fine Ruby under 0/1 Flawless Ruby fills both rows 26%. "
+                    + "What you already hold counts as done. The bar takes the row's colour.\nTop level: the recipe rows. "
+                    + "Down to 1st level: also the ingredients they take directly.", d.progressBars,
+                    s -> s.progressBars, (s, v) -> s.progressBars = v))
+                .option(progressBars("Total progress bars", "The same progress bars for the Total section: the Total "
+                    + "row on top level, and each material in it from 1st level on.", d.totalProgressBars,
+                    s -> s.totalProgressBars, (s, v) -> s.totalProgressBars = v))
                 .option(styled(Option.<HudStyle.ForgeTimes>createBuilder()
                     .name(Component.literal("Forge times"))
                     .description(describe(
@@ -527,6 +535,22 @@ public final class ConfigScreen {
                     + "resize on its own in Move HUD."))
             .controller(opt -> EnumControllerBuilder.create(opt).enumClass(HudStyle.Placement.class)
                 .formatValue(v -> Component.literal(v == HudStyle.Placement.OWN_PANEL ? "Own panel" : "Inside main panel"))),
+            def, get, set);
+    }
+
+    private static Option<HudStyle.ProgressBars> progressBars(String name, String description, HudStyle.ProgressBars def,
+                                                              Function<HudStyle, HudStyle.ProgressBars> get,
+                                                              BiConsumer<HudStyle, HudStyle.ProgressBars> set) {
+        return styled(Option.<HudStyle.ProgressBars>createBuilder()
+            .name(Component.literal(name))
+            .description(describe(description))
+            .controller(opt -> EnumControllerBuilder.create(opt).enumClass(HudStyle.ProgressBars.class)
+                .formatValue(v -> Component.literal(switch (v) {
+                    case OFF -> "Off";
+                    case TOP_LEVEL -> "Top level";
+                    case FIRST_LEVEL -> "Down to 1st level";
+                    case ALL -> "Every row";
+                }))),
             def, get, set);
     }
 
