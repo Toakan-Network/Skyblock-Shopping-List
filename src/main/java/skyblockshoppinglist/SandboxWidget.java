@@ -1371,6 +1371,7 @@ public class SandboxWidget {
 
         if (naturalHeight > panelHeight) {
             // Cut off: tell the player there is more (raise the max height in Move HUD, or collapse rows).
+            context.nextStratum();
             Component more = style.text("…", style.itemText, true);
             // At least twice the radius tall, or RoundedBox clamps the curve and the bottom corners change shape.
             int coverHeight = Math.max(9, style.panelRadius * 2);
@@ -1472,6 +1473,7 @@ public class SandboxWidget {
         Minecraft client = Minecraft.getInstance();
         HudStyle style = HudStyle.get();
         float scale = section.scale();
+        context.nextStratum();
         if (!ownPanel) {
             context.fill(0, y, width, y + 1, style.divider);
             y += 5;
@@ -1532,6 +1534,9 @@ public class SandboxWidget {
 
     private int renderRecipeTree(GuiGraphicsExtractor context, RecipeManager.RecipeNode node, int x, int y, int level, String pathKey) {
         if (node == null || isHiddenRow(node, level)) return y;
+        // Each row in its own stratum: vanilla places every element by testing it against all earlier ones in the
+        // stratum, and rows don't overlap, so one stratum for the whole tree costs the square of its elements.
+        context.nextStratum();
         HudStyle style = HudStyle.get();
         Minecraft client = Minecraft.getInstance();
         int unitIndent = Math.max(2, Math.round(style.indent * currentTreeScale));

@@ -7,6 +7,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
@@ -274,7 +276,13 @@ public class ShoppingListScreen extends Screen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
         renderRecipeTab(context, mouseX, mouseY);
-        super.extractRenderState(context, mouseX, mouseY, delta);
+        // What Screen does, with a stratum per widget: the buttons don't overlap, so in one stratum each one is
+        // tested against every element drawn before it.
+        for (GuiEventListener child : children()) {
+            if (!(child instanceof Renderable renderable)) continue;
+            context.nextStratum();
+            renderable.extractRenderState(context, mouseX, mouseY, delta);
+        }
     }
 
     private void renderRecipeTab(GuiGraphicsExtractor context, int mouseX, int mouseY) {
@@ -375,6 +383,8 @@ public class ShoppingListScreen extends Screen {
     private int renderRecipeTree(GuiGraphicsExtractor context, RecipeManager.RecipeNode node, int x, int y, int level,
                                  String pathKey, int mouseX, int mouseY) {
         if (node == null) return y;
+        // One stratum per row, as on the HUD (see SandboxWidget.renderRecipeTree).
+        context.nextStratum();
         HudStyle style = HudStyle.get();
         int indent = level * RECIPE_LEVEL_INDENT;
         boolean hasEnough = node.amount <= 0 && node.toCraft <= 0 && !node.cooking;
