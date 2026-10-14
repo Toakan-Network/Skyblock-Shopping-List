@@ -199,12 +199,15 @@ public final class ConfigScreen {
                 .build())
             .group(OptionGroup.createBuilder()
                 .name(Component.literal("Notifications"))
-                .option(toggle("Pop-ups", "Pop-up when a recipe is ready to craft, and when you have made it.",
-                    true, widget::isNotifications, widget::setNotifications))
-                .option(toggle("Sack reminder",
-                    "Chat warning when your sacks haven't been opened for an hour. Between opens, sack counts "
-                        + "follow the [Sacks] chat summaries and can drift.",
-                    true, widget::isStaleSackWarning, widget::setStaleSackWarning))
+                .option(channel(widget, Notifier.Type.READY, "Ready to craft",
+                    "When a recipe on your list can be crafted from what you have."))
+                .option(channel(widget, Notifier.Type.ACHIEVED, "Item achieved",
+                    "When you have made the amount you asked for."))
+                .option(channel(widget, Notifier.Type.SACK_PROMPT, "Sacks to open",
+                    "Once after joining: the sacks to open so the list's counts are right."))
+                .option(channel(widget, Notifier.Type.STALE_SACKS, "Sack reminder",
+                    "When your sacks haven't been opened for an hour, at most once an hour. Between opens, sack "
+                        + "counts follow the [Sacks] chat summaries and can drift."))
                 .build())
             .build();
     }
@@ -578,6 +581,24 @@ public final class ConfigScreen {
             .description(describe(description))
             .controller(opt -> BooleanControllerBuilder.create(opt).onOffFormatter().coloured(true)),
             def, get, set);
+    }
+
+    /** Where one notification type shows: Off, Chat, Toast or Both. */
+    private static Option<Notifier.Channel> channel(SandboxWidget widget, Notifier.Type type, String name,
+                                                    String description) {
+        return Option.<Notifier.Channel>createBuilder()
+            .name(Component.literal(name))
+            .description(OptionDescription.of(Component.literal(description + "\n\nOff, Chat, Toast (a pop-up), "
+                + "or Both. Only while on SkyBlock.")))
+            .binding(type.defaultChannel, () -> widget.getNotifyChannel(type), v -> widget.setNotifyChannel(type, v))
+            .controller(opt -> EnumControllerBuilder.create(opt).enumClass(Notifier.Channel.class)
+                .formatValue(v -> Component.literal(switch (v) {
+                    case OFF -> "Off";
+                    case CHAT -> "Chat";
+                    case TOAST -> "Toast";
+                    case BOTH -> "Both";
+                })))
+            .build();
     }
 
     /** A widget setting; {@code def} is what the reset button sets, the same as the widget's own default. */

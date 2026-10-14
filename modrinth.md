@@ -24,7 +24,7 @@ Nothing in the mod is limited to Ironman profiles. On a regular profile it works
 - [Recipes beyond the crafting table](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#recipes)
 - [Coins count as an item](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#coins)
 - [Powder goals](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#powder)
-- [Pop-ups](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#pop-ups)
+- [Notifications: chat, toast or both](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#notifications)
 - [Fully customisable look](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
 - [Presets and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
 - [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)

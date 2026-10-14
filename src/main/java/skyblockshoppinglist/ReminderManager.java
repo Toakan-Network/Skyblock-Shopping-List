@@ -2,7 +2,6 @@ package skyblockshoppinglist;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -31,16 +30,13 @@ public class ReminderManager {
         });
     }
 
-    /** One chat line naming the sacks to open so the list's counts are right. Sent once, never repeated. */
+    /** Names the sacks to open so the list's counts are right. Sent once, never repeated. */
     public static void promptSacks(List<String> sacks) {
-        if (sacks.isEmpty() || !SkyblockDetector.isOnSkyblock()) return;
-        Component message = Component.literal("[" + ShoppingList.NAME + "] ")
-            .withStyle(ChatFormatting.GOLD)
-            .append(Component.literal("Open your ").withStyle(ChatFormatting.WHITE))
+        if (sacks.isEmpty()) return;
+        Component message = Component.literal("Open your ").withStyle(ChatFormatting.WHITE)
             .append(Component.literal(sackList(sacks)).withStyle(ChatFormatting.YELLOW))
             .append(Component.literal(" for accurate counts.").withStyle(ChatFormatting.WHITE));
-        Minecraft client = Minecraft.getInstance();
-        client.execute(() -> client.gui.hud.getChat().addClientSystemMessage(message));
+        Notifier.send(Notifier.Type.SACK_PROMPT, "Sacks to open", message);
     }
 
     /** "Mining Sack, Combat Sack", or with more than {@link #MAX_SACKS_NAMED} "A, B, C +2 more". */
@@ -52,21 +48,19 @@ public class ReminderManager {
     /** Warns, at most once an hour, when sacks haven't been opened for an hour and the list isn't empty. */
     private static void checkStaleSacks() {
         SandboxWidget widget = SandboxWidget.getInstance();
-        if (!widget.isStaleSackWarning() || widget.getShoppingList().isEmpty()) return;
+        if (Notifier.isOff(Notifier.Type.STALE_SACKS) || widget.getShoppingList().isEmpty()) return;
         long now = System.currentTimeMillis();
         long lastRead = SackReader.getInstance().getLastRead();
         if (now - lastRead < STALE_AFTER_MS || now - lastStaleWarning < STALE_AFTER_MS) return;
         lastStaleWarning = now;
 
         String status = lastRead == 0
-            ? "Sack counts haven't been read yet. "
-            : "Sack counts may be out of date (last checked " + (now - lastRead) / STALE_AFTER_MS + "h ago). ";
-        Component message = Component.literal("[" + ShoppingList.NAME + "] ")
-            .withStyle(ChatFormatting.GOLD)
-            .append(Component.literal(status).withStyle(ChatFormatting.WHITE))
+            ? "Not read yet. "
+            : "Last checked " + (now - lastRead) / STALE_AFTER_MS + "h ago. ";
+        Component message = Component.literal(status).withStyle(ChatFormatting.WHITE)
             .append(Component.literal(widget.getListSacks().isEmpty()
                 ? "Open your sacks to refresh them."
                 : "Open your " + sackList(widget.getListSacks()) + " to refresh them.").withStyle(ChatFormatting.YELLOW));
-        Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(message);
+        Notifier.send(Notifier.Type.STALE_SACKS, "Sack counts may be out of date", message);
     }
 }

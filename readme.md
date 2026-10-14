@@ -32,7 +32,7 @@ Nothing in the mod is limited to Ironman profiles. On a regular profile it works
 - [Recipes beyond the crafting table](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#recipes)
 - [Coins count as an item](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#coins)
 - [Powder goals](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#powder)
-- [Pop-ups](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#pop-ups)
+- [Notifications: chat, toast or both](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#notifications)
 - [Fully customisable look](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
 - [Presets and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
 - [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)
@@ -142,7 +142,7 @@ The jar is written to `build/libs/`. `./gradlew runClient` starts a development 
 
 ## Known limitations
 - Items are matched by their SkyBlock ID where the item has one, so reforges and stars don't matter. Items without an ID (some sack and menu icons) fall back to their name, with colour codes and stat symbols ignored.
-- Sack contents only resync when you open a sack; between opens they follow the `[Sacks]` chat summaries, so keep those enabled in your SkyBlock settings. If no sack has been opened for an hour while the list has items, a chat message reminds you (Settings > Sack reminder).
+- Sack contents only resync when you open a sack; between opens they follow the `[Sacks]` chat summaries, so keep those enabled in your SkyBlock settings. If no sack has been opened for an hour while the list has items, a message reminds you (Settings > Notifications > Sack reminder).
 - Recipes cover what the NEU repository lists as crafting, forge, NPC shop and Kat upgrade recipes. Pets that only drop have no recipe.
 
 ## License and attribution

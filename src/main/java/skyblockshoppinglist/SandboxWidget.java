@@ -7,7 +7,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -24,8 +23,6 @@ public class SandboxWidget {
     /** Expansion-key root for the top-level nodes (Total and each recipe). */
     public static final String LIST_KEY = "list";
     public static final int MAX_RECIPES_LIMIT = 10;
-    private static final SystemToast.SystemToastId READY_TOAST = new SystemToast.SystemToastId(5000L);
-    private static final SystemToast.SystemToastId ACHIEVED_TOAST = new SystemToast.SystemToastId(5000L);
     private static final java.lang.reflect.Type SHOPPING_LIST_TYPE = new TypeToken<List<ShoppingListEntry>>() {}.getType();
     private volatile boolean enabled = false;
     /** Entries are never mutated in place; changes replace the entry so the update thread sees whole values. */
@@ -83,11 +80,11 @@ public class SandboxWidget {
     public static final int MAX_TOTAL_LEVEL = 5;
     /** What the Total adds up: 0 = raw materials, N = the ingredients N steps below each recipe on the list. */
     private volatile int totalLevel = 0;
-    private volatile boolean notifications = true;
+    /** Channel per notification type; a type missing here uses its default. */
+    private final Map<Notifier.Type, Notifier.Channel> notifyChannels = new ConcurrentHashMap<>();
     private volatile boolean autoRemove = true;
     /** Held stock goes to the deepest steps of a tree first, instead of the first row that needs it. */
     private volatile boolean stockDeepestFirst = false;
-    private volatile boolean staleSackWarning = true;
     private volatile boolean itemListButton = true;
     private volatile int maxRecipes = 3;
     /** Where the HUD panels were last drawn (GUI pixels, borders included); empty while the HUD is hidden. */
@@ -409,10 +406,10 @@ public class SandboxWidget {
         config.expandedNodes = new HashMap<>(expandedNodes);
         config.showTotal = showTotal;
         config.totalLevel = totalLevel;
-        config.notifications = notifications;
+        config.notify = new LinkedHashMap<>();
+        for (Notifier.Type type : Notifier.Type.values()) config.notify.put(type.name(), getNotifyChannel(type));
         config.autoRemove = autoRemove;
         config.stockDeepestFirst = stockDeepestFirst;
-        config.staleSackWarning = staleSackWarning;
         config.itemListButton = itemListButton;
         config.debugLogging = ShoppingList.debugLogging;
         config.maxRecipes = maxRecipes;
@@ -440,10 +437,23 @@ public class SandboxWidget {
         if (config.showTotal != null) this.showTotal = config.showTotal;
         if (config.totalLevel != null) this.totalLevel = clampTotalLevel(config.totalLevel);
         else if (config.totalMode == TotalMode.INGREDIENTS) this.totalLevel = 1;
-        if (config.notifications != null) this.notifications = config.notifications;
+        if (config.notify != null) {
+            for (Notifier.Type type : Notifier.Type.values()) {
+                Notifier.Channel channel = config.notify.get(type.name());
+                if (channel != null) notifyChannels.put(type, channel);
+            }
+        } else {
+            // The on/off toggles from before 4.30.6: off becomes Off, on keeps the type's default channel.
+            if (Boolean.FALSE.equals(config.notifications)) {
+                notifyChannels.put(Notifier.Type.ACHIEVED, Notifier.Channel.OFF);
+                notifyChannels.put(Notifier.Type.READY, Notifier.Channel.OFF);
+            }
+            if (Boolean.FALSE.equals(config.staleSackWarning)) {
+                notifyChannels.put(Notifier.Type.STALE_SACKS, Notifier.Channel.OFF);
+            }
+        }
         if (config.autoRemove != null) this.autoRemove = config.autoRemove;
         if (config.stockDeepestFirst != null) this.stockDeepestFirst = config.stockDeepestFirst;
-        if (config.staleSackWarning != null) this.staleSackWarning = config.staleSackWarning;
         if (config.itemListButton != null) this.itemListButton = config.itemListButton;
         ShoppingList.debugLogging = Boolean.TRUE.equals(config.debugLogging);
         if (config.maxRecipes != null) this.maxRecipes = clampMaxRecipes(config.maxRecipes);
@@ -495,10 +505,9 @@ public class SandboxWidget {
         expandedNodes = new ConcurrentHashMap<>();
         showTotal = true;
         totalLevel = 0;
-        notifications = true;
+        notifyChannels.clear();
         autoRemove = true;
         stockDeepestFirst = false;
-        staleSackWarning = true;
         itemListButton = true;
         ShoppingList.debugLogging = false;
         maxRecipes = 3;
@@ -532,11 +541,15 @@ public class SandboxWidget {
         Integer totalLevel;
         /** Read only, for configs written before Total levels. */
         TotalMode totalMode;
+        /** Read only: the Pop-ups toggle from before Settings > Notifications had a channel per type. */
         Boolean notifications;
+        /** Channel per {@link Notifier.Type} name. */
+        Map<String, Notifier.Channel> notify;
         Boolean autoRemove;
         Boolean stockDeepestFirst;
         /** Read only: the list-wide Have total / Add more switch from 4.20.6, now set per entry. */
         Boolean haveTotal;
+        /** Read only: the Sack reminder toggle from before Settings > Notifications had a channel per type. */
         Boolean staleSackWarning;
         Boolean itemListButton;
         Boolean debugLogging;
@@ -639,7 +652,7 @@ public class SandboxWidget {
             if (achieved) {
                 if (achievedEntries.add(entry.recipe) && announce) {
                     String message = entry.amount + "× " + entry.recipe;
-                    toasts.add(() -> notifyPlayer(ACHIEVED_TOAST, "Item achieved", message));
+                    toasts.add(() -> Notifier.send(Notifier.Type.ACHIEVED, "Item achieved", Component.literal(message)));
                 }
                 if (autoRemove) toRemove.add(entry.recipe);
                 continue;
@@ -657,7 +670,7 @@ public class SandboxWidget {
                 readyEntries.remove(entry.recipe);
             } else if (readyEntries.add(entry.recipe) && announce) {
                 String message = entry.amount + "× " + entry.recipe;
-                toasts.add(() -> notifyPlayer(READY_TOAST, "Ready to craft", message));
+                toasts.add(() -> Notifier.send(Notifier.Type.READY, "Ready to craft", Component.literal(message)));
             }
         }
         readyEntries.retainAll(names);
@@ -953,14 +966,6 @@ public class SandboxWidget {
             lines.add(e.getValue()[0] + "× " + entry.name + " - " + ForgeTracker.formatRemaining(entry.endsAt, now));
         }
         forgingLines = List.copyOf(lines);
-    }
-
-    /** Client-side toast; never sent anywhere. Off when notifications are disabled or outside SkyBlock. */
-    private void notifyPlayer(SystemToast.SystemToastId id, String title, String message) {
-        if (!notifications || !SkyblockDetector.isOnSkyblock()) return;
-        Minecraft client = Minecraft.getInstance();
-        client.execute(() -> SystemToast.add(client.gui.toastManager(), id,
-            Component.literal(title).withStyle(ChatFormatting.GOLD), Component.literal(message)));
     }
 
     /** The HUD panels: the shopping list, and Craftable / Forging / Total when set to their own panel. */
@@ -1680,9 +1685,11 @@ public class SandboxWidget {
         requestRefresh();
         saveConfiguration();
     }
-    public boolean isNotifications() { return notifications; }
-    public void setNotifications(boolean notifications) {
-        this.notifications = notifications;
+    public Notifier.Channel getNotifyChannel(Notifier.Type type) {
+        return notifyChannels.getOrDefault(type, type.defaultChannel);
+    }
+    public void setNotifyChannel(Notifier.Type type, Notifier.Channel channel) {
+        notifyChannels.put(type, channel);
         saveConfiguration();
     }
     public boolean isAutoRemove() { return autoRemove; }
@@ -1695,11 +1702,6 @@ public class SandboxWidget {
     public void setStockDeepestFirst(boolean stockDeepestFirst) {
         this.stockDeepestFirst = stockDeepestFirst;
         requestRefresh();
-        saveConfiguration();
-    }
-    public boolean isStaleSackWarning() { return staleSackWarning; }
-    public void setStaleSackWarning(boolean staleSackWarning) {
-        this.staleSackWarning = staleSackWarning;
         saveConfiguration();
     }
     public boolean isItemListButton() { return itemListButton; }

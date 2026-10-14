@@ -33,7 +33,8 @@ public final class HudPresets {
     private static final int MAX_JSON_BYTES = 256 * 1024;
     /** Compact JSON for share codes (the files use the pretty {@link JsonFiles#GSON}). */
     private static final Gson CODE_GSON = new Gson();
-    private static final SystemToast.SystemToastId TOAST = new SystemToast.SystemToastId(3000L);
+    /** A vanilla ID, so toast mods such as FancyNotify recognise it. */
+    private static final SystemToast.SystemToastId TOAST = SystemToast.SystemToastId.PERIODIC_NOTIFICATION;
 
     private HudPresets() {}
 
