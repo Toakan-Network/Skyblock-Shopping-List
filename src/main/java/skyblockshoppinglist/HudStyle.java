@@ -46,7 +46,11 @@ public final class HudStyle {
     public int sectionText = 0xFFFF9D00;
     public int forgingHeader = 0xFFFFFF55;
     public int forgingText = 0xFFFF9D00;
+    /** Forging lines for items the shopping list doesn't need (Forging section set to All). */
+    public int forgingOtherText = 0xFFFF6B6B;
 
+    /** Which forge slots the Forging section shows: none, those making something on the list, or all of them. */
+    public enum ForgingSlots { OFF, LISTED, ALL }
     /** Which rows show the forge time still ahead, e.g. [25hrs]. */
     public enum ForgeTimes { OFF, TOP_LEVEL, ALL }
     /** Which rows get a progress bar behind them: none, the top row, the top row and its ingredients, or all. */
@@ -94,7 +98,9 @@ public final class HudStyle {
     /** Row amounts as 1.2k / 500m / 1.5b instead of the full number. */
     public boolean shortNumbers = true;
     public boolean showCraftable = true;
-    public boolean showForging = true;
+    public ForgingSlots forgingSlots = ForgingSlots.ALL;
+    /** Read only: the Forging section on/off toggle from before Off / Listed / All, carried over in {@link #clamp()}. */
+    public Boolean showForging;
     /** Coins to buy the list's raw materials at NPCs and what NPCs pay for them, at the bottom of the main panel. */
     public boolean showNpcPrice = true;
     /** A padlock after rows still to make whose recipe needs an unlock (collection, HotM, slayer level). */
@@ -201,7 +207,9 @@ public final class HudStyle {
         amountFormat = from.amountFormat;
         shortNumbers = from.shortNumbers;
         showCraftable = from.showCraftable;
-        showForging = from.showForging;
+        forgingSlots = from.forgingSlots;
+        // An old preset's toggle would otherwise override the kept choice in clamp().
+        showForging = null;
         showNpcPrice = from.showNpcPrice;
         showRequirements = from.showRequirements;
         forgeTimes = from.forgeTimes;
@@ -246,6 +254,12 @@ public final class HudStyle {
             followGuiScale = null;
         }
         if (sizing == null) sizing = Sizing.WINDOW;
+        // Files from before Off / Listed / All: OFF stays off, ON gets the new default (every slot).
+        if (showForging != null) {
+            forgingSlots = showForging ? ForgingSlots.ALL : ForgingSlots.OFF;
+            showForging = null;
+        }
+        if (forgingSlots == null) forgingSlots = ForgingSlots.ALL;
     }
 
     private static int clamp(int value, int min, int max) {

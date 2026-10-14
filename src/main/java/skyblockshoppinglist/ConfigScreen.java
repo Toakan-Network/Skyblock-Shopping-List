@@ -123,8 +123,18 @@ public final class ConfigScreen {
                     s -> s.showCraftable, (s, v) -> s.showCraftable = v))
                 .option(placement("Craftable panel", d.craftablePlacement,
                     s -> s.craftablePlacement, (s, v) -> s.craftablePlacement = v))
-                .option(toggle("Forging section", "Show what is cooking in your Forge that the list needs.", d.showForging,
-                    s -> s.showForging, (s, v) -> s.showForging = v))
+                .option(styled(Option.<HudStyle.ForgingSlots>createBuilder()
+                    .name(Component.literal("Forging section"))
+                    .description(describe("What is cooking in your Forge, read when you open it.\nAll: every forge "
+                        + "slot; items the list doesn't need use the \"Forging text (not on list)\" colour (red by "
+                        + "default).\nListed: only items the list needs.\nOff: no Forging section."))
+                    .controller(opt -> EnumControllerBuilder.create(opt).enumClass(HudStyle.ForgingSlots.class)
+                        .formatValue(v -> Component.literal(switch (v) {
+                            case OFF -> "Off";
+                            case LISTED -> "Listed";
+                            case ALL -> "All";
+                        }))),
+                    d.forgingSlots, s -> s.forgingSlots, (s, v) -> s.forgingSlots = v))
                 .option(placement("Forging panel", d.forgingPlacement,
                     s -> s.forgingPlacement, (s, v) -> s.forgingPlacement = v))
                 .option(toggle("NPC price section", "Show at the bottom what every raw material on the list costs to "
@@ -355,6 +365,8 @@ public final class ConfigScreen {
                 .option(colour("Craftable text", d.sectionText, s -> s.sectionText, (s, v) -> s.sectionText = v))
                 .option(colour("Forging header", d.forgingHeader, s -> s.forgingHeader, (s, v) -> s.forgingHeader = v))
                 .option(colour("Forging text", d.forgingText, s -> s.forgingText, (s, v) -> s.forgingText = v))
+                .option(colour("Forging text (not on list)", d.forgingOtherText,
+                    s -> s.forgingOtherText, (s, v) -> s.forgingOtherText = v))
                 .build())
             .build();
     }
