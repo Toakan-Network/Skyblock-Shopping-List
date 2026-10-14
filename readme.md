@@ -127,7 +127,7 @@ On startup the mod downloads the [NotEnoughUpdates-REPO](https://github.com/NotE
 The sources are listed in `remote_sources.json`. Only `https` URLs and local files are accepted. The archive is unpacked to `neu-repo-extracted/` with path-traversal, entry-count and size limits, then parsed as JSON and deleted again. Nothing from it is executed.
 
 ## Security scan
-The 4.28.1 release jar, and the neurepoparser library bundled in it, were scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), a static scanner for malicious Java code and Minecraft mods (network off, nothing
+The 4.30.7 release jar, and the neurepoparser library bundled in it, were scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), a static scanner for malicious Java code and Minecraft mods (network off, nothing
 uploaded). Result: no confirmed malicious behavior and no known malware matched. The report, the jar hashes to check
 your copy against and an explanation of each flagged item are in [security/java-triage](security/java-triage/README.md).
 

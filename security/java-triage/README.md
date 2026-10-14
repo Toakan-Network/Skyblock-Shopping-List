@@ -1,10 +1,11 @@
 # Security scan: Skyblock Shopping List
 
-Static malware scan of the release jar and the library it bundles, run on 2026-10-11.
+Static malware scan of the release jar and the library it bundles. The mod jar was scanned on 2026-10-15; the
+nested library is byte-for-byte the one scanned on 2026-10-11 (same SHA-256), so its report still applies.
 
 | Jar | SHA-256 | Confirmed behaviors | High | Medium | Report |
 |---|---|---|---|---|---|
-| `skyblock-shopping-list-4.28.1.jar` | `981d8263593f2d4388eb3c789ce8402d5fe7ebcc53056cb1b579eb708e4d3f2a` | 0 | 2 (false positive, see below) | 0 | [HTML](skyblock-shopping-list-4.28.1.html), [JSON](skyblock-shopping-list-4.28.1.json) |
+| `skyblock-shopping-list-4.30.7.jar` | `514b48ffa9779829a89925482cb98ddac96f63416a00b26ef3f30fd7ecbd0a20` | 0 | 2 (false positive, see below) | 0 | [HTML](skyblock-shopping-list-4.30.7.html), [JSON](skyblock-shopping-list-4.30.7.json) |
 | `neurepoparser-1.9.0.jar` (nested) | `51d99ddebbe055dc2c4e1ccc19e6a90cdb1e29d10e20e8b0751cf62d4011aa71` | 0 | 0 | 0 | [HTML](neurepoparser-1.9.0.html), [JSON](neurepoparser-1.9.0.json) |
 
 Compare the SHA-256 with your copy of the jar (`certutil -hashfile <jar> SHA256` on Windows, `sha256sum <jar>`
@@ -22,8 +23,8 @@ elsewhere). These results only hold for a jar with the same hash.
 - **`neurepoparser-1.9.0.jar`:** NEU's open-source repo parser (`moe.nea:neurepoparser`), declared in
   `build.gradle` and bundled by Fabric Loom. It is byte-for-byte the Maven release plus the `fabric.mod.json`
   Loom adds to every bundled library, which is why the nested jar's hash differs from Maven's.
-- **Base64 in `HudPresets`:** HUD share codes are gzipped, Base64 JSON copied to the clipboard for pasting into chat
-  or Discord.
+- **Base64 in `ShareCodes`:** HUD preset and saved-list share codes are gzipped, Base64 JSON copied to the
+  clipboard for pasting into chat or Discord. Nothing is sent anywhere.
 
 ## How the scan was run
 

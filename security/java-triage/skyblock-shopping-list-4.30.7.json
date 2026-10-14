@@ -1,0 +1,1374 @@
+{
+  "root": "cwd/skyblock-shopping-list-4.30.7",
+  "scan_roots": [
+    "cwd/skyblock-shopping-list-4.30.7"
+  ],
+  "scan_diagnostics": {
+    "cwd/skyblock-shopping-list-4.30.7": {
+      "java_files": 50,
+      "class_files": 123,
+      "finding_count": 65,
+      "scan_mode": "java_guarded_plus_class_constant_pool"
+    }
+  },
+  "target_metadata": {
+    "basic_properties": {
+      "subject": "skyblock-shopping-list-4.30.7.jar",
+      "md5": "ee757b0cb2448f8ff9fa5d82ef48e6e7",
+      "sha1": "2032fb689632b7989eaf233c011af5afc7d6c203",
+      "sha256": "514b48ffa9779829a89925482cb98ddac96f63416a00b26ef3f30fd7ecbd0a20",
+      "file_type": "JAR",
+      "compressed": "jar",
+      "magic": "Zip archive data (JAR)",
+      "file_size_text": "397.30 KB",
+      "file_size_bytes": 406838
+    },
+    "source_jar_metadata": {
+      "name": "skyblock-shopping-list-4.30.7.jar",
+      "path": "<scan-dir>\\jars\\skyblock-shopping-list-4.30.7.jar",
+      "size_bytes": 406838,
+      "size_text": "397.30 KB",
+      "md5": "ee757b0cb2448f8ff9fa5d82ef48e6e7",
+      "sha1": "2032fb689632b7989eaf233c011af5afc7d6c203",
+      "sha256": "514b48ffa9779829a89925482cb98ddac96f63416a00b26ef3f30fd7ecbd0a20"
+    },
+    "artifact_identity": {
+      "scan_root_name": "skyblock-shopping-list-4.30.7",
+      "scan_root_tree_sha256": "5650d8e50f464dc8f9bb10bcbc2b224006d034c9483292c5a0614c8de492b9ed",
+      "scan_root_file_count": 175,
+      "source_jar": {
+        "name": "skyblock-shopping-list-4.30.7.jar",
+        "path": "<scan-dir>\\jars\\skyblock-shopping-list-4.30.7.jar",
+        "size_bytes": 406838,
+        "size_text": "397.30 KB",
+        "md5": "ee757b0cb2448f8ff9fa5d82ef48e6e7",
+        "sha1": "2032fb689632b7989eaf233c011af5afc7d6c203",
+        "sha256": "514b48ffa9779829a89925482cb98ddac96f63416a00b26ef3f30fd7ecbd0a20"
+      }
+    },
+    "library_fingerprints": {
+      "detected": [],
+      "libraries": {}
+    },
+    "jar_info": {
+      "manifest": "",
+      "archive_metadata": {
+        "contained_directories": 9,
+        "max_directory_depth": 4,
+        "contained_files": 177,
+        "latest_content_modification": "2026-10-15 00:56:42",
+        "earliest_content_modification": "2026-10-15 00:56:41",
+        "contained_files_by_type": {
+          "xml": 0,
+          "ascii": 177
+        }
+      }
+    },
+    "bundle_info": {
+      "contained_files": 177,
+      "uncompressed_size_text": "1.10 MB",
+      "uncompressed_size_bytes": 1154850,
+      "earliest_content_modification": "2026-10-15 00:56:41",
+      "latest_content_modification": "2026-10-15 00:56:42",
+      "contained_files_by_type": {
+        "UNKNOWN": 175,
+        "DIRECTORY": 9,
+        "JSON": 2
+      },
+      "contained_files_by_extension": {
+        "CLASS": 123,
+        "JAVA": 50,
+        "JSON": 2,
+        "TXT": 2
+      }
+    }
+  },
+  "scan_mode": "standard",
+  "deobfuscation": {},
+  "decipher": {
+    "java_files": 50,
+    "files_changed": 0,
+    "strings_replaced": 0,
+    "strings_failed": 0,
+    "xor_strings_replaced": 0,
+    "xor_strings_failed": 0,
+    "aes_strings_replaced": 0,
+    "aes_strings_failed": 0,
+    "aes_gcm_strings_replaced": 0,
+    "aes_gcm_strings_failed": 0,
+    "recovered_crypto_keys": [],
+    "output_root": "<scan-dir>\\triage-tool\\skyblock-shopping-list-4.30.7_deciphered"
+  },
+  "string_dump": {
+    "strings_count": 14073,
+    "aes_candidates_count": 136,
+    "json": "<scan-dir>\\triage-tool\\skyblock-shopping-list-4.30.7\\.java_triage_string_dump.json",
+    "txt": "<scan-dir>\\triage-tool\\skyblock-shopping-list-4.30.7\\.java_triage_string_dump.txt"
+  },
+  "invokedynamic_bootstrap": {
+    "class_files_count": 123,
+    "bootstrap_methods_count": 476,
+    "invokedynamic_sites_count": 535,
+    "suspicious_bootstraps_count": 0,
+    "high_value_sites_count": 128,
+    "json": "<scan-dir>\\triage-tool\\skyblock-shopping-list-4.30.7\\.java_triage_indy_bootstrap_map.json"
+  },
+  "summary": {
+    "total_findings": 59,
+    "unique_decoded_strings": 28,
+    "category_counts": {
+      "credential_or_identity_field": 44,
+      "dynamic_execution": 5,
+      "url": 5,
+      "string": 3,
+      "http_header": 1,
+      "reconstructed_string": 1
+    },
+    "xor_decrypted_count": 0,
+    "decrypted_string_count": 0,
+    "reconstructed_strings": 0,
+    "high_risk_count": 54,
+    "behavior_findings": 62,
+    "high_risk_behavior_count": 2,
+    "behavior_severity_counts": {
+      "critical": 0,
+      "high": 2,
+      "medium": 0,
+      "low": 60,
+      "info": 0
+    },
+    "verdict_layers": {
+      "proof": 0,
+      "suspicion": 2,
+      "capability": 0
+    },
+    "artifact_findings": 0,
+    "assessment_counts": {
+      "benign": 0,
+      "needs_review": 0,
+      "suspicious": 0
+    },
+    "verdict_tiers": {
+      "confirmed_behavior": 0,
+      "exposed_capability": 0,
+      "suspicious_capability": 62,
+      "library_noise": 0
+    },
+    "contradiction_notes": [],
+    "aes_decrypted_count": 0
+  },
+  "assessment_summary": {
+    "counts": {
+      "benign": 0,
+      "needs_review": 0,
+      "suspicious": 0
+    },
+    "findings": {
+      "benign": [],
+      "needs_review": [],
+      "suspicious": []
+    }
+  },
+  "verdict_tiers": {
+    "confirmed_behavior": 0,
+    "exposed_capability": 0,
+    "suspicious_capability": 62,
+    "library_noise": 0
+  },
+  "contradiction_notes": [],
+  "reconstructed_strings": [
+    {
+      "decoded": "\u00a76\u00a7l=",
+      "file": "skyblockshoppinglist\\WelcomeManager.java",
+      "line": 54,
+      "confidence": "high",
+      "category": "reconstructed_string",
+      "function": "showWelcomeMessage",
+      "context": "    49: \n    50:     private static void showWelcomeMessage(Minecraft client) {\n    51:         if (client.player == null) {\n    52:             return;\n    53:         }\n    54:         String divider = \"\\u00a76\\u00a7l\" + \"=\".repeat(40);\n    55:         client.player.sendSystemMessage((Component)Component.literal((String)divider));\n    56:         client.player.sendSystemMessage((Component)Component.literal((String)\"\\u00a7b\\u00a7lSkyblock Shopping List\").setStyle(Style.EMPTY.withBold(Boolean.valueOf(true)).withColor(ChatFormatting.AQUA)));\n    57:         client.player.sendSystemMessage((Component)Component.literal((String)\"\\u00a7eA shopping list for Hypixel SkyBlock: pick recipes, see what you still need.\"));\n    58:         client.player.sendSystemMessage((Component)Component.literal((String)\"\"));\n    59:         MutableComponent commandsText = Component.literal((String)\"\\u00a76\\u00a7lCommands:\").append((Component)Component.literal((String)\"\\n\\u00a7e- Press \"));",
+      "note": "source=string_reconstruction kind=literal_concat parts=2"
+    }
+  ],
+  "runtime_c2": {
+    "attempted": false,
+    "resolved": false
+  },
+  "exfiltration_analysis": {
+    "status": "not_detected",
+    "confirmed": false,
+    "data_sources": [],
+    "endpoints": []
+  },
+  "url_assembly": {
+    "c2_domain": "",
+    "c2_domain_source": "",
+    "fallback_domain": "",
+    "dynamic_c2_domain": "",
+    "dynamic_c2_domain_source": "",
+    "dynamic_c2_domain_decoy": false,
+    "cdn_path": "",
+    "endpoints": [],
+    "assembled_urls": [],
+    "unresolved_paths": [],
+    "note": "C2 domain not resolved; set manually via blockchain eth_call or fallback domain string"
+  },
+  "infra_probe": {
+    "probed": false,
+    "results": []
+  },
+  "ratter_scanner": {
+    "attempted": false,
+    "error": "",
+    "results": []
+  },
+  "jlab_static_scan": {
+    "attempted": false,
+    "error": "",
+    "status_code": 0,
+    "upload_file": "",
+    "upload_size": 0,
+    "file_name": "",
+    "file_size": 0,
+    "total_signatures": 0,
+    "matched_signatures": 0,
+    "signatures": [],
+    "retry_after": null,
+    "rate_limit_limit": null,
+    "rate_limit_remaining": null
+  },
+  "network_endpoint_assessment": {
+    "total_urls": 4,
+    "vendor_urls": [
+      "https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master",
+      "https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO"
+    ],
+    "unknown_urls": [
+      "https://api.hypixel.net/v2/resources/skyblock/election",
+      "https://api.hypixel.net/v2/resources/skyblock/items"
+    ],
+    "suspicious_urls": [],
+    "vendor_count": 2,
+    "unknown_count": 2,
+    "suspicious_count": 0
+  },
+  "variant_detections": {
+    "detected_count": 0,
+    "detected": []
+  },
+  "raw_string_detections": [],
+  "heuristic_detections": [
+    {
+      "category": "heuristic",
+      "description": "Base64 encoding/decoding (actual decoder/encoder usage)",
+      "file_path": "skyblockshoppinglist/ShareCodes.java",
+      "weight": 10
+    }
+  ],
+  "minecraft_modules": {
+    "detected": false,
+    "module_count": 0,
+    "modules": [],
+    "categories": {}
+  },
+  "stage2_analysis": {
+    "enabled": true,
+    "attempted": false,
+    "static_only_no_execution": true,
+    "error": "stage2 analysis requires network access; rerun without --no-network",
+    "aes_payload_decrypted": false,
+    "aes_payload_note": "AES decryption requires the full ciphertext bytes from the C2 download endpoint. If the download succeeded, the AES key/IV must be extracted from decoded strings and passed to the offline aes_cbc_nopadding_decrypt() helper.",
+    "payload_url_resolved": ""
+  },
+  "stage2_manual_payload_url": "",
+  "blockchain_indicators": {
+    "contracts": [],
+    "selectors": [],
+    "rpc_urls": [],
+    "rpc_hosts": [],
+    "api_key_urls": []
+  },
+  "findings": [
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\CoinTracker$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Long;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\CoinTracker$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ConfigScreen.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Copies the current look and panel sizes as text, to paste in chat or Discord.\u0001",
+      "category": "string",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ForgeTracker$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/List<Lskyblockshoppinglist/ForgeTracker$Entry;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ForgeTracker$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ItemDescriptions$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/util/List<Ljava/lang/String;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ItemDescriptions$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ItemIds$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ItemIds$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ItemNames.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "isSymbolToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ItemNames.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "token",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\NpcPrices$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Double;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\NpcPrices$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\RecipeManager$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\RecipeManager$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\RecipeManager$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\RecipeManager$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\RecipeManager$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\RecipeManager$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\RecipeManager$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\RecipeManager$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\RecipeManager$5.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\RecipeManager$5.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ResourcesManager$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ResourcesManager$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\SackReader$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\SackReader$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\SandboxWidget$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/List<Lskyblockshoppinglist/ShoppingListEntry;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\SandboxWidget$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\SavedLists$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/LinkedHashMap<Ljava/lang/String;Ljava/util/List<Lskyblockshoppinglist/ShoppingListEntry;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\SavedLists$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ShoppingListClient$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\ShoppingListClient$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\StorageReader$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/util/Map<Ljava/lang/String;Ljava/lang/Integer;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\StorageReader$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\recipes\\RemoteRecipeFetcher$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Object;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\recipes\\RemoteRecipeFetcher$1.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\recipes\\RemoteRecipeFetcher$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\recipes\\RemoteRecipeFetcher$2.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\recipes\\RemoteRecipeFetcher$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/Object;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\recipes\\RemoteRecipeFetcher$3.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\recipes\\RemoteRecipeFetcher$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/lang/String;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\recipes\\RemoteRecipeFetcher$4.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\recipes\\RemoteRecipeFetcher$5.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "Lcom/google/gson/reflect/TypeToken<Ljava/util/Map<Ljava/lang/String;Ljava/util/Map<Ljava/lang/String;Lskyblockshoppinglist/recipes/RemoteRecipeFetcher$SackDef;>;>;>;",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": ".java_triage_classes\\skyblockshoppinglist\\recipes\\RemoteRecipeFetcher$5.class",
+      "line": 1,
+      "function": "<class_const>",
+      "decoded": "com/google/gson/reflect/TypeToken",
+      "category": "credential_or_identity_field",
+      "note": "source=class_constant_pool signal=class_const_keyword_hit",
+      "context": ""
+    },
+    {
+      "file": "skyblockshoppinglist\\ConfigScreen.java",
+      "line": 153,
+      "function": "advanced",
+      "decoded": "Write what the mod reads (sack messages, Forge and HOTM menus, recipe downloads) to latest.log, to help track down a problem. Warnings and errors are always logged.",
+      "category": "string",
+      "note": "source=string_scanner signal=literal_keyword_hit",
+      "context": "   148:             s.showRequirements = v;\n   149:         })).build()).group(OptionGroup.createBuilder().name((Component)Component.literal((String)\"List\")).option(ConfigScreen.toggle(\"Auto-remove\", \"Take a recipe off the list once you have made the amount you asked for.\", true, widget::isAutoRemove, widget::setAutoRemove)).option(ConfigScreen.toggle(\"Deepest steps first\", \"Give items you hold or have cooking in the Forge to the step you make first (the deepest one in a recipe tree) instead of the first row that needs them.\", false, widget::isStockDeepestFirst, widget::setStockDeepestFirst)).option(ConfigScreen.toggle(\"SkyBlock Item List button\", \"With the SkyBlock Item List mod installed, show a \\u2630 button on its recipes that adds the item to your shopping list.\", true, widget::isItemListButton, widget::setItemListButton)).build()).group(OptionGroup.createBuilder().name((Component)Component.literal((String)\"Notifications\")).option(ConfigScreen.channel(widget, Notifier.Type.READY, \"Ready to craft\", \"When a recipe on your list can be crafted from what you have.\")).option(ConfigScreen.channel(widget, Notifier.Type.ACHIEVED, \"Item achieved\", \"When you have made the amount you asked for.\")).option(ConfigScreen.channel(widget, Notifier.Type.SACK_PROMPT, \"Sacks to open\", \"Once after joining: the sacks to open so the list's counts are right.\")).option(ConfigScreen.channel(widget, Notifier.Type.STALE_SACKS, \"Sack reminder\", \"When your sacks haven't been opened for an hour, at most once an hour. Between opens, sack counts follow the [Sacks] chat summaries and can drift.\")).build()).build();\n   150:     }\n   151: \n   152:     private static ConfigCategory advanced(SandboxWidget widget) {\n   153:         return ConfigCategory.createBuilder().name((Component)Component.literal((String)\"Advanced\")).option((Option)ButtonOption.createBuilder().name((Component)Component.literal((String)\"Key binds...\")).text((Component)Component.literal((String)\"Open\")).description(OptionDescription.of((Component[])new Component[]{Component.literal((String)\"Rebind keys. This mod's keys are under \\\"Skyblock Shopping List\\\".\")})).action((screen, button) -> Minecraft.getInstance().gui.setScreen((Screen)new KeyBindsScreen((Screen)screen, Minecraft.getInstance().options))).build()).option(Option.createBuilder().name((Component)Component.literal((String)\"Debug logging\")).description(OptionDescription.of((Component[])new Component[]{Component.literal((String)\"Write what the mod reads (sack messages, Forge and HOTM menus, recipe downloads) to latest.log, to help track down a problem. Warning\u2026"
+    },
+    {
+      "file": "skyblockshoppinglist\\ConfigScreen.java",
+      "line": 294,
+      "function": "presets",
+      "decoded": "Copies the current look and panel sizes as text, to paste in chat or Discord.",
+      "category": "string",
+      "note": "source=string_scanner signal=literal_keyword_hit",
+      "context": "   289:                 HudPresets.toast(\"Preset not saved\", \"The file couldn't be written; see the log.\");\n   290:                 return;\n   291:             }\n   292:             HudPresets.toast(\"Preset saved\", chosenPreset);\n   293:             reopen.run();\n   294:         }).build()).option((Option)ButtonOption.createBuilder().name((Component)Component.literal((String)\"Copy share code\")).text((Component)Component.literal((String)\"Copy\")).description(ConfigScreen.describe(\"Copies the current look and panel sizes as text, to paste in chat or Discord.\" + saveFirst)).action((screen, button) -> {\n   295:             HudPresets.copyCode();\n   296:             HudPresets.toast(\"Share code copied\", \"Paste it anywhere to share your look.\");\n   297:         }).build()).option((Option)ButtonOption.createBuilder().name((Component)Component.literal((String)\"Paste share code\")).text((Component)Component.literal((String)\"Paste\")).description(ConfigScreen.describe(\"Reads a share code from the clipboard, saves it as a preset and switches to it. Your current look is kept as \\\"Previous (auto)\\\" first.\")).action((screen, button) -> {\n   298:             String imported;\n   299:             try {"
+    },
+    {
+      "file": "skyblockshoppinglist\\FilePathManager.java",
+      "line": 236,
+      "function": "initializeRemoteSourcesConfig",
+      "decoded": "https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master",
+      "category": "url",
+      "note": "source=string_scanner signal=literal_url",
+      "context": "   231:     }\n   232: \n   233:     private static void initializeRemoteSourcesConfig() {\n   234:         LinkedHashMap<String, String> neu = new LinkedHashMap<String, String>();\n   235:         neu.put(\"type\", \"neu-zip\");\n   236:         neu.put(\"url\", \"https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master\");\n   237:         LinkedHashMap cfg = new LinkedHashMap();\n   238:         cfg.put(\"sources\", List.of(neu));\n   239:         JsonFiles.write(REMOTE_SOURCES_JSON, cfg);\n   240:     }\n   241: "
+    },
+    {
+      "file": "skyblockshoppinglist\\ForgeSpeed.java",
+      "line": 48,
+      "function": "<unknown>",
+      "decoded": "https://api.hypixel.net/v2/resources/skyblock/election",
+      "category": "url",
+      "note": "source=string_scanner signal=literal_url",
+      "context": "    43: import skyblockshoppinglist.SkyblockDetector;\n    44: \n    45: public final class ForgeSpeed {\n    46:     private static final Pattern QUICK_FORGE = Pattern.compile(\"forge,?\\\\s+by ([\\\\d.]+)%\");\n    47:     private static final Pattern PERCENT = Pattern.compile(\"([\\\\d.]+)%\");\n    48:     private static final String ELECTION_URL = \"https://api.hypixel.net/v2/resources/skyblock/election\";\n    49:     private static final String MOLTEN_FORGE = \"Molten Forge\";\n    50:     private static final double MOLTEN_FORGE_DEFAULT = 25.0;\n    51:     private static final long MAYOR_REFRESH_MS = 3600000L;\n    52:     private static final AtomicBoolean FETCHING = new AtomicBoolean(false);\n    53:     private static volatile Data data;"
+    },
+    {
+      "file": "skyblockshoppinglist\\SandboxWidget.java",
+      "line": 1418,
+      "function": "drawSection",
+      "decoded": "- Ready",
+      "category": "dynamic_execution",
+      "note": "source=string_scanner signal=literal_cli_flag",
+      "context": "  1413:             SandboxWidget.drawScaled(context, header, SandboxWidget.alignedX(section.align(), width, style.padding, (float)header.width() * scale), y += 5, scale, style.textShadow);\n  1414:             y += Math.round(13.0f * scale);\n  1415:         }\n  1416:         int lineHeight = Math.round(10.0f * scale);\n  1417:         for (WrappedLine line : lines) {\n  1418:             int color = line.source().endsWith(\" - Ready\") ? style.done : (section.otherLines().contains(line.source()) ? section.otherColor() : section.textColor());\n  1419:             HudStyle.Prepared text = style.prepared(line.text(), color, false);\n  1420:             SandboxWidget.drawScaled(context, text, SandboxWidget.alignedX(section.align(), width, style.padding, (float)text.width() * scale), y, scale, style.textShadow);\n  1421:             y += lineHeight;\n  1422:         }\n  1423:         return y + 2;"
+    },
+    {
+      "file": "skyblockshoppinglist\\SslCommandManager.java",
+      "line": 40,
+      "function": "commandTree",
+      "decoded": "- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)",
+      "category": "dynamic_execution",
+      "note": "source=string_scanner signal=literal_cli_flag",
+      "context": "    35:     }\n    36: \n    37:     private static LiteralArgumentBuilder<FabricClientCommandSource> commandTree(String name) {\n    38:         return (LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)ClientCommands.literal((String)name).executes(context -> {\n    39:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Skyblock Shopping List commands (/ssl):\").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));\n    40:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    41:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl menu: Open the menu (shopping list, resources, recipes, settings)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    42:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl hud: Move or resize the HUD\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    43:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl credits: Show credits\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    44:             return 1;\n    45:         })).then(ClientCommands.literal((String)\"reset\").executes(context -> {"
+    },
+    {
+      "file": "skyblockshoppinglist\\SslCommandManager.java",
+      "line": 41,
+      "function": "commandTree",
+      "decoded": "- /ssl menu: Open the menu (shopping list, resources, recipes, settings)",
+      "category": "dynamic_execution",
+      "note": "source=string_scanner signal=literal_cli_flag",
+      "context": "    36: \n    37:     private static LiteralArgumentBuilder<FabricClientCommandSource> commandTree(String name) {\n    38:         return (LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)ClientCommands.literal((String)name).executes(context -> {\n    39:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Skyblock Shopping List commands (/ssl):\").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));\n    40:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    41:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl menu: Open the menu (shopping list, resources, recipes, settings)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    42:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl hud: Move or resize the HUD\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    43:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl credits: Show credits\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    44:             return 1;\n    45:         })).then(ClientCommands.literal((String)\"reset\").executes(context -> {\n    46:             ShoppingList.debug(\"Executing complete mod reset\", new Object[0]);"
+    },
+    {
+      "file": "skyblockshoppinglist\\SslCommandManager.java",
+      "line": 42,
+      "function": "commandTree",
+      "decoded": "- /ssl hud: Move or resize the HUD",
+      "category": "dynamic_execution",
+      "note": "source=string_scanner signal=literal_cli_flag",
+      "context": "    37:     private static LiteralArgumentBuilder<FabricClientCommandSource> commandTree(String name) {\n    38:         return (LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)ClientCommands.literal((String)name).executes(context -> {\n    39:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Skyblock Shopping List commands (/ssl):\").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));\n    40:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    41:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl menu: Open the menu (shopping list, resources, recipes, settings)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    42:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl hud: Move or resize the HUD\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    43:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl credits: Show credits\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    44:             return 1;\n    45:         })).then(ClientCommands.literal((String)\"reset\").executes(context -> {\n    46:             ShoppingList.debug(\"Executing complete mod reset\", new Object[0]);\n    47:             FilePathManager.resetData();"
+    },
+    {
+      "file": "skyblockshoppinglist\\SslCommandManager.java",
+      "line": 43,
+      "function": "commandTree",
+      "decoded": "- /ssl credits: Show credits",
+      "category": "dynamic_execution",
+      "note": "source=string_scanner signal=literal_cli_flag",
+      "context": "    38:         return (LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)((LiteralArgumentBuilder)ClientCommands.literal((String)name).executes(context -> {\n    39:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Skyblock Shopping List commands (/ssl):\").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));\n    40:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    41:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl menu: Open the menu (shopping list, resources, recipes, settings)\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    42:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl hud: Move or resize the HUD\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    43:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"- /ssl credits: Show credits\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));\n    44:             return 1;\n    45:         })).then(ClientCommands.literal((String)\"reset\").executes(context -> {\n    46:             ShoppingList.debug(\"Executing complete mod reset\", new Object[0]);\n    47:             FilePathManager.resetData();\n    48:             ProfileManager.clearCaches();"
+    },
+    {
+      "file": "skyblockshoppinglist\\SslCommandManager.java",
+      "line": 61,
+      "function": "commandTree",
+      "decoded": "https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO",
+      "category": "url",
+      "note": "source=string_scanner signal=literal_url",
+      "context": "    56:         }))).then(ClientCommands.literal((String)\"hud\").executes(context -> {\n    57:             ShoppingListClient.shouldOpenMoveHud = true;\n    58:             return 1;\n    59:         }))).then(ClientCommands.literal((String)\"credits\").executes(context -> {\n    60:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Skyblock Shopping List by Tad, based on Inventory Reader by Scholiboi\").setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));\n    61:             ((FabricClientCommandSource)context.getSource()).sendFeedback((Component)Component.literal((String)\"Data source: NotEnoughUpdates-REPO\").setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)).append((Component)Component.literal((String)\" \\u2022 \")).append((Component)Component.literal((String)\"https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO\").setStyle(Style.EMPTY.withColor(ChatFormatting.AQUA))));\n    62:             return 1;\n    63:         }));\n    64:     }\n    65: }\n    66: "
+    },
+    {
+      "file": "skyblockshoppinglist\\recipes\\RemoteRecipeFetcher.java",
+      "line": 82,
+      "function": "<unknown>",
+      "decoded": "https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master",
+      "category": "url",
+      "note": "source=string_scanner signal=literal_url",
+      "context": "    77: import skyblockshoppinglist.ShoppingList;\n    78: \n    79: public final class RemoteRecipeFetcher {\n    80:     private static final Logger LOGGER = LoggerFactory.getLogger((String)\"skyblock-shopping-list/RemoteRecipeFetcher\");\n    81:     private static final Gson GSON = new Gson();\n    82:     public static final String DEFAULT_NEU_REPO_URL = \"https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master\";\n    83:     private static final String PARSER_VERSION = \"12\";\n    84:     private static final String COIN_ID = \"SKYBLOCK_COIN\";\n    85:     public static final String COINS_NAME = \"Coins\";\n    86:     private static final String HYPIXEL_ITEMS_URL = \"https://api.hypixel.net/v2/resources/skyblock/items\";\n    87:     private static final String[] PET_RARITIES = new String[]{\"Common\", \"Uncommon\", \"Rare\", \"Epic\", \"Legendary\", \"Mythic\"};"
+    },
+    {
+      "file": "skyblockshoppinglist\\recipes\\RemoteRecipeFetcher.java",
+      "line": 86,
+      "function": "<unknown>",
+      "decoded": "https://api.hypixel.net/v2/resources/skyblock/items",
+      "category": "url",
+      "note": "source=string_scanner signal=literal_url",
+      "context": "    81:     private static final Gson GSON = new Gson();\n    82:     public static final String DEFAULT_NEU_REPO_URL = \"https://codeload.github.com/NotEnoughUpdates/NotEnoughUpdates-REPO/zip/refs/heads/master\";\n    83:     private static final String PARSER_VERSION = \"12\";\n    84:     private static final String COIN_ID = \"SKYBLOCK_COIN\";\n    85:     public static final String COINS_NAME = \"Coins\";\n    86:     private static final String HYPIXEL_ITEMS_URL = \"https://api.hypixel.net/v2/resources/skyblock/items\";\n    87:     private static final String[] PET_RARITIES = new String[]{\"Common\", \"Uncommon\", \"Rare\", \"Epic\", \"Legendary\", \"Mythic\"};\n    88:     private static final String PARSER_VERSION_KEY = \"parser-version\";\n    89:     private static final long MAX_ZIP_ENTRIES = 200000L;\n    90:     private static final long MAX_EXTRACTED_BYTES = 0x80000000L;\n    91:     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);"
+    },
+    {
+      "file": "skyblockshoppinglist\\recipes\\RemoteRecipeFetcher.java",
+      "line": 489,
+      "function": "fetchNpcSellPrices",
+      "decoded": "content-encoding",
+      "category": "http_header",
+      "note": "source=string_scanner signal=literal_http_header",
+      "context": "   484:                 }\n   485:                 LOGGER.warn(\"NPC sell price fetch HTTP {}\", (Object)resp.statusCode());\n   486:                 return;\n   487:             }\n   488:             InputStream body = resp.body();\n   489:             if (resp.headers().firstValue(\"content-encoding\").orElse(\"\").equalsIgnoreCase(\"gzip\")) {\n   490:                 body = new GZIPInputStream(body);\n   491:             }\n   492:             try (InputStreamReader reader = new InputStreamReader(body, StandardCharsets.UTF_8);){\n   493:                 parsed = (HypixelItems)GSON.fromJson((Reader)reader, HypixelItems.class);\n   494:             }"
+    }
+  ],
+  "behavior_findings": [
+    {
+      "file": "skyblockshoppinglist\\CoinTracker.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ConfigScreen.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ConfigScreen.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\Counts.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\FilePathManager.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\FilePathManager.java",
+      "line": 129,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "   124:                 Files.createDirectories(MOD_DIR.toPath(), new FileAttribute[0]);\n   125:                 File legacyData = new File(legacy, \"data\");\n   126:                 File[] entries = legacyData.listFiles();\n   127:                 if (entries != null) {\n   128:                     for (File entry : entries) {\n   129:                         Files.move(entry.toPath(), new File(MOD_DIR, entry.getName()).toPath(), new CopyOption[0]);\n   130:                     }\n   131:                 }\n   132:                 if ((welcome = new File(legacy, \"welcome_shown.txt\")).exists()) {\n   133:                     Files.move(welcome.toPath(), new File(MOD_DIR, welcome.getName()).toPath(), new CopyOption[0]);\n   134:                 }",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ForgeSpeed.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ForgeSpeed.java",
+      "line": 1,
+      "behavior": "possible_minecraft_identity_exfiltration",
+      "evidence": "Username/UUID read present alongside outbound HTTP activity to non-vendor hosts",
+      "context": "",
+      "severity": "high",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ForgeTracker.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\HudPositionScreen.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\HudPresets.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\HudPresets.java",
+      "line": 227,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "   222:         for (File file2 : files) {\n   223:             Preset preset = (Preset)JsonFiles.read(file2, Preset.class);\n   224:             if (preset == null) continue;\n   225:             String name = HudPresets.cleanName(preset.name);\n   226:             if (name.isEmpty()) {\n   227:                 name = file2.getName().substring(0, file2.getName().length() - 5);\n   228:             }\n   229:             preset.name = name;\n   230:             presets.putIfAbsent(name, preset);\n   231:         }\n   232:         return presets;",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\HudStyle.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\HypixelLocationListener.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ItemDescriptions.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ItemIds.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ItemNames.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\JsonFiles.java",
+      "line": 109,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "   104:         try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);){\n   105:             Object object = GSON.fromJson((Reader)reader, type);\n   106:             return (T)object;\n   107:         }\n   108:         catch (JsonParseException | IOException e) {\n   109:             ShoppingList.LOGGER.warn(\"Could not read {}: {}\", (Object)file.getName(), (Object)e.toString());\n   110:             return null;\n   111:         }\n   112:     }\n   113: \n   114:     public static boolean write(File file, Object value) {",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\MenuTabs.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\Notifier.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\NpcPrices.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\PowderTracker.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\PowderTracker.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ProfileManager.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ProfileManager.java",
+      "line": 174,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "   169:             }\n   170:         }\n   171:     }\n   172: \n   173:     private static File accountDir() {\n   174:         UUID account = Minecraft.getInstance().getUser().getProfileId();\n   175:         if (account == null) {\n   176:             return null;\n   177:         }\n   178:         File accountDir = new File(PROFILES_DIR, account.toString());\n   179:         accountDir.mkdirs();",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ProfileManager.java",
+      "line": 174,
+      "behavior": "minecraft_uuid_access",
+      "evidence": "Reads Minecraft session UUID (method_44717/getProfileId/getUuid/getId)",
+      "context": "   169:             }\n   170:         }\n   171:     }\n   172: \n   173:     private static File accountDir() {\n   174:         UUID account = Minecraft.getInstance().getUser().getProfileId();\n   175:         if (account == null) {\n   176:             return null;\n   177:         }\n   178:         File accountDir = new File(PROFILES_DIR, account.toString());\n   179:         accountDir.mkdirs();",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\RecipeFileGenerator.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\RecipeManager.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\RecipeManager.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\RecipePicker.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\RecipePicker.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ReminderManager.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ReminderManager.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ResourcesManager.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ResourcesManager.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SackChatListener.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SackHighlight.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SackHighlight.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SackReader.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SackReader.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SandboxViewer.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SandboxViewer.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SandboxWidget.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SandboxWidget.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SavedLists.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SavedLists.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ShoppingListClient.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ShoppingListClient.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ShoppingListScreen.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\ShoppingListScreen.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SkyblockDetector.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SslCommandManager.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\SslCommandManager.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\StorageReader.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\StorageReader.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\StorageViewerMod.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\compat\\ItemListPlugin.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\compat\\ItemListPlugin.java",
+      "line": 1,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\mixin\\SlotClickMixin.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\recipes\\RemoteRecipeFetcher.java",
+      "line": 1,
+      "behavior": "minecraft_session_access",
+      "evidence": "Accesses Minecraft session/user object (method_1548/getSession/getUser)",
+      "context": "",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\recipes\\RemoteRecipeFetcher.java",
+      "line": 1,
+      "behavior": "possible_minecraft_identity_exfiltration",
+      "evidence": "Username/UUID read present alongside outbound HTTP activity to non-vendor hosts",
+      "context": "",
+      "severity": "high",
+      "verdict_tier": "suspicious_capability"
+    },
+    {
+      "file": "skyblockshoppinglist\\recipes\\RemoteRecipeFetcher.java",
+      "line": 546,
+      "behavior": "minecraft_username_access",
+      "evidence": "Reads Minecraft session username (method_1676/getName/getUsername)",
+      "context": "   541:                 String stripped;\n   542:                 if (ze.isDirectory()) continue;\n   543:                 if (++entries > 200000L) {\n   544:                     throw new IOException(\"ZIP has too many entries\");\n   545:                 }\n   546:                 String name = ze.getName();\n   547:                 int slash = name.indexOf(47);\n   548:                 if (slash < 0 || (stripped = name.substring(slash + 1)).isBlank()) continue;\n   549:                 Path dest = targetDir.resolve(stripped).normalize();\n   550:                 if (!dest.startsWith(targetDir)) {\n   551:                     LOGGER.error(\"ZIP path traversal blocked: {}\", (Object)name);",
+      "severity": "low",
+      "verdict_tier": "suspicious_capability"
+    }
+  ],
+  "artifact_findings": []
+}
