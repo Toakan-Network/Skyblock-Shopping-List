@@ -20,7 +20,13 @@
 	"environment": "client",
 	"entrypoints": {
 		"client": [
-			"inventoryreader.ir.InventoryReaderClient"
+			"skyblockshoppinglist.ShoppingListClient"
+		],
+		"skyblock-item-list": [
+			"skyblockshoppinglist.compat.ItemListPlugin"
+		],
+		"modmenu": [
+			"skyblockshoppinglist.compat.ModMenuCompat"
 		]
 	},
 	"mixins": [
@@ -33,6 +39,10 @@
 		"fabric-api": ">=0.161.0",
 		"yet_another_config_lib_v3": ">=3.9.7",
 		"hypixel-mod-api": ">=1.0.2"
+	},
+	"suggests": {
+		"skyblock-item-list": "*",
+		"modmenu": "*"
 	},
 	"breaks": {
 		"ir": "*"

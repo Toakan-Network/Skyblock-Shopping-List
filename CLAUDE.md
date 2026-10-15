@@ -1,6 +1,6 @@
 # Skyblock Shopping List (formerly InventoryReader)
 
-Fabric client mod (mod id `skyblock-shopping-list`, Java package `inventoryreader.ir`) for Hypixel SkyBlock, Minecraft 26.2 and 26.3 from one jar (Loom 1.17, Java 25). Build with `./gradlew build`.
+Fabric client mod (mod id `skyblock-shopping-list`, Java package `skyblockshoppinglist`) for Hypixel SkyBlock, Minecraft 26.2 and 26.3 from one jar (Loom 1.17, Java 25). Build with `./gradlew build`.
 
 ## Versioning
 `mod_version` in `gradle.properties` is MAJOR.MINOR.PATCH, bumped in the same commit as the change:
@@ -27,7 +27,7 @@ When a change adds or changes something a player would notice, update the docs w
 small fixes don't need a docs note.
 - How each feature works (menu tabs, settings, appearance, HUD sections, recipes, coins) is described in the
   GitHub wiki (`git@github.com:Toakan/Skyblock-Shopping-List.wiki.git`, cloned next to this repo as
-  `../InventoryReader.wiki`). Update the wiki page in step with the change, as its own commit there.
+  `../ShoppingList.wiki`). Update the wiki page in step with the change, as its own commit there.
 - `readme.md` and `modrinth.md` (synced to the Modrinth description) list features by title only, each linking
   to its wiki page. Add or rename a title there when a feature is added or renamed. The readme keeps install,
   first-time setup, keys, Hypixel rules, data, network, security and license.
@@ -41,6 +41,6 @@ Tracking, the HUD and keybinds run only on SkyBlock (`SkyblockDetector`).
 One jar covers 26.2 and 26.3 (`"minecraft": ["~26.2", "~26.3"]`). It is built against 26.2, the lower bound.
 - No `org.lwjgl.glfw`: 26.3 moved to SDL, so GLFW is missing there.
 - Don't reference `InputConstants` key or mouse codes directly. Their values differ between versions and
-  javac inlines them, so read them with `InventoryReaderClient.inputCode("KEY_V")`.
+  javac inlines them, so read them with `ShoppingListClient.inputCode("KEY_V")`.
 - Before a release, compile against 26.3 too (swap `minecraft_version`, `fabric_version` and `yacl_version`)
   and test in a 26.3 client.

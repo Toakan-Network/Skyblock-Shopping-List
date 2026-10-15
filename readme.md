@@ -10,12 +10,39 @@
 
 Skyblock Shopping List is a Fabric client mod for Hypixel SkyBlock. It keeps a count of the items in your inventory, sacks, backpacks and ender chest, and shows a shopping list HUD for the recipes you pick: what you can already craft and what you still need. Lists can be saved under a name and swapped back in later.
 
+![The List tab: pick recipes, see the full tree with forge times, NPC price and saved lists](https://raw.githubusercontent.com/wiki/Toakan/Skyblock-Shopping-List/Images/Live-Recipe-Track.gif)
+
 ### Ironman first
 This mod is designed around Ironman play. With no Bazaar or Auction House, every item has to be gathered or crafted yourself, so knowing exactly what a recipe tree still needs, which sacks hold it, what is cooking in the Forge and what an NPC sells or pays is the whole game. New features are planned with that in mind: nothing relies on Bazaar or Auction House prices, and prices shown are NPC coin prices.
 
 ### Works for everyone
 Nothing in the mod is limited to Ironman profiles. On a regular profile it works the same way: track your stock across inventory, sacks and storage, plan big crafts down to raw materials, and see what you can make right now.
 
+## Features
+- [Shopping list HUD](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD)
+- [Easy start: no need to open every sack](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#first-things-to-open)
+- [Recipe filters](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
+- [Saved lists and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
+- [Per-profile data](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#per-profile-data)
+- [Craftable](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#craftable)
+- [Forging](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forging)
+- [Recipe locks](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#recipe-locks)
+- [NPC price](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#npc-price)
+- [Forge times](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forge-times)
+- [Recipes beyond the crafting table](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#recipes)
+- [Coins count as an item](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#coins)
+- [Powder goals](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#powder)
+- [Notifications: chat, toast or both](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#notifications)
+- [Fully customisable look](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
+- [Presets and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
+- [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)
+- [Works with SkyBlock Item List and Mod Menu (optional)](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Other-Mods)
+
+How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-List/wiki).
+
+| Plan big goals | Every step, in game | Know what to unlock |
+| --- | --- | --- |
+| ![Golden Dragon (Legendary) broken down into coins, gold blocks and Perfect gems](https://raw.githubusercontent.com/wiki/Toakan/Skyblock-Shopping-List/Images/Golden-Dragon-Recipe.png) | ![The HUD with the full Chestplate of Divan tree](https://raw.githubusercontent.com/wiki/Toakan/Skyblock-Shopping-List/Images/Recipe-Tree-HUD.png) | ![Recipe lock tooltip listing HotM and collection requirements](https://raw.githubusercontent.com/wiki/Toakan/Skyblock-Shopping-List/Images/Recipe-Locks-Tooltip.png) |
 
 ## Coming from Inventory Reader?
 Skyblock Shopping List grew out of [Inventory Reader](https://github.com/Scholiboi/InventoryReader) by Scholiboi (see [Credits](#license-and-attribution)). Remove the old Inventory Reader jar from `mods/` before installing; its data folder (`.ir-data`, or `.skyblock-shopping-list` from earlier versions of this mod) is moved to `config/skyblock-shopping-list/` automatically on first launch.
@@ -27,6 +54,7 @@ Skyblock Shopping List grew out of [Inventory Reader](https://github.com/Scholib
 - YetAnotherConfigLib 3.9.7 or newer, built for your Minecraft version (already installed if you use Skyblocker)
 - [Hypixel Mod API](https://modrinth.com/mod/hypixel-mod-api) 1.0.2 or newer (official; used to know when you are on SkyBlock)
 - Java 25
+- Optional: [SkyBlock Item List](https://modrinth.com/mod/skyblock-item-list) and [Mod Menu](https://modrinth.com/mod/modmenu) (see [Other Mods](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Other-Mods))
 
 ## Installation
 1. Install Fabric Loader for Minecraft 26.2 or 26.3.
@@ -34,33 +62,13 @@ Skyblock Shopping List grew out of [Inventory Reader](https://github.com/Scholib
 3. Launch Minecraft with the Fabric profile.
 
 ## First-time setup
-The mod only knows what you have shown it. Open your backpacks and ender chest pages once in SkyBlock, plus each Accessory Bag page, each wardrobe page and the Stats & Equipment menu (for worn necklace, cloak, belt and gloves). Worn armor counts with your inventory. After that, counts stay up to date from your inventory, from the containers you open, and from the `[Sacks]` chat summaries.
+The mod only knows what you have shown it. Open your backpacks and ender chest pages once in SkyBlock, plus each Accessory Bag page, each wardrobe page and the Stats & Equipment menu (for worn necklace, cloak, belt and gloves). Worn armor counts with your inventory, and what is fitted in an item and comes back out on removal (drill engine, fuel tank and upgrade module, socketed gemstones) counts wherever the item is. After that, counts stay up to date from your inventory, from the containers you open, and from the `[Sacks]` chat summaries.
 
 You don't need to open every sack. When you join SkyBlock and each time you add a recipe, one chat line names the sacks your list's materials live in (e.g. "Open your Enchanted Mining Sack for accurate counts."), and until you open them:
 - rows for those materials are grey with `≥` (have at least, e.g. `≥12/160`) or `≤` (still need at most) instead of a number that may be too low,
 - the HUD's **Total** row shows how far you've got, e.g. `(sacks 1/3 read)`,
 - in the sack menus (`/sacks`), the sacks still to open have a gold square behind them.
 Everything goes back to normal as soon as each sack has been opened once.
-
-## Features
-- [Shopping list HUD](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD)
-- [Easy start: no need to open every sack](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#first-things-to-open)
-- [Recipe filters](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
-- [Saved lists](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu#list)
-- [Per-profile data](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Getting-Started#per-profile-data)
-- [Craftable](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#craftable)
-- [Forging](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forging)
-- [Recipe locks](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#recipe-locks)
-- [NPC price](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#npc-price)
-- [Forge times](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forge-times)
-- [Recipes beyond the crafting table](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#recipes)
-- [Coins count as an item](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#coins)
-- [Pop-ups](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#pop-ups)
-- [Fully customisable look](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
-- [Presets and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
-- [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)
-
-How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-List/wiki).
 
 ## Keys and commands
 | Key / command | Action |
@@ -72,7 +80,7 @@ How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-
 | `/ssl reset` | Delete the current profile's tracked data and the HUD settings |
 | `/ssl credits` | Show credits |
 
-`/ir` still works as an alias for `/ssl`, and `/ssl widget` for `/ssl menu`. Keys can be rebound under Options > Controls > Key Binds > Skyblock Shopping List (or Settings → Key binds...).
+Keys can be rebound under Options > Controls > Key Binds > Skyblock Shopping List (or Settings → Key binds...).
 
 ## SkyBlock only
 The mod only runs on Hypixel SkyBlock. It uses the official Hypixel Mod API's location event (Hypixel's own signal), so the Hypixel Mod API is required; the game won't start without it. In lobbies, other Hypixel games and other servers the HUD is hidden, the keys do nothing and nothing is tracked, so other inventories never change your counts. The `/ssl` commands still work everywhere.
@@ -109,6 +117,7 @@ Each SkyBlock profile keeps its own data in `profiles/<account>/<profile>/`, so 
 - `item_requirements.json`: what unlocks each recipe (collection, HotM or slayer level), from the NEU repository
 - `npc_buy_prices.json`, `npc_sell_prices.json`: coins per item to buy from NPC shops (NEU repository) and that NPCs pay (Hypixel's item list)
 - `forge_times.json`: base forge time of each forge item, from the NEU repository
+- `item_lore.json`: item descriptions shown when you hover a recipe in the menu, from the NEU repository
 - `remote_sources.json`, `remote_sources_meta.json`: recipe source list and download cache state
 - `neu-repo-extracted/`: the unpacked NEU repository, only while it is being parsed (deleted afterwards)
 
@@ -118,7 +127,7 @@ On startup the mod downloads the [NotEnoughUpdates-REPO](https://github.com/NotE
 The sources are listed in `remote_sources.json`. Only `https` URLs and local files are accepted. The archive is unpacked to `neu-repo-extracted/` with path-traversal, entry-count and size limits, then parsed as JSON and deleted again. Nothing from it is executed.
 
 ## Security scan
-The 4.28.1 release jar, and the neurepoparser library bundled in it, were scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), a static scanner for malicious Java code and Minecraft mods (network off, nothing
+The 4.30.7 release jar, and the neurepoparser library bundled in it, were scanned with [Java-Triage](https://github.com/cev-api/Java-Triage), a static scanner for malicious Java code and Minecraft mods (network off, nothing
 uploaded). Result: no confirmed malicious behavior and no known malware matched. The report, the jar hashes to check
 your copy against and an explanation of each flagged item are in [security/java-triage](security/java-triage/README.md).
 
@@ -133,7 +142,7 @@ The jar is written to `build/libs/`. `./gradlew runClient` starts a development 
 
 ## Known limitations
 - Items are matched by their SkyBlock ID where the item has one, so reforges and stars don't matter. Items without an ID (some sack and menu icons) fall back to their name, with colour codes and stat symbols ignored.
-- Sack contents only resync when you open a sack; between opens they follow the `[Sacks]` chat summaries, so keep those enabled in your SkyBlock settings. If no sack has been opened for an hour while the list has items, a chat message reminds you (Settings > Sack reminder).
+- Sack contents only resync when you open a sack; between opens they follow the `[Sacks]` chat summaries, so keep those enabled in your SkyBlock settings. If no sack has been opened for an hour while the list has items, a message reminds you (Settings > Notifications > Sack reminder).
 - Recipes cover what the NEU repository lists as crafting, forge, NPC shop and Kat upgrade recipes. Pets that only drop have no recipe.
 
 ## License and attribution
