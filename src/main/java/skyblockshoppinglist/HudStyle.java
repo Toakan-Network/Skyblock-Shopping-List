@@ -126,6 +126,12 @@ public final class HudStyle {
     /** Text ready to draw, by text, colour and boldness; render thread only. Made for {@link #preparedFont}. */
     private transient Map<PreparedKey, Prepared> prepared;
     private transient String preparedFont;
+    private transient int preparedGeneration;
+    /** Bumped when glyph widths may have changed: a resource reload, or the Unicode / Japanese font options. */
+    private static volatile int fontGeneration;
+    /** The font options last seen by {@link #fontGeneration()}; they change fonts without a resource reload. */
+    private static boolean lastForceUnicode;
+    private static boolean lastJapaneseGlyphs;
 
     /** Text laid out for drawing (visual order) and its width in font pixels. */
     public record Prepared(FormattedCharSequence seq, int width) {
@@ -280,9 +286,11 @@ public final class HudStyle {
      * Render thread only.
      */
     public Prepared prepared(String text, int color, boolean bold) {
-        if (prepared == null || !font.equals(preparedFont)) {
+        int generation = fontGeneration();
+        if (prepared == null || !font.equals(preparedFont) || generation != preparedGeneration) {
             prepared = new HashMap<>();
             preparedFont = font;
+            preparedGeneration = generation;
         }
         PreparedKey key = new PreparedKey(text, color, bold);
         Prepared result = prepared.get(key);
@@ -294,6 +302,27 @@ public final class HudStyle {
             prepared.put(key, result);
         }
         return result;
+    }
+
+    /** Glyph widths may have changed (resource reload); cached text measurements must be redone. */
+    static void fontsChanged() {
+        fontGeneration++;
+    }
+
+    /**
+     * Changes whenever cached text widths go stale. Render thread only: also notices the Force Unicode and
+     * Japanese glyph options, which rebuild the fonts without a resource reload.
+     */
+    static int fontGeneration() {
+        var options = Minecraft.getInstance().options;
+        boolean unicode = options.forceUnicodeFont().get();
+        boolean japanese = options.japaneseGlyphVariants().get();
+        if (unicode != lastForceUnicode || japanese != lastJapaneseGlyphs) {
+            lastForceUnicode = unicode;
+            lastJapaneseGlyphs = japanese;
+            fontsChanged();
+        }
+        return fontGeneration;
     }
 
     private FontDescription fontDescription() {

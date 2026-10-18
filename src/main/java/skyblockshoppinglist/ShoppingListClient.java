@@ -6,9 +6,13 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.resource.v1.ResourceLoader;
+import net.fabricmc.fabric.api.resource.v1.reloader.ResourceReloaderKeys;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
@@ -90,6 +94,12 @@ public class ShoppingListClient implements ClientModInitializer {
         ProfileChatListener.register();
         // Saves run on a background thread; make sure the last ones reach the disk before the game closes.
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> JsonFiles.flush());
+        // After the fonts reload (resource packs, F3+T), the HUD's cached text widths are stale.
+        Identifier fontsReloaded = Identifier.fromNamespaceAndPath(ShoppingList.MOD_ID, "hud_fonts");
+        ResourceLoader resources = ResourceLoader.get(PackType.CLIENT_RESOURCES);
+        resources.registerReloadListener(fontsReloaded,
+            (ResourceManagerReloadListener) manager -> HudStyle.fontsChanged());
+        resources.addListenerOrdering(ResourceReloaderKeys.Client.FONTS, fontsReloaded);
         CoinTracker.register();
         PowderTracker.register();
         ReminderManager.initialize();
