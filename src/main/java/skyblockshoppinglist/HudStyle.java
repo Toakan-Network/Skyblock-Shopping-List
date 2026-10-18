@@ -9,7 +9,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -288,15 +288,20 @@ public final class HudStyle {
     public Prepared prepared(String text, int color, boolean bold) {
         int generation = fontGeneration();
         if (prepared == null || !font.equals(preparedFont) || generation != preparedGeneration) {
-            prepared = new HashMap<>();
+            // Least recently used first: amounts and forge times change, so old entries pile up and are dropped,
+            // while the title, headers and rows drawn every frame stay.
+            prepared = new LinkedHashMap<>(256, 0.75f, true) {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<PreparedKey, Prepared> eldest) {
+                    return size() > 1024;
+                }
+            };
             preparedFont = font;
             preparedGeneration = generation;
         }
         PreparedKey key = new PreparedKey(text, color, bold);
         Prepared result = prepared.get(key);
         if (result == null) {
-            // Amounts and forge times change, so old entries pile up; start over rather than grow without end.
-            if (prepared.size() >= 1024) prepared.clear();
             FormattedCharSequence seq = text(text, color, bold).getVisualOrderText();
             result = new Prepared(seq, Minecraft.getInstance().font.width(seq));
             prepared.put(key, result);
