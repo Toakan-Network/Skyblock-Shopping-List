@@ -39,7 +39,8 @@ public final class Notifier {
                 client.gui.hud.getChat().addClientSystemMessage(Component.literal("[" + ShoppingList.NAME + "] ")
                     .withStyle(ChatFormatting.GOLD)
                     .append(Component.literal(title + ": ").withStyle(ChatFormatting.WHITE))
-                    .append(message));
+                    // White unless the message styles itself, as in the toast; not the prefix's gold.
+                    .append(Component.empty().withStyle(ChatFormatting.WHITE).append(message)));
             }
             if (channel.toast()) {
                 // A vanilla ID, so toast mods such as FancyNotify recognise it. add() never merges toasts.
