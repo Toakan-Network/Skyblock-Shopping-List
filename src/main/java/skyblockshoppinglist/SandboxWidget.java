@@ -1876,28 +1876,25 @@ public class SandboxWidget {
 
     /** As above, prepared for the HUD: every width comes from the style's cache, so a frame measures nothing new. */
     private static HudStyle.Prepared fitName(HudStyle style, String name, int color, boolean bold, int room) {
-        HudStyle.Prepared full = style.prepared(name + " ", color, bold);
-        if (full.width() <= room) return full;
-        int lo = 0;
-        int hi = name.length();
-        while (lo < hi) {
-            int mid = (lo + hi + 1) >>> 1;
-            if (style.prepared(name.substring(0, mid).stripTrailing() + "...", color, bold).width() <= room) lo = mid;
-            else hi = mid - 1;
-        }
-        return style.prepared(name.substring(0, lo).stripTrailing() + "...", color, bold);
+        return fitName(name, room, text -> style.prepared(text, color, bold), HudStyle.Prepared::width);
     }
 
     /** As above, with {@code make} turning text into a styled component (screens use their own style). */
     static Component fitName(Font font, java.util.function.Function<String, Component> make, String name, int room) {
-        Component full = make.apply(name + " ");
-        if (font.width(full) <= room) return full;
+        return fitName(name, room, make, font::width);
+    }
+
+    /** As above, for any text form: {@code make} styles the text and {@code width} measures it. */
+    private static <T> T fitName(String name, int room, java.util.function.Function<String, T> make,
+                                 java.util.function.ToIntFunction<T> width) {
+        T full = make.apply(name + " ");
+        if (width.applyAsInt(full) <= room) return full;
         // Longest start of the name that still fits with "..." (binary search: runs every frame per row).
         int lo = 0;
         int hi = name.length();
         while (lo < hi) {
             int mid = (lo + hi + 1) >>> 1;
-            if (font.width(make.apply(name.substring(0, mid).stripTrailing() + "...")) <= room) lo = mid;
+            if (width.applyAsInt(make.apply(name.substring(0, mid).stripTrailing() + "...")) <= room) lo = mid;
             else hi = mid - 1;
         }
         return make.apply(name.substring(0, lo).stripTrailing() + "...");
