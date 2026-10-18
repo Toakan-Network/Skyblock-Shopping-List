@@ -729,7 +729,7 @@ public class SandboxWidget {
 
     /**
      * Works out which sacks hold items the list is still missing, and which of those haven't been read. When a
-     * prompt is due (after joining, or adding a recipe) the unread ones are named in one chat line.
+     * prompt is due (after joining, or adding a recipe) the unread ones are named in one notification.
      */
     private void updateNeededSacks(List<RecipeManager.RecipeNode> trees, List<Runnable> toasts) {
         Set<String> missing = new LinkedHashSet<>();
