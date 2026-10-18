@@ -1529,9 +1529,10 @@ public class SandboxWidget {
         }
         int lineHeight = Math.round(10 * scale);
         for (WrappedLine line : lines) {
-            // By the whole line, so every wrapped piece of it gets the same colour.
-            int color = line.source().endsWith(" - Ready") ? style.done
-                : section.otherLines().contains(line.source()) ? section.otherColor() : section.textColor();
+            // By the whole line, so every wrapped piece of it gets the same colour. Off-list slots keep their
+            // colour when finished, so a ready slot the list doesn't need doesn't look like one it does.
+            int color = section.otherLines().contains(line.source()) ? section.otherColor()
+                : line.source().endsWith(" - Ready") ? style.done : section.textColor();
             HudStyle.Prepared text = style.prepared(line.text(), color, false);
             drawScaled(context, text, alignedX(section.align(), width, style.padding, text.width() * scale),
                 y, scale, style.textShadow);
