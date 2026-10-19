@@ -325,13 +325,11 @@ public class SandboxViewer extends Screen {
     @Override
     public boolean keyPressed(KeyEvent event) {
         int keyCode = event.key();
-        int modifiers = event.modifiers();
         if (mode == Mode.RESOURCES && activeTextField != null) {
             EditBox field = resourceAmountFields.get(activeTextField);
             if (field != null && field.isFocused()) {
                 if (keyCode == KEY_TAB) { // move between fields
-                    boolean shiftPressed = (modifiers & 1) != 0;
-                    moveToNextTextField(shiftPressed);
+                    moveToNextTextField(event.hasShiftDown());
                     return true;
                 }
                 if (keyCode == KEY_RETURN || keyCode == KEY_NUMPADENTER) { // confirm and advance
