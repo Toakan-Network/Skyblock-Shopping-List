@@ -609,7 +609,7 @@ public final class RemoteRecipeFetcher {
     /** As {@link #hasSnapshot}, for every file the NEU repo is parsed into: a deleted one is only rebuilt by a fetch. */
     private static boolean hasNeuSnapshot() {
         return hasSnapshot() && java.util.stream.Stream.of(
-                FilePathManager.REMOTE_SHOP_JSON, FilePathManager.FORGE_TIMES_JSON, FilePathManager.ITEM_TYPES_JSON,
+                FilePathManager.REMOTE_FORGE_JSON, FilePathManager.REMOTE_SHOP_JSON, FilePathManager.FORGE_TIMES_JSON, FilePathManager.ITEM_TYPES_JSON,
                 FilePathManager.ITEM_SACKS_JSON, FilePathManager.ITEM_NAMES_JSON, FilePathManager.ITEM_REQUIREMENTS_JSON,
                 FilePathManager.ITEM_LORE_JSON, FilePathManager.NPC_BUY_PRICES_JSON)
             .allMatch(File::isFile);
