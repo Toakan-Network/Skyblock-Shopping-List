@@ -628,11 +628,13 @@ public class SandboxViewer extends Screen {
         int lineHeight = 24;
         String name;
         int amount;
+        int required;
         List<?> ingredients;
 
         if (nodeObj instanceof RecipeManager.RecipeNode node) {
             name = node.name;
             amount = node.amount;
+            required = node.required;
             ingredients = node.ingredients;
         } else {
             return y;
@@ -643,8 +645,9 @@ public class SandboxViewer extends Screen {
         boolean hasIngredients = ingredients != null && !ingredients.isEmpty();
 
         int textColor = WHITE;
-        if (mode == Mode.FORGE && amount > 0) {
-            textColor = heldCount(name) >= amount ? SUCCESS_GREEN : ERROR_RED;
+        // The Forge tab shows a shopping-list tree: amount is how many are still missing, so any is red.
+        if (mode == Mode.FORGE && required > 0) {
+            textColor = amount > 0 ? ERROR_RED : SUCCESS_GREEN;
         }
 
         int nodeWidth = Math.min(300, Math.max(100, font.width(name) + font.width(amount + "×") + 40));
@@ -689,20 +692,6 @@ public class SandboxViewer extends Screen {
 
     private void drawCenteredText(GuiGraphicsExtractor context, String text, int centerX, int y, int color) {
         context.text(font, text, centerX - font.width(text) / 2, y, color, false);
-    }
-
-
-    /** Item counts for the Forge tree, kept until resources change: the tree is drawn every frame. */
-    private final Map<String, Integer> heldCounts = new HashMap<>();
-    private long heldCountsVersion = -1;
-
-    private int heldCount(String name) {
-        long version = resourcesManager.getVersion();
-        if (version != heldCountsVersion) {
-            heldCounts.clear();
-            heldCountsVersion = version;
-        }
-        return heldCounts.computeIfAbsent(name, resourcesManager::getResourceByName);
     }
 
     @Override
