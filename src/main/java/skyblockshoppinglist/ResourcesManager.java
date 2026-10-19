@@ -399,14 +399,14 @@ public class ResourcesManager {
             String item = entry.getKey();
             int quantity = entry.getValue();
             if (forging.containsKey(item)) {
-                int need = Math.max(0, Counts.times(quantity, multiplier) - currentAvailableResources.getOrDefault(item, 0));
+                int need = Math.max(0, Counts.minus(Counts.times(quantity, multiplier), currentAvailableResources.getOrDefault(item, 0)));
                 if (need > 0) {
                     buildRecipe(item, need, forging, highestPossibleResources, currentAvailableResources, messages, depth + 1);
                     madeResources.put(item, currentAvailableResources.getOrDefault(item, 0));
                     currentAvailableResources.put(item, 0);
                 } else {
                     madeResources.put(item, Counts.times(quantity, multiplier));
-                    currentAvailableResources.put(item, currentAvailableResources.getOrDefault(item, 0) - Counts.times(quantity, multiplier));
+                    currentAvailableResources.put(item, Counts.minus(currentAvailableResources.getOrDefault(item, 0), Counts.times(quantity, multiplier)));
                 }
             }
         }
@@ -415,7 +415,7 @@ public class ResourcesManager {
             int quantity = entry.getValue();
             if (quantity > 0) {
                 currentAvailableResources.put(item,
-                        currentAvailableResources.getOrDefault(item, 0) + quantity);
+                        Counts.plus(currentAvailableResources.getOrDefault(item, 0), quantity));
             }
         }
         check(currentItem, multiplier, forging, highestPossibleResources, currentAvailableResources, messages);
@@ -435,7 +435,7 @@ public class ResourcesManager {
             int quantityOfBaseItem = Math.max(1, entry.getValue());
             int possibleItems = currentAvailableResources.getOrDefault(baseItem, 0) / quantityOfBaseItem;
             possibleItemsDict.put(baseItem, possibleItems);
-            count.add(multiplier - possibleItems);
+            count.add(Counts.minus(multiplier, possibleItems));
         }
 
         int maxcount = count.stream().mapToInt(i -> i).max().orElse(0);
@@ -444,9 +444,9 @@ public class ResourcesManager {
         int amountAbleToCraft = multiplier - maxcount;
 
         highestPossibleResources.put(currentItem,
-                                    highestPossibleResources.getOrDefault(currentItem, 0) + amountAbleToCraft);
+                                    Counts.plus(highestPossibleResources.getOrDefault(currentItem, 0), amountAbleToCraft));
         currentAvailableResources.put(currentItem,
-                                     currentAvailableResources.getOrDefault(currentItem, 0) + amountAbleToCraft);
+                                     Counts.plus(currentAvailableResources.getOrDefault(currentItem, 0), amountAbleToCraft));
 
         if (amountAbleToCraft > 0) {
             messages.put(currentItem,
@@ -469,8 +469,8 @@ public class ResourcesManager {
             String baseItem = entry.getKey();
             int quantityOfBaseItem = entry.getValue();
             highestPossibleResources.put(baseItem,
-                   highestPossibleResources.getOrDefault(baseItem, 0) -
-                   Counts.times(quantityOfBaseItem, amountAbleToCraftOfHigherMaterial));
+                   Counts.minus(highestPossibleResources.getOrDefault(baseItem, 0),
+                   Counts.times(quantityOfBaseItem, amountAbleToCraftOfHigherMaterial)));
         }
 
         if (multiplier != 0) {
@@ -480,8 +480,8 @@ public class ResourcesManager {
                 int possibleItems = possibleItemsDict.getOrDefault(baseItem, 0);
                 int amountLeftToAllocate = Math.min(multiplier, possibleItems);
                 currentAvailableResources.put(baseItem,
-                       currentAvailableResources.getOrDefault(baseItem, 0) -
-                       Counts.times(quantityOfBaseItem, amountLeftToAllocate));
+                       Counts.minus(currentAvailableResources.getOrDefault(baseItem, 0),
+                       Counts.times(quantityOfBaseItem, amountLeftToAllocate)));
             }
         }
     }
@@ -493,7 +493,7 @@ public class ResourcesManager {
     private static void giveBack(Map<String, Integer> recipe, int crafted, Map<String, Integer> highestPossibleResources) {
         if (crafted <= 0) return;
         for (Map.Entry<String, Integer> ingredient : recipe.entrySet()) {
-            highestPossibleResources.merge(ingredient.getKey(), Counts.times(ingredient.getValue(), crafted), Integer::sum);
+            highestPossibleResources.merge(ingredient.getKey(), Counts.times(ingredient.getValue(), crafted), Counts::plus);
         }
     }
 

@@ -20,6 +20,16 @@ class CountsTest {
     }
 
     @Test
+    void timesPlusAndMinusHoldAtTheIntRange() {
+        assertEquals(Integer.MAX_VALUE, Counts.times(25_000_000, 100));
+        assertEquals(Integer.MAX_VALUE, Counts.plus(Integer.MAX_VALUE, 1));
+        assertEquals(Integer.MAX_VALUE, Counts.minus(Integer.MAX_VALUE, -5));
+        assertEquals(Integer.MIN_VALUE, Counts.minus(-2, Integer.MAX_VALUE));
+        assertEquals(7, Counts.plus(3, 4));
+        assertEquals(-1, Counts.minus(3, 4));
+    }
+
+    @Test
     void parseReadsCommasAndRejectsText() {
         assertEquals(1234, Counts.parse("1,234"));
         assertEquals(7, Counts.parse(" 7 "));

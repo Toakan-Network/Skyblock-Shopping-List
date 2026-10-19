@@ -26,7 +26,21 @@ public final class Counts {
      * each of 100 pet upgrades) would otherwise turn negative.
      */
     public static int times(int a, int b) {
-        return (int) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, (long) a * b));
+        return clamp((long) a * b);
+    }
+
+    /** {@code a + b}, held at the int range like {@link #times}, so a sum with a held product can't wrap either. */
+    public static int plus(int a, int b) {
+        return clamp((long) a + b);
+    }
+
+    /** {@code a - b}, held at the int range like {@link #times}. */
+    public static int minus(int a, int b) {
+        return clamp((long) a - b);
+    }
+
+    private static int clamp(long value) {
+        return (int) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, value));
     }
 
     /** "1,234" -> 1234; null when it isn't a number. */
