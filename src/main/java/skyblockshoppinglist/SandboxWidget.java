@@ -726,7 +726,7 @@ public class SandboxWidget {
             if (tree.ingredients == null || tree.ingredients.isEmpty()) priced.add(tree);
         }
         List<String> prices = NpcPrices.summary(priced);
-        if (!publish(generation, List.copyOf(newMessages), new RecipeManager.RecipeNode("Shopping list", 0, 0, tops),
+        if (!publish(generation, newMessages, new RecipeManager.RecipeNode("Shopping list", 0, 0, tops),
                 itemNames, prices, toasts)) {
             return;
         }
@@ -1329,6 +1329,7 @@ public class SandboxWidget {
 
     private int renderPanel(GuiGraphicsExtractor context, Panel panel, int x, int y, int width, int maxHeight, float scale,
                             boolean preview, boolean measureOnly) {
+        HudStyle.checkFontOptions();
         HudStyle style = HudStyle.get();
         RecipeManager.RecipeNode root = previewing ? SAMPLE_TREE : this.recipeTree;
         List<Section> sections = sectionsFor(panel, style);
@@ -1672,7 +1673,8 @@ public class SandboxWidget {
             // The forge time always shows; a long name is cut short to make room instead of shrinking the row.
             textScale = rowScale;
             int room = Math.round(maxTextWidth / rowScale) - markWidth - amountWidth - tagWidth - lockWidth;
-            name = fitName(style, node.name, nameColor, bold, room);
+            // Kept by the style, so a frame measures nothing new.
+            name = style.fitted(node.name, nameColor, bold, room);
         }
         int nameWidth = name.width();
 
@@ -1877,18 +1879,13 @@ public class SandboxWidget {
         return fitName(font, text -> style.text(text, color, bold), name, room);
     }
 
-    /** As above, prepared for the HUD: every width comes from the style's cache, so a frame measures nothing new. */
-    private static HudStyle.Prepared fitName(HudStyle style, String name, int color, boolean bold, int room) {
-        return fitName(name, room, text -> style.prepared(text, color, bold), HudStyle.Prepared::width);
-    }
-
     /** As above, with {@code make} turning text into a styled component (screens use their own style). */
     static Component fitName(Font font, java.util.function.Function<String, Component> make, String name, int room) {
         return fitName(name, room, make, font::width);
     }
 
     /** As above, for any text form: {@code make} styles the text and {@code width} measures it. */
-    private static <T> T fitName(String name, int room, java.util.function.Function<String, T> make,
+    static <T> T fitName(String name, int room, java.util.function.Function<String, T> make,
                                  java.util.function.ToIntFunction<T> width) {
         T full = make.apply(name + " ");
         if (width.applyAsInt(full) <= room) return full;
