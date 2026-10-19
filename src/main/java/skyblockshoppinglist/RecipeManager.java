@@ -195,7 +195,7 @@ public class RecipeManager {
         Map<String, Integer> base = recipes.getOrDefault(name, Collections.emptyMap());
         Map<String, Integer> result = new LinkedHashMap<>();
         for (Map.Entry<String, Integer> entry : base.entrySet()) {
-            result.put(entry.getKey(), entry.getValue() * amt);
+            result.put(entry.getKey(), Counts.times(entry.getValue(), amt));
         }
         return result;
     }
