@@ -57,6 +57,8 @@ public class SandboxViewer extends Screen {
     private Map<String, Integer> simpleRecipe = null;
 
     private ResourcesManager.RemainingResponse remainingResult = null;
+    /** {@link ResourcesManager#getVersion()} remainingResult was worked out with, so it follows resource changes. */
+    private long remainingVersion = -1;
     private int craftAmount = 1;
     private boolean craftable = false;
     private final List<String> messages = new ArrayList<>();
@@ -235,6 +237,7 @@ public class SandboxViewer extends Screen {
     private void checkRecipeRequirements() {
         if (selectedRecipe == null) return;
 
+        remainingVersion = resourcesManager.getVersion();
         remainingResult = resourcesManager.getRemainingIngredients(selectedRecipe, craftAmount);
 
         messages.clear();
@@ -440,6 +443,15 @@ public class SandboxViewer extends Screen {
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+        // The Forge tree is worked out once per pick; redo it when the held items change (picked up, [Sacks]).
+        if (mode == Mode.FORGE && selectedRecipe != null && remainingVersion != resourcesManager.getVersion()) {
+            checkRecipeRequirements();
+        }
+    }
+
     private int lastMouseX;
     private int lastMouseY;
 
@@ -627,12 +639,14 @@ public class SandboxViewer extends Screen {
         String name;
         int amount;
         int required;
+        int toCraft;
         List<?> ingredients;
 
         if (nodeObj instanceof RecipeManager.RecipeNode node) {
             name = node.name;
             amount = node.amount;
             required = node.required;
+            toCraft = node.toCraft;
             ingredients = node.ingredients;
         } else {
             return y;
@@ -643,9 +657,10 @@ public class SandboxViewer extends Screen {
         boolean hasIngredients = ingredients != null && !ingredients.isEmpty();
 
         int textColor = WHITE;
-        // The Forge tab shows a shopping-list tree: amount is how many are still missing, so any is red.
+        // The Forge tab shows a shopping-list tree: amount is how many are still missing (red), toCraft how many can
+        // be made from held materials (yellow, the HUD's "can craft" colour); neither left means held (green).
         if (mode == Mode.FORGE && required > 0) {
-            textColor = amount > 0 ? ERROR_RED : SUCCESS_GREEN;
+            textColor = amount > 0 ? ERROR_RED : toCraft > 0 ? HudStyle.get().craftable : SUCCESS_GREEN;
         }
 
         int nodeWidth = Math.min(300, Math.max(100, font.width(name) + font.width(amount + "×") + 40));
