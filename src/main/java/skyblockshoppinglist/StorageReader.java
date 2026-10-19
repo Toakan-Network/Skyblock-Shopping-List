@@ -162,7 +162,7 @@ public class StorageReader {
         return counts;
     }
 
-    /** How many of each item the player wears as armor. */
+    /** How many of each item the player wears as armor, counted like the inventory and menus (gems and parts included). */
     private static Map<String, Integer> armorCounts() {
         Map<String, Integer> counts = new HashMap<>();
         Minecraft client = Minecraft.getInstance();
@@ -170,7 +170,7 @@ public class StorageReader {
             Inventory inventory = client.player.getInventory();
             for (int i = Inventory.INVENTORY_SIZE; i < Inventory.SLOT_OFFHAND; i++) {
                 ItemStack stack = inventory.getItem(i);
-                if (!stack.isEmpty()) counts.merge(ItemIds.nameOf(stack), stack.getCount(), Integer::sum);
+                if (!stack.isEmpty()) ItemIds.count(stack, counts);
             }
         }
         return counts;
