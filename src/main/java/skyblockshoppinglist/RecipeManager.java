@@ -211,7 +211,7 @@ public class RecipeManager {
         }
         List<RecipeNode> ingredients = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : recipe.entrySet()) {
-            ingredients.add(expandRecipe(entry.getKey(), entry.getValue() * multiplier, depth + 1));
+            ingredients.add(expandRecipe(entry.getKey(), Counts.times(entry.getValue(), multiplier), depth + 1));
         }
         return new RecipeNode(currentName, multiplier, ingredients);
     }

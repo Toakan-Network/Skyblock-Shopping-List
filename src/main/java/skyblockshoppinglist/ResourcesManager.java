@@ -399,14 +399,14 @@ public class ResourcesManager {
             String item = entry.getKey();
             int quantity = entry.getValue();
             if (forging.containsKey(item)) {
-                int need = Math.max(0, (quantity * multiplier) - currentAvailableResources.getOrDefault(item, 0));
+                int need = Math.max(0, Counts.times(quantity, multiplier) - currentAvailableResources.getOrDefault(item, 0));
                 if (need > 0) {
                     buildRecipe(item, need, forging, highestPossibleResources, currentAvailableResources, messages, depth + 1);
                     madeResources.put(item, currentAvailableResources.getOrDefault(item, 0));
                     currentAvailableResources.put(item, 0);
                 } else {
-                    madeResources.put(item, quantity * multiplier);
-                    currentAvailableResources.put(item, currentAvailableResources.getOrDefault(item, 0) - quantity * multiplier);
+                    madeResources.put(item, Counts.times(quantity, multiplier));
+                    currentAvailableResources.put(item, currentAvailableResources.getOrDefault(item, 0) - Counts.times(quantity, multiplier));
                 }
             }
         }
@@ -470,7 +470,7 @@ public class ResourcesManager {
             int quantityOfBaseItem = entry.getValue();
             highestPossibleResources.put(baseItem,
                    highestPossibleResources.getOrDefault(baseItem, 0) -
-                   quantityOfBaseItem * amountAbleToCraftOfHigherMaterial);
+                   Counts.times(quantityOfBaseItem, amountAbleToCraftOfHigherMaterial));
         }
 
         if (multiplier != 0) {
@@ -481,7 +481,7 @@ public class ResourcesManager {
                 int amountLeftToAllocate = Math.min(multiplier, possibleItems);
                 currentAvailableResources.put(baseItem,
                        currentAvailableResources.getOrDefault(baseItem, 0) -
-                       quantityOfBaseItem * amountLeftToAllocate);
+                       Counts.times(quantityOfBaseItem, amountLeftToAllocate));
             }
         }
     }
@@ -493,7 +493,7 @@ public class ResourcesManager {
     private static void giveBack(Map<String, Integer> recipe, int crafted, Map<String, Integer> highestPossibleResources) {
         if (crafted <= 0) return;
         for (Map.Entry<String, Integer> ingredient : recipe.entrySet()) {
-            highestPossibleResources.merge(ingredient.getKey(), ingredient.getValue() * crafted, Integer::sum);
+            highestPossibleResources.merge(ingredient.getKey(), Counts.times(ingredient.getValue(), crafted), Integer::sum);
         }
     }
 
@@ -541,7 +541,7 @@ public class ResourcesManager {
         List<String> names = new ArrayList<>(recipe.keySet());
         RecipeManager.RecipeNode[] rows = new RecipeManager.RecipeNode[names.size()];
         for (int k : stockOrder(names, forging, heights)) {
-            rows[k] = expandRequiredRecipe(names.get(k), recipe.get(names.get(k)) * times, forging,
+            rows[k] = expandRequiredRecipe(names.get(k), Counts.times(recipe.get(names.get(k)), times), forging,
                 highestPossibleResources, owned, depth, heights);
         }
         return new ArrayList<>(java.util.Arrays.asList(rows));

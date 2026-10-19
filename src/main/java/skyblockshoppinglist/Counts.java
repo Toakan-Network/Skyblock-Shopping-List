@@ -21,6 +21,14 @@ public final class Counts {
         return changes;
     }
 
+    /**
+     * {@code a × b}, held at the int range instead of wrapping: recipe amounts times big coin costs (25m coins for
+     * each of 100 pet upgrades) would otherwise turn negative.
+     */
+    public static int times(int a, int b) {
+        return (int) Math.max(Integer.MIN_VALUE, Math.min(Integer.MAX_VALUE, (long) a * b));
+    }
+
     /** "1,234" -> 1234; null when it isn't a number. */
     public static Integer parse(String text) {
         try {
