@@ -24,7 +24,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +51,8 @@ public final class RemoteRecipeFetcher {
     private static final String[] PET_RARITIES = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"};
     private static final String PARSER_VERSION_KEY = "parser-version";
     private static final long MAX_ZIP_ENTRIES = 200_000;
-    private static final long MAX_EXTRACTED_BYTES = 2L * 1024 * 1024 * 1024;
+    /** The NEU repo (about 64 MB packed on GitHub, history included) extracts to far less than this. */
+    private static final long MAX_EXTRACTED_BYTES = 512L * 1024 * 1024;
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "ShoppingList-RecipeFetch");
@@ -503,8 +503,16 @@ public final class RemoteRecipeFetcher {
                     continue;
                 }
                 Files.createDirectories(dest.getParent());
-                bytes += Files.copy(zin, dest, StandardCopyOption.REPLACE_EXISTING);
-                if (bytes > MAX_EXTRACTED_BYTES) throw new java.io.IOException("ZIP extracts to more than " + MAX_EXTRACTED_BYTES + " bytes");
+                // Stops mid-entry once over the limit, so one huge entry can't fill the disk first.
+                try (java.io.OutputStream out = Files.newOutputStream(dest)) {
+                    byte[] buffer = new byte[8192];
+                    int read;
+                    while ((read = zin.read(buffer)) > 0) {
+                        bytes += read;
+                        if (bytes > MAX_EXTRACTED_BYTES) throw new java.io.IOException("ZIP extracts to more than " + MAX_EXTRACTED_BYTES + " bytes");
+                        out.write(buffer, 0, read);
+                    }
+                }
             }
         }
     }
