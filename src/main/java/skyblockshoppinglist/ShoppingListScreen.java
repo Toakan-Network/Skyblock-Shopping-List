@@ -271,12 +271,16 @@ public class ShoppingListScreen extends Screen {
         amountBoxes.forEach((recipe, box) -> {
             if (!all && box.isFocused()) return;
             if (box.getValue().equals(savedAmounts.put(recipe, box.getValue()))) return;
-            try {
-                int value = Integer.parseInt(box.getValue().trim());
-                if (value > 0) widget.setEntryAmount(recipe, value);
-            } catch (NumberFormatException ignored) {
-                // Keep the saved amount while the box is empty.
+            Integer value = Counts.parse(box.getValue());
+            if (value != null && value > 0) {
+                widget.setEntryAmount(recipe, value);
+                return;
             }
+            // Empty, 0 or not a number: put the amount the list still uses back in the box.
+            widget.getShoppingList().stream().filter(e -> e.recipe.equals(recipe)).findFirst().ifPresent(e -> {
+                box.setValue(String.valueOf(e.amount));
+                savedAmounts.put(recipe, box.getValue());
+            });
         });
     }
 
