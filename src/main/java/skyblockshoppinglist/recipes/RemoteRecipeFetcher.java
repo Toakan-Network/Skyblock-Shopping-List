@@ -43,7 +43,7 @@ public final class RemoteRecipeFetcher {
      * Bump when the way recipes are extracted from the repo changes, so cached snapshots are rebuilt
      * even if the remote reports "not modified".
      */
-    private static final String PARSER_VERSION = "12";
+    private static final String PARSER_VERSION = "13";
     /** NEU's pseudo item for coin costs in shop recipes. */
     private static final String COIN_ID = "SKYBLOCK_COIN";
     public static final String COINS_NAME = "Coins";
@@ -268,9 +268,12 @@ public final class RemoteRecipeFetcher {
                 if (craftingByInternal.putIfAbsent(e.getKey(), e.getValue()) == null) katCount++;
             }
             Map<String, String> recipeNameById = new LinkedHashMap<>(internalToDisplay);
-            Map<String, Map<String, Integer>> craftingWire = resolveToDisplayNames(craftingByInternal, internalToDisplay, recipeNameById);
-            Map<String, Map<String, Integer>> forgeWire    = resolveToDisplayNames(forgeByInternal,    internalToDisplay, recipeNameById);
-            Map<String, Map<String, Integer>> shopWire     = resolveToDisplayNames(shopByInternal,     internalToDisplay, recipeNameById);
+            // Names every output first, across all three files: an ingredient must use the renamed output's name, and
+            // RecipeManager merges the files, so a name taken in one must not be reused in another.
+            nameOutputs(List.of(craftingByInternal, forgeByInternal, shopByInternal), internalToDisplay, recipeNameById);
+            Map<String, Map<String, Integer>> craftingWire = resolveToDisplayNames(craftingByInternal, recipeNameById);
+            Map<String, Map<String, Integer>> forgeWire    = resolveToDisplayNames(forgeByInternal,    recipeNameById);
+            Map<String, Map<String, Integer>> shopWire     = resolveToDisplayNames(shopByInternal,     recipeNameById);
 
             // Each file is only rewritten (and the recipes only reloaded) when its content actually changed:
             // the repo changes often, the recipes much less.
@@ -441,26 +444,37 @@ public final class RemoteRecipeFetcher {
     }
 
     /**
-     * Returns a new map with all internal SkyBlock IDs replaced by their display names. Outputs that had
-     * to be renamed to stay unique are recorded in {@code recipeNameById}.
+     * Gives every recipe output a unique name: its display name, or "Name [ID]" when an earlier output already took
+     * it (e.g. upgrade stones). Renamed outputs are recorded in {@code recipeNameById}.
      */
+    private static void nameOutputs(
+            List<Map<String, Map<String, Integer>>> byInternal,
+            Map<String, String> internalToDisplay,
+            Map<String, String> recipeNameById) {
+        java.util.Set<String> taken = new java.util.HashSet<>();
+        for (Map<String, Map<String, Integer>> recipes : byInternal) {
+            for (String id : recipes.keySet()) {
+                String name = internalToDisplay.getOrDefault(id, id);
+                if (!taken.add(name)) {
+                    name = name + " [" + id + "]";
+                    taken.add(name);
+                    recipeNameById.put(id, name);
+                }
+            }
+        }
+    }
+
+    /** Returns a new map with all internal SkyBlock IDs replaced by the names {@link #nameOutputs} chose. */
     private static Map<String, Map<String, Integer>> resolveToDisplayNames(
             Map<String, Map<String, Integer>> byInternal,
-            Map<String, String> internalToDisplay,
             Map<String, String> recipeNameById) {
         Map<String, Map<String, Integer>> wire = new LinkedHashMap<>(byInternal.size());
         for (Map.Entry<String, Map<String, Integer>> e : byInternal.entrySet()) {
-            String outDisplay = internalToDisplay.getOrDefault(e.getKey(), e.getKey());
-            // Different items can share a display name (e.g. upgrade stones); keep them apart.
-            if (wire.containsKey(outDisplay)) {
-                outDisplay = outDisplay + " [" + e.getKey() + "]";
-                recipeNameById.put(e.getKey(), outDisplay);
-            }
             Map<String, Integer> ingDisplay = new LinkedHashMap<>();
             for (Map.Entry<String, Integer> in : e.getValue().entrySet()) {
-                ingDisplay.put(internalToDisplay.getOrDefault(in.getKey(), in.getKey()), in.getValue());
+                ingDisplay.put(recipeNameById.getOrDefault(in.getKey(), in.getKey()), in.getValue());
             }
-            wire.put(outDisplay, ingDisplay);
+            wire.put(recipeNameById.getOrDefault(e.getKey(), e.getKey()), ingDisplay);
         }
         return wire;
     }
