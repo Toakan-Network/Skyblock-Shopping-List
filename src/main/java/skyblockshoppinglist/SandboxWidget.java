@@ -111,8 +111,9 @@ public class SandboxWidget {
     /** All sacks holding an item still missing, read or not; with {@link #neededSacks} gives "1/3 read". */
     private volatile List<String> listSacks = List.of();
     /**
-     * Name the unread sacks in chat on the next list update: set on joining (start of the session) and by each
-     * recipe add, cleared once the line is sent. Count changes alone never prompt.
+     * Name the unread sacks (chat or toast, see {@link Notifier.Type#SACK_PROMPT}) on the next list update: set on
+     * joining (start of the session), when a recipe is added or its amount raised and when a saved list is loaded;
+     * cleared once sent. Count changes alone never prompt.
      */
     private volatile boolean sackPromptDue = true;
     /** Grey for amounts that depend on a sack not read yet. */
@@ -202,6 +203,7 @@ public class SandboxWidget {
             ShoppingListEntry e = shoppingList.get(i);
             if (e.recipe.equals(recipe) && e.amount != Math.max(1, amount)) {
                 shoppingList.set(i, new ShoppingListEntry(recipe, Math.max(1, amount), e.startCount, e.isHaveTotal()));
+                if (amount > e.amount) sackPromptDue = true;
                 listChanged();
                 return;
             }
@@ -297,6 +299,7 @@ public class SandboxWidget {
             shoppingList.add(new ShoppingListEntry(e.recipe, amount, held, e.isHaveTotal()));
             expandedNodes.putIfAbsent(makePathKey(LIST_KEY, e.recipe), true);
         }
+        sackPromptDue = true;
         listChanged();
         return new LoadResult(dropped, skipped);
     }
