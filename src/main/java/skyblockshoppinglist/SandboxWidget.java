@@ -116,6 +116,11 @@ public class SandboxWidget {
      * cleared once sent. Count changes alone never prompt.
      */
     private volatile boolean sackPromptDue = true;
+    /**
+     * The sacks named last time, so raising amounts again doesn't repeat the same notice. Cleared when a whole list
+     * is loaded, which always names them.
+     */
+    private volatile List<String> lastPromptedSacks = List.of();
     /** Grey for amounts that depend on a sack not read yet. */
     private static final int UNCERTAIN_COLOR = 0xFF9A9A9A;
     /** Render thread only: row size and panel width of the HUD being drawn. */
@@ -299,6 +304,7 @@ public class SandboxWidget {
             shoppingList.add(new ShoppingListEntry(e.recipe, amount, held, e.isHaveTotal()));
             expandedNodes.putIfAbsent(makePathKey(LIST_KEY, e.recipe), true);
         }
+        lastPromptedSacks = List.of();
         sackPromptDue = true;
         listChanged();
         return new LoadResult(dropped, skipped);
@@ -360,6 +366,7 @@ public class SandboxWidget {
         listGeneration++;
         switchProfile.run();
         loadShoppingList();
+        lastPromptedSacks = List.of();
         listGeneration++;
         scheduler.execute(() -> {
             readyEntries.clear();
@@ -754,6 +761,8 @@ public class SandboxWidget {
             toasts.add(() -> {
                 if (!sackPromptDue) return;
                 sackPromptDue = false;
+                if (unread.equals(lastPromptedSacks)) return;
+                lastPromptedSacks = List.copyOf(unread);
                 ReminderManager.promptSacks(unread);
             });
         }
