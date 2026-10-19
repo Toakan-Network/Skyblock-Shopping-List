@@ -146,7 +146,7 @@ public final class RemoteRecipeFetcher {
     private static boolean fetchNeuZip(String url) {
         try {
             Map<String, String> meta = readMeta(FilePathManager.REMOTE_META_JSON);
-            boolean cacheCurrent = cacheIsCurrent(meta) && hasSnapshot();
+            boolean cacheCurrent = cacheIsCurrent(meta) && hasNeuSnapshot();
 
             InputStream inputStream;
             String metaKey;
@@ -596,6 +596,15 @@ public final class RemoteRecipeFetcher {
     /** False when the recipe file was deleted: a "not modified" answer would then leave no recipes at all. */
     private static boolean hasSnapshot() {
         return FilePathManager.REMOTE_RECIPES_JSON.isFile();
+    }
+
+    /** As {@link #hasSnapshot}, for every file the NEU repo is parsed into: a deleted one is only rebuilt by a fetch. */
+    private static boolean hasNeuSnapshot() {
+        return hasSnapshot() && java.util.stream.Stream.of(
+                FilePathManager.REMOTE_SHOP_JSON, FilePathManager.FORGE_TIMES_JSON, FilePathManager.ITEM_TYPES_JSON,
+                FilePathManager.ITEM_SACKS_JSON, FilePathManager.ITEM_NAMES_JSON, FilePathManager.ITEM_REQUIREMENTS_JSON,
+                FilePathManager.ITEM_LORE_JSON, FilePathManager.NPC_BUY_PRICES_JSON)
+            .allMatch(File::isFile);
     }
 
     private static boolean isHttps(String url) {
