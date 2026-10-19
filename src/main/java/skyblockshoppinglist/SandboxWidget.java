@@ -118,7 +118,8 @@ public class SandboxWidget {
     private volatile boolean sackPromptDue = true;
     /**
      * The sacks named last time, so raising amounts again doesn't repeat the same notice. Cleared when a whole list
-     * is loaded, which always names them.
+     * is loaded, which always names them, and once no sack is left to open (sacks read, list emptied or reset), so
+     * the same sacks are named again when they are needed later.
      */
     private volatile List<String> lastPromptedSacks = List.of();
     /** Grey for amounts that depend on a sack not read yet. */
@@ -624,6 +625,7 @@ public class SandboxWidget {
             npcPriceHudLines = List.of();
             neededSacks = List.of();
             listSacks = List.of();
+            lastPromptedSacks = List.of();
             readyEntries.clear();
             achievedEntries.clear();
             baselineSet = true;
@@ -756,6 +758,7 @@ public class SandboxWidget {
         List<String> unread = SackReader.getInstance().unscannedSacks(missing);
         neededSacks = List.copyOf(unread);
         listSacks = List.copyOf(all);
+        if (unread.isEmpty()) lastPromptedSacks = List.of();
         if (sackPromptDue && SkyblockDetector.isOnSkyblock() && ProfileManager.isReady()) {
             // Runs only if this update is published; the check keeps two queued updates from both sending it.
             toasts.add(() -> {
