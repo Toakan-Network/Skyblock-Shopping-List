@@ -10,6 +10,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
@@ -28,6 +29,15 @@ public class ShoppingListScreen extends Screen {
     private List<String> builtRows = List.of();
     /** {@link #builtRows} as a set, for the per-frame "already on the list" check. */
     private java.util.Set<String> builtRowSet = java.util.Set.of();
+    /**
+     * Each row's amount box, by recipe. A typed amount is only saved once the box loses focus, on Enter or when the
+     * screen closes: saving each keystroke would let a half-typed amount (the 6 of 64) count as achieved.
+     */
+    private final java.util.Map<String, EditBox> amountBoxes = new java.util.LinkedHashMap<>();
+    /** What each amount box held when built or last saved; only boxes the player changed are saved. */
+    private final java.util.Map<String, String> savedAmounts = new java.util.HashMap<>();
+    private static final int KEY_RETURN = ShoppingListClient.inputCode("KEY_RETURN");
+    private static final int KEY_NUMPADENTER = ShoppingListClient.inputCode("KEY_NUMPADENTER");
     private static final int PANEL_TOP = 58;
     private static final int PANEL_ROW = 22;
     private static final int PANEL_MAX_ROWS = 5;
@@ -77,6 +87,10 @@ public class ShoppingListScreen extends Screen {
 
         // Shopping list panel (right column, above the preview): name, move up/down, amount box and remove
         // button per row. Order is priority: rows higher up get shared stock first.
+        // Rebuilt after a button click, which has already taken focus off the box being edited.
+        saveAmounts(false);
+        amountBoxes.clear();
+        savedAmounts.clear();
         List<ShoppingListEntry> list = widget.getShoppingList();
         treeViewWidth = Math.max(120, Math.min(400, width - treeViewX - 20));
         // Narrow screens: shrink the move buttons, then drop them, so the name keeps some room.
@@ -92,14 +106,8 @@ public class ShoppingListScreen extends Screen {
             EditBox amount = new EditBox(font, treeViewX + treeViewWidth - 70, y, 40, 18, Component.literal("Amount"));
             amount.setMaxLength(6);
             amount.setValue(String.valueOf(entry.amount));
-            amount.setResponder(text -> {
-                try {
-                    int value = Integer.parseInt(text.trim());
-                    if (value > 0) widget.setEntryAmount(entry.recipe, value);
-                } catch (NumberFormatException ignored) {
-                    // Keep the saved amount while the box is empty or half-typed.
-                }
-            });
+            amountBoxes.put(entry.recipe, amount);
+            savedAmounts.put(entry.recipe, amount.getValue());
             addRenderableWidget(amount);
             boolean total = entry.isHaveTotal();
             addRenderableWidget(Button.builder(Component.literal(total ? "=" : "+"), button -> {
@@ -252,9 +260,43 @@ public class ShoppingListScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
+        saveAmounts(false);
         // Entries can disappear on their own (auto-remove); keep the rows in step with the list.
         List<String> names = widget.getShoppingList().stream().map(e -> e.recipe).toList();
         if (!names.equals(builtRows)) rebuildWidgets();
+    }
+
+    /** Saves what the amount boxes hold: all of them, or only those not being edited. */
+    private void saveAmounts(boolean all) {
+        amountBoxes.forEach((recipe, box) -> {
+            if (!all && box.isFocused()) return;
+            if (box.getValue().equals(savedAmounts.put(recipe, box.getValue()))) return;
+            try {
+                int value = Integer.parseInt(box.getValue().trim());
+                if (value > 0) widget.setEntryAmount(recipe, value);
+            } catch (NumberFormatException ignored) {
+                // Keep the saved amount while the box is empty.
+            }
+        });
+    }
+
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (event.key() == KEY_RETURN || event.key() == KEY_NUMPADENTER) {
+            for (EditBox box : amountBoxes.values()) {
+                if (!box.isFocused()) continue;
+                setFocused(null);
+                saveAmounts(true);
+                return true;
+            }
+        }
+        return super.keyPressed(event);
+    }
+
+    @Override
+    public void removed() {
+        saveAmounts(true);
+        super.removed();
     }
 
     /** Top-level nodes the HUD shows: Total, then one tree per recipe. */
