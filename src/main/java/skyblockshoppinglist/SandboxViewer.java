@@ -24,8 +24,6 @@ public class SandboxViewer extends Screen {
     private static final int WHITE = 0xFFFFFFFF;
     private static final int TEXT_SECONDARY = MenuTabs.TEXT;
     private static final int KEY_TAB = ShoppingListClient.inputCode("KEY_TAB");
-    private static final int KEY_RETURN = ShoppingListClient.inputCode("KEY_RETURN");
-    private static final int KEY_NUMPADENTER = ShoppingListClient.inputCode("KEY_NUMPADENTER");
     /** Top of the right-hand panel on the Recipes and Forge tabs. */
     private static final int PANEL_TOP = MenuTabs.CONTROLS_Y;
     private static final int SUCCESS_GREEN = 0xFF6EFF6E;
@@ -335,7 +333,7 @@ public class SandboxViewer extends Screen {
                     moveToNextTextField(event.hasShiftDown());
                     return true;
                 }
-                if (keyCode == KEY_RETURN || keyCode == KEY_NUMPADENTER) { // confirm and advance
+                if (event.isConfirmation()) { // Enter or numpad Enter: confirm and advance
                     field.setFocused(false);
                     moveToNextTextField(false);
                     return true;

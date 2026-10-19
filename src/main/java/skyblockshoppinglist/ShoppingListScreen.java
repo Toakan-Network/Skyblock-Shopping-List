@@ -36,8 +36,6 @@ public class ShoppingListScreen extends Screen {
     private final java.util.Map<String, EditBox> amountBoxes = new java.util.LinkedHashMap<>();
     /** What each amount box held when built or last saved; only boxes the player changed are saved. */
     private final java.util.Map<String, String> savedAmounts = new java.util.HashMap<>();
-    private static final int KEY_RETURN = ShoppingListClient.inputCode("KEY_RETURN");
-    private static final int KEY_NUMPADENTER = ShoppingListClient.inputCode("KEY_NUMPADENTER");
     private static final int PANEL_TOP = 58;
     private static final int PANEL_ROW = 22;
     private static final int PANEL_MAX_ROWS = 5;
@@ -286,7 +284,7 @@ public class ShoppingListScreen extends Screen {
 
     @Override
     public boolean keyPressed(KeyEvent event) {
-        if (event.key() == KEY_RETURN || event.key() == KEY_NUMPADENTER) {
+        if (event.isConfirmation()) {
             for (EditBox box : amountBoxes.values()) {
                 if (!box.isFocused()) continue;
                 setFocused(null);
