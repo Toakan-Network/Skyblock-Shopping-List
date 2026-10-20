@@ -24,8 +24,6 @@ public class SandboxViewer extends Screen {
     private static final int WHITE = 0xFFFFFFFF;
     private static final int TEXT_SECONDARY = MenuTabs.TEXT;
     private static final int KEY_TAB = ShoppingListClient.inputCode("KEY_TAB");
-    private static final int KEY_RETURN = ShoppingListClient.inputCode("KEY_RETURN");
-    private static final int KEY_NUMPADENTER = ShoppingListClient.inputCode("KEY_NUMPADENTER");
     /** Top of the right-hand panel on the Recipes and Forge tabs. */
     private static final int PANEL_TOP = MenuTabs.CONTROLS_Y;
     private static final int SUCCESS_GREEN = 0xFF6EFF6E;
@@ -57,6 +55,8 @@ public class SandboxViewer extends Screen {
     private Map<String, Integer> simpleRecipe = null;
 
     private ResourcesManager.RemainingResponse remainingResult = null;
+    /** {@link ResourcesManager#getVersion()} remainingResult was worked out with, so it follows resource changes. */
+    private long remainingVersion = -1;
     private int craftAmount = 1;
     private boolean craftable = false;
     private final List<String> messages = new ArrayList<>();
@@ -235,6 +235,7 @@ public class SandboxViewer extends Screen {
     private void checkRecipeRequirements() {
         if (selectedRecipe == null) return;
 
+        remainingVersion = resourcesManager.getVersion();
         remainingResult = resourcesManager.getRemainingIngredients(selectedRecipe, craftAmount);
 
         messages.clear();
@@ -325,16 +326,14 @@ public class SandboxViewer extends Screen {
     @Override
     public boolean keyPressed(KeyEvent event) {
         int keyCode = event.key();
-        int modifiers = event.modifiers();
         if (mode == Mode.RESOURCES && activeTextField != null) {
             EditBox field = resourceAmountFields.get(activeTextField);
             if (field != null && field.isFocused()) {
                 if (keyCode == KEY_TAB) { // move between fields
-                    boolean shiftPressed = (modifiers & 1) != 0;
-                    moveToNextTextField(shiftPressed);
+                    moveToNextTextField(event.hasShiftDown());
                     return true;
                 }
-                if (keyCode == KEY_RETURN || keyCode == KEY_NUMPADENTER) { // confirm and advance
+                if (event.isConfirmation()) { // Enter or numpad Enter: confirm and advance
                     field.setFocused(false);
                     moveToNextTextField(false);
                     return true;
@@ -440,6 +439,15 @@ public class SandboxViewer extends Screen {
         }
 
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        // The Forge tree is worked out once per pick; redo it when the held items change (picked up, [Sacks]).
+        if (mode == Mode.FORGE && selectedRecipe != null && remainingVersion != resourcesManager.getVersion()) {
+            checkRecipeRequirements();
+        }
     }
 
     private int lastMouseX;
@@ -628,11 +636,15 @@ public class SandboxViewer extends Screen {
         int lineHeight = 24;
         String name;
         int amount;
+        int required;
+        int toCraft;
         List<?> ingredients;
 
         if (nodeObj instanceof RecipeManager.RecipeNode node) {
             name = node.name;
             amount = node.amount;
+            required = node.required;
+            toCraft = node.toCraft;
             ingredients = node.ingredients;
         } else {
             return y;
@@ -643,8 +655,10 @@ public class SandboxViewer extends Screen {
         boolean hasIngredients = ingredients != null && !ingredients.isEmpty();
 
         int textColor = WHITE;
-        if (mode == Mode.FORGE && amount > 0) {
-            textColor = heldCount(name) >= amount ? SUCCESS_GREEN : ERROR_RED;
+        // The Forge tab shows a shopping-list tree: amount is how many are still missing (red), toCraft how many can
+        // be made from held materials (yellow, the HUD's "can craft" colour); neither left means held (green).
+        if (mode == Mode.FORGE && required > 0) {
+            textColor = amount > 0 ? ERROR_RED : toCraft > 0 ? HudStyle.get().craftable : SUCCESS_GREEN;
         }
 
         int nodeWidth = Math.min(300, Math.max(100, font.width(name) + font.width(amount + "×") + 40));
@@ -689,20 +703,6 @@ public class SandboxViewer extends Screen {
 
     private void drawCenteredText(GuiGraphicsExtractor context, String text, int centerX, int y, int color) {
         context.text(font, text, centerX - font.width(text) / 2, y, color, false);
-    }
-
-
-    /** Item counts for the Forge tree, kept until resources change: the tree is drawn every frame. */
-    private final Map<String, Integer> heldCounts = new HashMap<>();
-    private long heldCountsVersion = -1;
-
-    private int heldCount(String name) {
-        long version = resourcesManager.getVersion();
-        if (version != heldCountsVersion) {
-            heldCounts.clear();
-            heldCountsVersion = version;
-        }
-        return heldCounts.computeIfAbsent(name, resourcesManager::getResourceByName);
     }
 
     @Override

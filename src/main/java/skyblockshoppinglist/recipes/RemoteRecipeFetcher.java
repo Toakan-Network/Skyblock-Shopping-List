@@ -24,7 +24,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +42,7 @@ public final class RemoteRecipeFetcher {
      * Bump when the way recipes are extracted from the repo changes, so cached snapshots are rebuilt
      * even if the remote reports "not modified".
      */
-    private static final String PARSER_VERSION = "12";
+    private static final String PARSER_VERSION = "13";
     /** NEU's pseudo item for coin costs in shop recipes. */
     private static final String COIN_ID = "SKYBLOCK_COIN";
     public static final String COINS_NAME = "Coins";
@@ -52,7 +51,8 @@ public final class RemoteRecipeFetcher {
     private static final String[] PET_RARITIES = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"};
     private static final String PARSER_VERSION_KEY = "parser-version";
     private static final long MAX_ZIP_ENTRIES = 200_000;
-    private static final long MAX_EXTRACTED_BYTES = 2L * 1024 * 1024 * 1024;
+    /** The NEU repo (about 64 MB packed on GitHub, history included) extracts to far less than this. */
+    private static final long MAX_EXTRACTED_BYTES = 512L * 1024 * 1024;
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "ShoppingList-RecipeFetch");
@@ -146,7 +146,7 @@ public final class RemoteRecipeFetcher {
     private static boolean fetchNeuZip(String url) {
         try {
             Map<String, String> meta = readMeta(FilePathManager.REMOTE_META_JSON);
-            boolean cacheCurrent = cacheIsCurrent(meta) && hasSnapshot();
+            boolean cacheCurrent = cacheIsCurrent(meta) && hasNeuSnapshot();
 
             InputStream inputStream;
             String metaKey;
@@ -268,9 +268,12 @@ public final class RemoteRecipeFetcher {
                 if (craftingByInternal.putIfAbsent(e.getKey(), e.getValue()) == null) katCount++;
             }
             Map<String, String> recipeNameById = new LinkedHashMap<>(internalToDisplay);
-            Map<String, Map<String, Integer>> craftingWire = resolveToDisplayNames(craftingByInternal, internalToDisplay, recipeNameById);
-            Map<String, Map<String, Integer>> forgeWire    = resolveToDisplayNames(forgeByInternal,    internalToDisplay, recipeNameById);
-            Map<String, Map<String, Integer>> shopWire     = resolveToDisplayNames(shopByInternal,     internalToDisplay, recipeNameById);
+            // Names every output first, across all three files: an ingredient must use the renamed output's name, and
+            // RecipeManager merges the files, so a name taken in one must not be reused in another.
+            nameOutputs(List.of(craftingByInternal, forgeByInternal, shopByInternal), internalToDisplay, recipeNameById);
+            Map<String, Map<String, Integer>> craftingWire = resolveToDisplayNames(craftingByInternal, recipeNameById);
+            Map<String, Map<String, Integer>> forgeWire    = resolveToDisplayNames(forgeByInternal,    recipeNameById);
+            Map<String, Map<String, Integer>> shopWire     = resolveToDisplayNames(shopByInternal,     recipeNameById);
 
             // Each file is only rewritten (and the recipes only reloaded) when its content actually changed:
             // the repo changes often, the recipes much less.
@@ -441,26 +444,37 @@ public final class RemoteRecipeFetcher {
     }
 
     /**
-     * Returns a new map with all internal SkyBlock IDs replaced by their display names. Outputs that had
-     * to be renamed to stay unique are recorded in {@code recipeNameById}.
+     * Gives every recipe output a unique name: its display name, or "Name [ID]" when an earlier output already took
+     * it (e.g. upgrade stones). Renamed outputs are recorded in {@code recipeNameById}.
      */
+    private static void nameOutputs(
+            List<Map<String, Map<String, Integer>>> byInternal,
+            Map<String, String> internalToDisplay,
+            Map<String, String> recipeNameById) {
+        java.util.Set<String> taken = new java.util.HashSet<>();
+        for (Map<String, Map<String, Integer>> recipes : byInternal) {
+            for (String id : recipes.keySet()) {
+                String name = internalToDisplay.getOrDefault(id, id);
+                if (!taken.add(name)) {
+                    name = name + " [" + id + "]";
+                    taken.add(name);
+                    recipeNameById.put(id, name);
+                }
+            }
+        }
+    }
+
+    /** Returns a new map with all internal SkyBlock IDs replaced by the names {@link #nameOutputs} chose. */
     private static Map<String, Map<String, Integer>> resolveToDisplayNames(
             Map<String, Map<String, Integer>> byInternal,
-            Map<String, String> internalToDisplay,
             Map<String, String> recipeNameById) {
         Map<String, Map<String, Integer>> wire = new LinkedHashMap<>(byInternal.size());
         for (Map.Entry<String, Map<String, Integer>> e : byInternal.entrySet()) {
-            String outDisplay = internalToDisplay.getOrDefault(e.getKey(), e.getKey());
-            // Different items can share a display name (e.g. upgrade stones); keep them apart.
-            if (wire.containsKey(outDisplay)) {
-                outDisplay = outDisplay + " [" + e.getKey() + "]";
-                recipeNameById.put(e.getKey(), outDisplay);
-            }
             Map<String, Integer> ingDisplay = new LinkedHashMap<>();
             for (Map.Entry<String, Integer> in : e.getValue().entrySet()) {
-                ingDisplay.put(internalToDisplay.getOrDefault(in.getKey(), in.getKey()), in.getValue());
+                ingDisplay.put(recipeNameById.getOrDefault(in.getKey(), in.getKey()), in.getValue());
             }
-            wire.put(outDisplay, ingDisplay);
+            wire.put(recipeNameById.getOrDefault(e.getKey(), e.getKey()), ingDisplay);
         }
         return wire;
     }
@@ -489,8 +503,16 @@ public final class RemoteRecipeFetcher {
                     continue;
                 }
                 Files.createDirectories(dest.getParent());
-                bytes += Files.copy(zin, dest, StandardCopyOption.REPLACE_EXISTING);
-                if (bytes > MAX_EXTRACTED_BYTES) throw new java.io.IOException("ZIP extracts to more than " + MAX_EXTRACTED_BYTES + " bytes");
+                // Stops mid-entry once over the limit, so one huge entry can't fill the disk first.
+                try (java.io.OutputStream out = Files.newOutputStream(dest)) {
+                    byte[] buffer = new byte[8192];
+                    int read;
+                    while ((read = zin.read(buffer)) > 0) {
+                        bytes += read;
+                        if (bytes > MAX_EXTRACTED_BYTES) throw new java.io.IOException("ZIP extracts to more than " + MAX_EXTRACTED_BYTES + " bytes");
+                        out.write(buffer, 0, read);
+                    }
+                }
             }
         }
     }
@@ -582,6 +604,15 @@ public final class RemoteRecipeFetcher {
     /** False when the recipe file was deleted: a "not modified" answer would then leave no recipes at all. */
     private static boolean hasSnapshot() {
         return FilePathManager.REMOTE_RECIPES_JSON.isFile();
+    }
+
+    /** As {@link #hasSnapshot}, for every file the NEU repo is parsed into: a deleted one is only rebuilt by a fetch. */
+    private static boolean hasNeuSnapshot() {
+        return hasSnapshot() && java.util.stream.Stream.of(
+                FilePathManager.REMOTE_FORGE_JSON, FilePathManager.REMOTE_SHOP_JSON, FilePathManager.FORGE_TIMES_JSON, FilePathManager.ITEM_TYPES_JSON,
+                FilePathManager.ITEM_SACKS_JSON, FilePathManager.ITEM_NAMES_JSON, FilePathManager.ITEM_REQUIREMENTS_JSON,
+                FilePathManager.ITEM_LORE_JSON, FilePathManager.NPC_BUY_PRICES_JSON)
+            .allMatch(File::isFile);
     }
 
     private static boolean isHttps(String url) {

@@ -214,7 +214,8 @@ public final class ConfigScreen {
                 .option(channel(widget, Notifier.Type.ACHIEVED, "Item achieved",
                     "When you have made the amount you asked for."))
                 .option(channel(widget, Notifier.Type.SACK_PROMPT, "Sacks to open",
-                    "Once after joining: the sacks to open so the list's counts are right."))
+                    "After joining, and when you add a recipe, raise its amount or load a saved list: the sacks you haven't opened "
+                        + "yet that hold items the list needs, so its counts are right."))
                 .option(channel(widget, Notifier.Type.STALE_SACKS, "Sack reminder",
                     "When your sacks haven't been opened for an hour, at most once an hour. Between opens, sack "
                         + "counts follow the [Sacks] chat summaries and can drift."))

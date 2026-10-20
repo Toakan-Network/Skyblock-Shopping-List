@@ -30,7 +30,10 @@ public class ReminderManager {
         });
     }
 
-    /** Names the sacks to open so the list's counts are right. Sent once, never repeated. */
+    /**
+     * Names the sacks to open so the list's counts are right. Sent after joining and after a recipe is added or
+     * raised, while sacks the list needs are unread.
+     */
     public static void promptSacks(List<String> sacks) {
         if (sacks.isEmpty()) return;
         Component message = Component.literal("Open your ").withStyle(ChatFormatting.WHITE)

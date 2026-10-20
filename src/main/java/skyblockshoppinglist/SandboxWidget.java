@@ -50,11 +50,13 @@ public class SandboxWidget {
      * Craftable lines ("3× Refined Diamond"), most first, ready to draw; replaced whole (never cleared and refilled)
      * so the HUD never sees an empty list mid-update.
      */
-    private volatile List<String> messages = List.of();
+    private volatile List<Line> messages = List.of();
     /** "Forging -" lines for both Forging section settings, built together so they never disagree. */
     private volatile ForgingLines forgingLines = ForgingLines.EMPTY;
     /** "NPC price -" lines: coins to buy every raw material at NPCs, and what NPCs pay for them. */
     private volatile List<String> npcPriceLines = List.of();
+    /** {@link #npcPriceLines} ready for the HUD section, made when they are. */
+    private volatile List<Line> npcPriceHudLines = List.of();
     /** Update thread only: {@link NpcPrices#getVersion()} the price lines were worked out with. */
     private long npcPriceVersion = -1;
     /**
@@ -109,10 +111,17 @@ public class SandboxWidget {
     /** All sacks holding an item still missing, read or not; with {@link #neededSacks} gives "1/3 read". */
     private volatile List<String> listSacks = List.of();
     /**
-     * Name the unread sacks in chat on the next list update: set on joining (start of the session) and by each
-     * recipe add, cleared once the line is sent. Count changes alone never prompt.
+     * Name the unread sacks (chat or toast, see {@link Notifier.Type#SACK_PROMPT}) on the next list update: set on
+     * joining (start of the session), when a recipe is added or its amount raised and when a saved list is loaded;
+     * cleared once sent. Count changes alone never prompt.
      */
     private volatile boolean sackPromptDue = true;
+    /**
+     * The sacks named last time, so raising amounts again doesn't repeat the same notice. Cleared when a whole list
+     * is loaded, which always names them, and once no sack is left to open (sacks read, list emptied or reset), so
+     * the same sacks are named again when they are needed later.
+     */
+    private volatile List<String> lastPromptedSacks = List.of();
     /** Grey for amounts that depend on a sack not read yet. */
     private static final int UNCERTAIN_COLOR = 0xFF9A9A9A;
     /** Render thread only: row size and panel width of the HUD being drawn. */
@@ -200,6 +209,7 @@ public class SandboxWidget {
             ShoppingListEntry e = shoppingList.get(i);
             if (e.recipe.equals(recipe) && e.amount != Math.max(1, amount)) {
                 shoppingList.set(i, new ShoppingListEntry(recipe, Math.max(1, amount), e.startCount, e.isHaveTotal()));
+                if (amount > e.amount) sackPromptDue = true;
                 listChanged();
                 return;
             }
@@ -295,6 +305,8 @@ public class SandboxWidget {
             shoppingList.add(new ShoppingListEntry(e.recipe, amount, held, e.isHaveTotal()));
             expandedNodes.putIfAbsent(makePathKey(LIST_KEY, e.recipe), true);
         }
+        lastPromptedSacks = List.of();
+        sackPromptDue = true;
         listChanged();
         return new LoadResult(dropped, skipped);
     }
@@ -355,6 +367,7 @@ public class SandboxWidget {
         listGeneration++;
         switchProfile.run();
         loadShoppingList();
+        lastPromptedSacks = List.of();
         listGeneration++;
         scheduler.execute(() -> {
             readyEntries.clear();
@@ -609,8 +622,10 @@ public class SandboxWidget {
             listItemNames = Set.of();
             forgingLines = ForgingLines.EMPTY;
             npcPriceLines = List.of();
+            npcPriceHudLines = List.of();
             neededSacks = List.of();
             listSacks = List.of();
+            lastPromptedSacks = List.of();
             readyEntries.clear();
             achievedEntries.clear();
             baselineSet = true;
@@ -720,7 +735,7 @@ public class SandboxWidget {
             if (tree.ingredients == null || tree.ingredients.isEmpty()) priced.add(tree);
         }
         List<String> prices = NpcPrices.summary(priced);
-        if (!publish(generation, List.copyOf(newMessages), new RecipeManager.RecipeNode("Shopping list", 0, 0, tops),
+        if (!publish(generation, newMessages, new RecipeManager.RecipeNode("Shopping list", 0, 0, tops),
                 itemNames, prices, toasts)) {
             return;
         }
@@ -729,7 +744,7 @@ public class SandboxWidget {
 
     /**
      * Works out which sacks hold items the list is still missing, and which of those haven't been read. When a
-     * prompt is due (after joining, or adding a recipe) the unread ones are named in one chat line.
+     * prompt is due (after joining, or adding a recipe) the unread ones are named in one notification.
      */
     private void updateNeededSacks(List<RecipeManager.RecipeNode> trees, List<Runnable> toasts) {
         Set<String> missing = new LinkedHashSet<>();
@@ -743,11 +758,14 @@ public class SandboxWidget {
         List<String> unread = SackReader.getInstance().unscannedSacks(missing);
         neededSacks = List.copyOf(unread);
         listSacks = List.copyOf(all);
+        if (unread.isEmpty()) lastPromptedSacks = List.of();
         if (sackPromptDue && SkyblockDetector.isOnSkyblock() && ProfileManager.isReady()) {
             // Runs only if this update is published; the check keeps two queued updates from both sending it.
             toasts.add(() -> {
                 if (!sackPromptDue) return;
                 sackPromptDue = false;
+                if (unread.equals(lastPromptedSacks)) return;
+                lastPromptedSacks = List.copyOf(unread);
                 ReminderManager.promptSacks(unread);
             });
         }
@@ -937,20 +955,18 @@ public class SandboxWidget {
     private synchronized boolean publish(long generation, List<String> newMessages, RecipeManager.RecipeNode tree,
                                          Set<String> itemNames, List<String> prices, List<Runnable> toasts) {
         if (generation != listGeneration) return false;
-        messages = newMessages;
+        messages = Line.plain(newMessages);
         npcPriceLines = prices;
+        npcPriceHudLines = Line.plain(prices);
         recipeTree = tree;
         listItemNames = itemNames;
         toasts.forEach(Runnable::run);
         return true;
     }
 
-    /**
-     * Forging lines: Listed has the forge slots making something on the list, All has those and then the rest.
-     * {@code other} is the rest, drawn in their own colour.
-     */
-    private record ForgingLines(List<String> listed, List<String> all, Set<String> other) {
-        static final ForgingLines EMPTY = new ForgingLines(List.of(), List.of(), Set.of());
+    /** Forging lines: Listed has the forge slots making something on the list, All has those and then the rest. */
+    private record ForgingLines(List<Line> listed, List<Line> all) {
+        static final ForgingLines EMPTY = new ForgingLines(List.of(), List.of());
     }
 
     /** Forge slots grouped by item and finish minute, soonest first; items on the list before the rest. */
@@ -961,15 +977,18 @@ public class SandboxWidget {
         for (ForgeTracker.Entry entry : ForgeTracker.getEntries()) {
             (listItemNames.contains(ItemNames.normalize(entry.name)) ? listed : other).add(entry);
         }
-        List<String> listedLines = forgeLines(listed, now);
-        List<String> otherLines = forgeLines(other, now);
-        List<String> all = new ArrayList<>(listedLines);
-        all.addAll(otherLines);
-        forgingLines = new ForgingLines(listedLines, List.copyOf(all), Set.copyOf(otherLines));
+        List<Line> listedLines = forgeLines(listed, now, true);
+        List<Line> all = new ArrayList<>(listedLines);
+        all.addAll(forgeLines(other, now, false));
+        forgingLines = new ForgingLines(listedLines, List.copyOf(all));
     }
 
-    /** "4× Refined Titanium - 1h 8m": slots making the same item that finish in the same minute share a line. */
-    private static List<String> forgeLines(List<ForgeTracker.Entry> entries, long now) {
+    /**
+     * "4× Refined Titanium - 1h 8m": slots making the same item that finish in the same minute share a line.
+     * Off-list slots are {@link Tone#OTHER} even when finished, so a ready slot the list doesn't need doesn't look
+     * like one it does.
+     */
+    private static List<Line> forgeLines(List<ForgeTracker.Entry> entries, long now, boolean onList) {
         entries.sort(java.util.Comparator.comparingLong(e -> e.endsAt));
         Map<String, int[]> counts = new LinkedHashMap<>();
         Map<String, ForgeTracker.Entry> firstOf = new LinkedHashMap<>();
@@ -978,10 +997,12 @@ public class SandboxWidget {
             counts.computeIfAbsent(key, k -> new int[1])[0] += entry.count;
             firstOf.putIfAbsent(key, entry);
         }
-        List<String> lines = new ArrayList<>();
+        List<Line> lines = new ArrayList<>();
         for (Map.Entry<String, int[]> e : counts.entrySet()) {
             ForgeTracker.Entry entry = firstOf.get(e.getKey());
-            lines.add(e.getValue()[0] + "× " + entry.name + " - " + ForgeTracker.formatRemaining(entry.endsAt, now));
+            String text = e.getValue()[0] + "× " + entry.name + " - " + ForgeTracker.formatRemaining(entry.endsAt, now);
+            Tone tone = !onList ? Tone.OTHER : entry.endsAt <= now ? Tone.DONE : Tone.TEXT;
+            lines.add(new Line(text, tone));
         }
         return List.copyOf(lines);
     }
@@ -1032,30 +1053,43 @@ public class SandboxWidget {
         return Math.max(MIN_PANEL_SCALE, Math.min(MAX_PANEL_SCALE, percent));
     }
 
-    /**
-     * One block of centred/aligned lines under a header (Craftable, Forging). Lines in {@code otherLines} use
-     * {@code otherColor} (Forging slots the list doesn't need).
-     */
-    private record Section(String header, List<String> lines, float scale, HudStyle.Align align,
-                           int headerColor, int textColor, Set<String> otherLines, int otherColor) {
-        Section(String header, List<String> lines, float scale, HudStyle.Align align, int headerColor, int textColor) {
-            this(header, lines, scale, align, headerColor, textColor, Set.of(), textColor);
+    /** Which colour a section line is drawn in: the section's text, its other colour, or the style's done colour. */
+    private enum Tone { TEXT, OTHER, DONE }
+
+    /** One section line and its colour. */
+    private record Line(String text, Tone tone) {
+        static List<Line> plain(List<String> texts) {
+            List<Line> lines = new ArrayList<>(texts.size());
+            for (String text : texts) lines.add(new Line(text, Tone.TEXT));
+            return List.copyOf(lines);
         }
     }
 
-    /** A piece of a section line after wrapping, with the line it came from (which sets its colour). */
-    private record WrappedLine(String text, String source) {}
+    /**
+     * One block of centred/aligned lines under a header (Craftable, Forging). {@link Tone#OTHER} lines use
+     * {@code otherColor} (Forging slots the list doesn't need).
+     */
+    private record Section(String header, List<Line> lines, float scale, HudStyle.Align align,
+                           int headerColor, int textColor, int otherColor) {
+        Section(String header, List<Line> lines, float scale, HudStyle.Align align, int headerColor, int textColor) {
+            this(header, lines, scale, align, headerColor, textColor, textColor);
+        }
+    }
+
+    /** A piece of a section line after wrapping, with the colour of the line it came from. */
+    private record WrappedLine(String text, Tone tone) {}
 
     private static final int TITLE_BAR = 20;
 
     /** True while {@link #renderPreview} draws: panels show the sample list below, fully expanded. */
     private boolean previewing = false;
     private static final RecipeManager.RecipeNode SAMPLE_TREE = sampleTree();
-    private static final List<String> SAMPLE_CRAFTABLE = List.of("1× Refined Diamond");
-    private static final List<String> SAMPLE_FORGING = List.of("3× Mithril Plate - 2h 10m", "1× Refined Mithril - 5h 0m");
-    /** The sample Forging line for an item not on the list. */
-    private static final Set<String> SAMPLE_FORGING_OTHER = Set.of("1× Refined Mithril - 5h 0m");
-    private static final List<String> SAMPLE_NPC_PRICE = List.of("Buy: 1,240 coins (2/3 items)", "Sell: 310 coins (3/3 items)");
+    private static final List<Line> SAMPLE_CRAFTABLE = Line.plain(List.of("1× Refined Diamond"));
+    /** A listed Forging line, then one for an item not on the list. */
+    private static final List<Line> SAMPLE_FORGING = List.of(new Line("3× Mithril Plate - 2h 10m", Tone.TEXT),
+        new Line("1× Refined Mithril - 5h 0m", Tone.OTHER));
+    private static final List<Line> SAMPLE_NPC_PRICE =
+        Line.plain(List.of("Buy: 1,240 coins (2/3 items)", "Sell: 310 coins (3/3 items)"));
 
     /** A small made-up list showing every row state: done, partly gathered, missing and can craft. */
     private static RecipeManager.RecipeNode sampleTree() {
@@ -1307,6 +1341,7 @@ public class SandboxWidget {
 
     private int renderPanel(GuiGraphicsExtractor context, Panel panel, int x, int y, int width, int maxHeight, float scale,
                             boolean preview, boolean measureOnly) {
+        HudStyle.checkFontOptions();
         HudStyle style = HudStyle.get();
         RecipeManager.RecipeNode root = previewing ? SAMPLE_TREE : this.recipeTree;
         List<Section> sections = sectionsFor(panel, style);
@@ -1444,7 +1479,7 @@ public class SandboxWidget {
             && (style.forgingPlacement == HudStyle.Placement.OWN_PANEL ? panel == Panel.FORGING : panel == Panel.MAIN);
         if (craftableHere) {
             // Built ready to draw, most first, by updateRecipeData: no per-frame work here.
-            List<String> craftable = previewing ? SAMPLE_CRAFTABLE : messages;
+            List<Line> craftable = previewing ? SAMPLE_CRAFTABLE : messages;
             if (panel != Panel.MAIN || !craftable.isEmpty()) {
                 sections.add(new Section("Craftable", craftable, style.craftableScale, style.craftableAlign,
                     style.sectionHeader, style.sectionText));
@@ -1453,17 +1488,16 @@ public class SandboxWidget {
         if (forgingHere) {
             boolean all = style.forgingSlots == HudStyle.ForgingSlots.ALL;
             ForgingLines current = forgingLines;
-            List<String> forging = previewing ? (all ? SAMPLE_FORGING : SAMPLE_FORGING.subList(0, 1))
+            List<Line> forging = previewing ? (all ? SAMPLE_FORGING : SAMPLE_FORGING.subList(0, 1))
                 : all ? current.all() : current.listed();
-            Set<String> other = previewing ? SAMPLE_FORGING_OTHER : current.other();
             if (panel != Panel.MAIN || !forging.isEmpty()) {
                 sections.add(new Section("Forging", forging, style.forgingScale, style.forgingAlign,
-                    style.forgingHeader, style.forgingText, other, style.forgingOtherText));
+                    style.forgingHeader, style.forgingText, style.forgingOtherText));
             }
         }
         // The bill goes last, at the bottom of the main panel.
         if (style.showNpcPrice && panel == Panel.MAIN) {
-            List<String> prices = previewing ? SAMPLE_NPC_PRICE : npcPriceLines;
+            List<Line> prices = previewing ? SAMPLE_NPC_PRICE : npcPriceHudLines;
             if (!prices.isEmpty()) {
                 sections.add(new Section("NPC price", prices, style.craftableScale, style.craftableAlign,
                     style.sectionHeader, style.sectionText));
@@ -1478,32 +1512,35 @@ public class SandboxWidget {
         return header + lineCount * Math.round(10 * section.scale()) + 2;
     }
 
-    /** Wrapped section lines by (lines, width, font); render thread only. The lines rarely change between frames. */
-    private record WrapKey(List<String> lines, int maxWidth, String font) {}
+    /**
+     * Wrapped section lines by (lines, width, font, {@link HudStyle#fontGeneration()}); render thread only. The
+     * lines rarely change between frames.
+     */
+    private record WrapKey(List<Line> lines, int maxWidth, String font, int fontGeneration) {}
     private static final Map<WrapKey, List<WrappedLine>> WRAP_CACHE = new HashMap<>();
 
     /** Splits each line into pieces that fit the content width at the section's scale. */
     private static List<WrappedLine> wrap(Minecraft client, HudStyle style, Section section, int contentWidth) {
         int maxWidth = Math.max(10, (int) Math.floor(contentWidth / Math.max(0.01f, section.scale())));
         // The lines are already immutable lists, so this is no copy.
-        WrapKey key = new WrapKey(List.copyOf(section.lines()), maxWidth, style.font);
+        WrapKey key = new WrapKey(List.copyOf(section.lines()), maxWidth, style.font, HudStyle.fontGeneration());
         List<WrappedLine> cached = WRAP_CACHE.get(key);
         if (cached != null) return cached;
         // A handful of sections are on screen at once; drop old entries rather than growing forever.
         if (WRAP_CACHE.size() > 16) WRAP_CACHE.clear();
         List<WrappedLine> out = new ArrayList<>();
-        for (String message : section.lines()) {
+        for (Line message : section.lines()) {
             StringBuilder line = new StringBuilder();
-            for (String word : message.split(" ")) {
+            for (String word : message.text().split(" ")) {
                 String candidate = line.isEmpty() ? word : line + " " + word;
                 if (!line.isEmpty() && client.font.width(style.text(candidate, 0, false)) > maxWidth) {
-                    out.add(new WrappedLine(line.toString(), message));
+                    out.add(new WrappedLine(line.toString(), message.tone()));
                     line = new StringBuilder("  ").append(word);
                 } else {
                     line = new StringBuilder(candidate);
                 }
             }
-            if (!line.isEmpty()) out.add(new WrappedLine(line.toString(), message));
+            if (!line.isEmpty()) out.add(new WrappedLine(line.toString(), message.tone()));
         }
         out = List.copyOf(out);
         WRAP_CACHE.put(key, out);
@@ -1527,8 +1564,11 @@ public class SandboxWidget {
         int lineHeight = Math.round(10 * scale);
         for (WrappedLine line : lines) {
             // By the whole line, so every wrapped piece of it gets the same colour.
-            int color = line.source().endsWith(" - Ready") ? style.done
-                : section.otherLines().contains(line.source()) ? section.otherColor() : section.textColor();
+            int color = switch (line.tone()) {
+                case TEXT -> section.textColor();
+                case OTHER -> section.otherColor();
+                case DONE -> style.done;
+            };
             HudStyle.Prepared text = style.prepared(line.text(), color, false);
             drawScaled(context, text, alignedX(section.align(), width, style.padding, text.width() * scale),
                 y, scale, style.textShadow);
@@ -1645,7 +1685,8 @@ public class SandboxWidget {
             // The forge time always shows; a long name is cut short to make room instead of shrinking the row.
             textScale = rowScale;
             int room = Math.round(maxTextWidth / rowScale) - markWidth - amountWidth - tagWidth - lockWidth;
-            name = fitName(style, node.name, nameColor, bold, room);
+            // Kept by the style, so a frame measures nothing new.
+            name = style.fitted(node.name, nameColor, bold, room);
         }
         int nameWidth = name.width();
 
@@ -1850,30 +1891,22 @@ public class SandboxWidget {
         return fitName(font, text -> style.text(text, color, bold), name, room);
     }
 
-    /** As above, prepared for the HUD: every width comes from the style's cache, so a frame measures nothing new. */
-    private static HudStyle.Prepared fitName(HudStyle style, String name, int color, boolean bold, int room) {
-        HudStyle.Prepared full = style.prepared(name + " ", color, bold);
-        if (full.width() <= room) return full;
-        int lo = 0;
-        int hi = name.length();
-        while (lo < hi) {
-            int mid = (lo + hi + 1) >>> 1;
-            if (style.prepared(name.substring(0, mid).stripTrailing() + "...", color, bold).width() <= room) lo = mid;
-            else hi = mid - 1;
-        }
-        return style.prepared(name.substring(0, lo).stripTrailing() + "...", color, bold);
-    }
-
     /** As above, with {@code make} turning text into a styled component (screens use their own style). */
     static Component fitName(Font font, java.util.function.Function<String, Component> make, String name, int room) {
-        Component full = make.apply(name + " ");
-        if (font.width(full) <= room) return full;
+        return fitName(name, room, make, font::width);
+    }
+
+    /** As above, for any text form: {@code make} styles the text and {@code width} measures it. */
+    static <T> T fitName(String name, int room, java.util.function.Function<String, T> make,
+                                 java.util.function.ToIntFunction<T> width) {
+        T full = make.apply(name + " ");
+        if (width.applyAsInt(full) <= room) return full;
         // Longest start of the name that still fits with "..." (binary search: runs every frame per row).
         int lo = 0;
         int hi = name.length();
         while (lo < hi) {
             int mid = (lo + hi + 1) >>> 1;
-            if (font.width(make.apply(name.substring(0, mid).stripTrailing() + "...")) <= room) lo = mid;
+            if (width.applyAsInt(make.apply(name.substring(0, mid).stripTrailing() + "...")) <= room) lo = mid;
             else hi = mid - 1;
         }
         return make.apply(name.substring(0, lo).stripTrailing() + "...");

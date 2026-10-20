@@ -43,10 +43,14 @@ public class RecipeManager {
         try {
             Map<String, Map<String, Integer>> working = new LinkedHashMap<>();
 
-            Map<String, Map<String, Integer>> forging = readRecipeMap(gson, FilePathManager.FORGING_JSON);
             Map<String, Map<String, Integer>> remote   = readRecipeMap(gson, FilePathManager.REMOTE_RECIPES_JSON);
             Map<String, Map<String, Integer>> remoteForge = readRecipeMap(gson, FilePathManager.REMOTE_FORGE_JSON);
             Map<String, Map<String, Integer>> remoteShop = readRecipeMap(gson, FilePathManager.REMOTE_SHOP_JSON);
+            // The hardcoded forge fallback is only used until NEU forge data exists: its names differ in case
+            // from NEU's ("Helmet Of Divan"), so both would be listed, and it keeps recipes NEU has since dropped.
+            Map<String, Map<String, Integer>> forging = remoteForge != null && !remoteForge.isEmpty()
+                    ? null
+                    : readRecipeMap(gson, FilePathManager.FORGING_JSON);
 
             // Only use the hardcoded gemstone fallback when we have no remote data yet;
             // once the NEU fetch has produced remote recipes, those contain the gemstone
@@ -191,7 +195,7 @@ public class RecipeManager {
         Map<String, Integer> base = recipes.getOrDefault(name, Collections.emptyMap());
         Map<String, Integer> result = new LinkedHashMap<>();
         for (Map.Entry<String, Integer> entry : base.entrySet()) {
-            result.put(entry.getKey(), entry.getValue() * amt);
+            result.put(entry.getKey(), Counts.times(entry.getValue(), amt));
         }
         return result;
     }
@@ -207,7 +211,7 @@ public class RecipeManager {
         }
         List<RecipeNode> ingredients = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : recipe.entrySet()) {
-            ingredients.add(expandRecipe(entry.getKey(), entry.getValue() * multiplier, depth + 1));
+            ingredients.add(expandRecipe(entry.getKey(), Counts.times(entry.getValue(), multiplier), depth + 1));
         }
         return new RecipeNode(currentName, multiplier, ingredients);
     }

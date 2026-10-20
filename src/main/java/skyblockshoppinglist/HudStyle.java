@@ -9,7 +9,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -125,7 +125,15 @@ public final class HudStyle {
     private transient String fontDescriptionId;
     /** Text ready to draw, by text, colour and boldness; render thread only. Made for {@link #preparedFont}. */
     private transient Map<PreparedKey, Prepared> prepared;
+    /** Names cut to fit a width ({@link #fitted}), by name, colour, boldness and room; reset with {@link #prepared}. */
+    private transient Map<FitKey, Prepared> fitted;
     private transient String preparedFont;
+    private transient int preparedGeneration;
+    /** Bumped when glyph widths may have changed: a resource reload, or the Unicode / Japanese font options. */
+    private static volatile int fontGeneration;
+    /** The font options last seen by {@link #checkFontOptions()}; they change fonts without a resource reload. */
+    private static boolean lastForceUnicode;
+    private static boolean lastJapaneseGlyphs;
 
     /** Text laid out for drawing (visual order) and its width in font pixels. */
     public record Prepared(FormattedCharSequence seq, int width) {
@@ -133,6 +141,23 @@ public final class HudStyle {
     }
 
     private record PreparedKey(String text, int color, boolean bold) {}
+
+    private record FitKey(String name, int color, boolean bold, int room) {}
+
+    /** A map that drops its least recently used entry once it holds more than {@code max}. */
+    private static final class Lru<K, V> extends LinkedHashMap<K, V> {
+        private final int max;
+
+        Lru(int max) {
+            super(256, 0.75f, true);
+            this.max = max;
+        }
+
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+            return size() > max;
+        }
+    }
 
     /** The active style, loaded from disk on first use. */
     public static HudStyle get() {
@@ -280,20 +305,72 @@ public final class HudStyle {
      * Render thread only.
      */
     public Prepared prepared(String text, int color, boolean bold) {
-        if (prepared == null || !font.equals(preparedFont)) {
-            prepared = new HashMap<>();
-            preparedFont = font;
-        }
+        checkCaches();
         PreparedKey key = new PreparedKey(text, color, bold);
         Prepared result = prepared.get(key);
         if (result == null) {
-            // Amounts and forge times change, so old entries pile up; start over rather than grow without end.
-            if (prepared.size() >= 1024) prepared.clear();
-            FormattedCharSequence seq = text(text, color, bold).getVisualOrderText();
-            result = new Prepared(seq, Minecraft.getInstance().font.width(seq));
+            result = measure(text, color, bold);
             prepared.put(key, result);
         }
         return result;
+    }
+
+    /**
+     * {@code name} fitted into {@code room} font pixels as {@link SandboxWidget#fitName} does, kept like
+     * {@link #prepared}. Only the result is kept: the texts tried while searching for the fit are not.
+     */
+    public Prepared fitted(String name, int color, boolean bold, int room) {
+        checkCaches();
+        FitKey key = new FitKey(name, color, bold, room);
+        Prepared result = fitted.get(key);
+        if (result == null) {
+            result = SandboxWidget.fitName(name, room, text -> measure(text, color, bold), Prepared::width);
+            fitted.put(key, result);
+        }
+        return result;
+    }
+
+    /** Starts the text caches over when the font or its glyph widths changed. */
+    private void checkCaches() {
+        int generation = fontGeneration;
+        if (prepared == null || !font.equals(preparedFont) || generation != preparedGeneration) {
+            // Least recently used first: amounts and forge times change, so old entries pile up and are dropped,
+            // while the title, headers and rows drawn every frame stay.
+            prepared = new Lru<>(1024);
+            fitted = new Lru<>(256);
+            preparedFont = font;
+            preparedGeneration = generation;
+        }
+    }
+
+    private Prepared measure(String text, int color, boolean bold) {
+        FormattedCharSequence seq = text(text, color, bold).getVisualOrderText();
+        return new Prepared(seq, Minecraft.getInstance().font.width(seq));
+    }
+
+    /** Glyph widths may have changed (resource reload); cached text measurements must be redone. */
+    static void fontsChanged() {
+        fontGeneration++;
+    }
+
+    /**
+     * Notices the Force Unicode and Japanese glyph options, which rebuild the fonts without a resource reload.
+     * Called once per panel drawn rather than per text. Render thread only.
+     */
+    static void checkFontOptions() {
+        var options = Minecraft.getInstance().options;
+        boolean unicode = options.forceUnicodeFont().get();
+        boolean japanese = options.japaneseGlyphVariants().get();
+        if (unicode != lastForceUnicode || japanese != lastJapaneseGlyphs) {
+            lastForceUnicode = unicode;
+            lastJapaneseGlyphs = japanese;
+            fontsChanged();
+        }
+    }
+
+    /** Changes whenever cached text widths go stale. */
+    static int fontGeneration() {
+        return fontGeneration;
     }
 
     private FontDescription fontDescription() {
