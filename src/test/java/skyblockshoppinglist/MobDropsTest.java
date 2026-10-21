@@ -37,6 +37,20 @@ class MobDropsTest {
     }
 
     @Test
+    void nameplatesGiveTheMobName() {
+        assertEquals("Zealot", KillTracker.nameplateName("[Lv55] Zealot 13,000/13,000❤"));
+        assertEquals("Enderman", KillTracker.nameplateName("[Lv45] ☠ Enderman 4,500/4,500❤"));
+        assertEquals("Voidgloom Seraph", KillTracker.nameplateName("☠ Voidgloom Seraph 50M❤"));
+        assertNull(KillTracker.nameplateName("Click to talk"));
+    }
+
+    @Test
+    void neuVariantsShareTheBaseName() {
+        assertEquals("Zealot", MobDrops.baseName("Zealot (Enderchest)"));
+        assertEquals("Voidgloom Seraph IV", MobDrops.baseName("Voidgloom Seraph IV"));
+    }
+
+    @Test
     void rareDropLinesFromTheLog() {
         Matcher m = KillTracker.RARE_DROP.matcher("RARE DROP! Ender Necklace (+237 ✯ Magic Find)");
         assertTrue(m.matches());

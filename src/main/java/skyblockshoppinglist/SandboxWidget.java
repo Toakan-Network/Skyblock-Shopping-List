@@ -997,7 +997,9 @@ public class SandboxWidget {
         Set<String> targets = new HashSet<>();
         List<Line> lines = new ArrayList<>();
         for (String name : missing) {
-            MobDrops.Source source = MobDrops.best(name);
+            // The mob you've been killing for it, else the likeliest one.
+            MobDrops.Source source = MobDrops.forMob(name, KillTracker.mob(name));
+            if (source == null) source = MobDrops.best(name);
             if (source == null || !targets.add(ItemNames.normalize(name))) continue;
             lines.add(mobDropLine(name, source, KillTracker.kills(name), magicFind, style.killCases));
         }

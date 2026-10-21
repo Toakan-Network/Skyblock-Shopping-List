@@ -54,10 +54,35 @@ public final class MobDrops {
         return version;
     }
 
-    /** The item's best source (highest chance), or null when no mob drops it. */
+    /**
+     * The item's best source (highest chance below 100%), or null when no mob drops it by chance. A guaranteed
+     * drop needs no kill estimate.
+     */
     public static Source best(String item) {
-        List<Source> sources = drops.get(ItemNames.normalize(item));
-        return sources == null ? null : sources.get(0);
+        for (Source source : drops.getOrDefault(ItemNames.normalize(item), List.of())) {
+            if (source.chance < 1) return source;
+        }
+        return null;
+    }
+
+    /**
+     * The item's source for a mob named as its nameplate shows it ("Zealot"), or null when that mob doesn't drop it
+     * by chance. NEU splits some mobs ("Zealot", "Zealot (Enderchest)"); the plain name wins over a variant.
+     */
+    public static Source forMob(String item, String mob) {
+        if (mob == null) return null;
+        Source variant = null;
+        for (Source source : drops.getOrDefault(ItemNames.normalize(item), List.of())) {
+            if (source.chance >= 1) continue;
+            if (source.mob.equalsIgnoreCase(mob)) return source;
+            if (variant == null && baseName(source.mob).equalsIgnoreCase(mob)) variant = source;
+        }
+        return variant;
+    }
+
+    /** "Zealot (Enderchest)" -> "Zealot". */
+    static String baseName(String neuMob) {
+        return neuMob.replaceAll("\\s*\\([^)]*\\)", "").trim();
     }
 
     /** NEU's chance text ("2%", "40.65%", "0.00001%") as 0..1; null when it isn't a plain percentage. */
