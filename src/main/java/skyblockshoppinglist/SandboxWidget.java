@@ -713,7 +713,7 @@ public class SandboxWidget {
 
         List<RecipeManager.RecipeNode> tops = new ArrayList<>();
         int level = totalLevel;
-        RecipeManager.RecipeNode total = level == 0 ? response.total : ResourcesManager.levelTotalOf(response.trees, level);
+        RecipeManager.RecipeNode total = level == 0 ? response.total : ResourcesManager.levelTotalOf(response.trees, response.held, level);
         if (showTotal && !total.ingredients.isEmpty()) {
             tops.add(total);
             expandedNodes.putIfAbsent(makePathKey(LIST_KEY, total.name), true);

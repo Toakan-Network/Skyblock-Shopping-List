@@ -279,10 +279,12 @@ public class ResourcesManager {
         // Phase 2: expand what is still missing. A root does not draw on existing stock of itself: the
         // player asked for this many more. Phase 1 counted items craftable from materials as stock; owned
         // tells them apart from items actually held.
-        Map<String, Integer> owned = counts.copy();
+        SharedCounts owned = counts.copy();
         for (int i = 0; i < entries.size(); i++) {
             if (fromStock[i] > 0) owned.merge(entries.get(i).recipe, -fromStock[i], Integer::sum);
         }
+        // Held stock before the trees claim it, for the level totals (owned is used up below).
+        SharedCounts held = owned.copy();
         List<RecipeManager.RecipeNode> trees = new ArrayList<>();
         Map<String, Integer> heights = deepestFirst ? new HashMap<>() : null;
         for (int i = 0; i < entries.size(); i++) {
@@ -299,7 +301,7 @@ public class ResourcesManager {
             root.toCraft = craftedNow[i];
             trees.add(root);
         }
-        return new ShoppingResponse(trees, totalOf(trees, forging), messages);
+        return new ShoppingResponse(trees, totalOf(trees, forging), messages, held);
     }
 
     /** Raw materials (leaves) across all trees, summed; missing items first, most missing at the top. */
@@ -329,9 +331,11 @@ public class ResourcesManager {
     /**
      * The ingredients {@code level} steps below every entry, summed by name (level 1: what each recipe takes
      * directly, e.g. Refined Titanium). Items with nothing under them before that level (raw materials, or
-     * held intermediates) count as they are, so nothing the list needs drops out.
+     * held intermediates) count as they are, so nothing the list needs drops out. A row has at least all of
+     * {@code held} of its item (up to what it needs): stock given to rows deeper in the trees still counts.
      */
-    public static RecipeManager.RecipeNode levelTotalOf(List<RecipeManager.RecipeNode> trees, int level) {
+    public static RecipeManager.RecipeNode levelTotalOf(List<RecipeManager.RecipeNode> trees, Map<String, Integer> held,
+                                                        int level) {
         Map<String, int[]> sums = new LinkedHashMap<>();
         for (RecipeManager.RecipeNode tree : trees) {
             if (tree.ingredients == null) continue;
@@ -344,6 +348,14 @@ public class ResourcesManager {
         for (Map.Entry<String, int[]> e : sums.entrySet()) {
             int[] v = e.getValue();
             if (v[1] <= 0) continue;
+            int have = v[1] - v[0] - v[2];
+            int extra = Math.min(Math.max(0, held.getOrDefault(e.getKey(), 0)), v[1]) - have;
+            if (extra > 0) {
+                // Missing first: held stock is "have", not "to craft".
+                int fromMissing = Math.min(extra, v[0]);
+                v[0] -= fromMissing;
+                v[2] = Math.max(0, v[2] - (extra - fromMissing));
+            }
             RecipeManager.RecipeNode row = new RecipeManager.RecipeNode(e.getKey(), v[0], v[1], Collections.emptyList());
             row.toCraft = v[2];
             rows.add(row);
@@ -666,12 +678,15 @@ public class ResourcesManager {
         public final RecipeManager.RecipeNode total;
         /** What can be crafted right now from current stock, item name to count. */
         public final Map<String, Integer> craftable;
+        /** Held count per item by recipe name, before the trees claimed any (list entries' own copies left out). */
+        public final Map<String, Integer> held;
 
         public ShoppingResponse(List<RecipeManager.RecipeNode> trees, RecipeManager.RecipeNode total,
-                                Map<String, Integer> craftable) {
+                                Map<String, Integer> craftable, Map<String, Integer> held) {
             this.trees = trees;
             this.total = total;
             this.craftable = craftable;
+            this.held = held;
         }
     }
 
