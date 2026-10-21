@@ -1003,6 +1003,8 @@ public class SandboxWidget {
             if (source == null || !targets.add(ItemNames.normalize(name))) continue;
             lines.add(mobDropLine(name, source, KillTracker.kills(name), magicFind, style.killCases));
         }
+        // At the bottom, so you can see which Magic Find the estimates use.
+        if (style.showMobDrops) lines.add(new Line(KillTracker.magicFindLabel(), Tone.DONE));
         KillTracker.setTargets(targets);
         mobDropLines = List.copyOf(lines);
     }
@@ -1159,7 +1161,8 @@ public class SandboxWidget {
     /** A Mob drops line still in reach, then an overdue one. */
     private static final List<Line> SAMPLE_MOB_DROPS = List.of(
         new Line("Ender Necklace (Zealot): 312 kills, best 15, you 88, worst 400 left", Tone.TEXT),
-        new Line("Summoning Eye (Zealot): 1,020 kills, best 0, you 0, worst 0 left", Tone.OTHER));
+        new Line("Summoning Eye (Zealot): 1,020 kills, best 0, you 0, worst 0 left", Tone.OTHER),
+        new Line("Magic Find: 237 (last drop)", Tone.DONE));
     private static final List<Line> SAMPLE_NPC_PRICE =
         Line.plain(List.of("Buy: 1,240 coins (2/3 items)", "Sell: 310 coins (3/3 items)"));
 

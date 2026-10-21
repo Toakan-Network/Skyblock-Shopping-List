@@ -50,6 +50,8 @@ public final class KillTracker {
         /** The mob each item's kills were last counted from, as its nameplate shows it. */
         Map<String, String> mobs = new HashMap<>();
         int lastMagicFind;
+        /** Where {@link #lastMagicFind} was read: "tab list" or "last drop". */
+        String magicFindFrom;
     }
 
     /** A mob the player hit: when, and its name from the nameplate then. */
@@ -179,8 +181,9 @@ public final class KillTracker {
     private static synchronized void dropped(String item, Integer magicFind) {
         State s = load();
         boolean change = s.kills.remove(ItemNames.normalize(item)) != null;
-        if (magicFind != null && magicFind != s.lastMagicFind) {
+        if (magicFind != null && (magicFind != s.lastMagicFind || !"last drop".equals(s.magicFindFrom))) {
             s.lastMagicFind = magicFind;
+            s.magicFindFrom = "last drop";
             change = true;
         }
         if (change) changed();
@@ -188,9 +191,19 @@ public final class KillTracker {
 
     private static synchronized void setMagicFind(int magicFind) {
         State s = load();
-        if (s.lastMagicFind == magicFind) return;
+        if (s.lastMagicFind == magicFind && "tab list".equals(s.magicFindFrom)) return;
         s.lastMagicFind = magicFind;
+        s.magicFindFrom = "tab list";
         changed();
+    }
+
+    /** "Magic Find: 237 (last drop)": the value the estimates use and where it came from. */
+    public static synchronized String magicFindLabel() {
+        int set = HudStyle.get().magicFind;
+        if (set > 0) return "Magic Find: " + set + " (setting)";
+        State s = load();
+        if (s.magicFindFrom == null && s.lastMagicFind <= 0) return "Magic Find: not read yet (0)";
+        return "Magic Find: " + s.lastMagicFind + (s.magicFindFrom == null ? "" : " (" + s.magicFindFrom + ")");
     }
 
     /** Kills since {@code item} last dropped. */
@@ -243,6 +256,7 @@ public final class KillTracker {
         s.kills = new HashMap<>(state.kills);
         s.mobs = new HashMap<>(state.mobs);
         s.lastMagicFind = state.lastMagicFind;
+        s.magicFindFrom = state.magicFindFrom;
         JsonFiles.writeAsync(FilePathManager.killTrackerJson(), () -> s);
     }
 }
