@@ -204,9 +204,13 @@ public final class KillTracker {
         return title.contains("Your SkyBlock Profile");
     }
 
-    /** Reads Magic Find from the open profile menu's item lore. */
+    /**
+     * Reads Magic Find from the open profile menu's Misc Stats item. Only that item: the equipped armor shown in
+     * the same menu can carry its own "Magic Find" bonus line.
+     */
     public static void readProfileMenu(net.minecraft.world.inventory.AbstractContainerMenu menu) {
         for (net.minecraft.world.item.ItemStack stack : MenuSlots.containerStacks(menu)) {
+            if (!ItemNames.clean(stack.getHoverName().getString()).contains("Misc Stats")) continue;
             net.minecraft.world.item.component.ItemLore lore = stack.get(net.minecraft.core.component.DataComponents.LORE);
             if (lore == null) continue;
             for (Component line : lore.lines()) {
