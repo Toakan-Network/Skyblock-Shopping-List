@@ -36,6 +36,8 @@ public final class KillTracker {
         "^[A-Z ]*DROP! (?:\\((?:[\\d,]+x )?([^()]+)\\)|([^()]+?))(?: \\(\\+([\\d,]+)%?[^()]*Magic Find\\))?(?: \\(\\d+\\))?$");
     /** The tab list's Stats widget, "Magic Find: 237" after a star (only while the player shows that stat there). */
     private static final Pattern TAB_MAGIC_FIND = Pattern.compile("^Magic Find:\\D*([\\d,]+)");
+    /** The profile menu's Misc Stats lore, "✯ Magic Find 237" (confirmed by the user). */
+    private static final Pattern MENU_MAGIC_FIND = Pattern.compile("Magic Find\\D*([\\d,]+)");
     /** Nameplate parts around the mob's name: "[Lv55] " in front, "13,000/13,000" or "50M" and a heart after it. */
     private static final Pattern LEVEL = Pattern.compile("^\\[Lv\\d+]\\s*");
     private static final String HEART = "\u2764";
@@ -50,7 +52,7 @@ public final class KillTracker {
         /** The mob each item's kills were last counted from, as its nameplate shows it. */
         Map<String, String> mobs = new HashMap<>();
         int lastMagicFind;
-        /** Where {@link #lastMagicFind} was read: "tab list" or "last drop". */
+        /** Where {@link #lastMagicFind} was read: "tab list", "profile" or "last drop". */
         String magicFindFrom;
     }
 
@@ -195,6 +197,35 @@ public final class KillTracker {
         s.lastMagicFind = magicFind;
         s.magicFindFrom = "tab list";
         changed();
+    }
+
+    /** The profile menu ("Your SkyBlock Profile", confirmed by the user), whose Misc Stats item lists Magic Find. */
+    public static boolean isProfileMenu(String title) {
+        return title.contains("Your SkyBlock Profile");
+    }
+
+    /** Reads Magic Find from the open profile menu's item lore. */
+    public static void readProfileMenu(net.minecraft.world.inventory.AbstractContainerMenu menu) {
+        for (net.minecraft.world.item.ItemStack stack : MenuSlots.containerStacks(menu)) {
+            net.minecraft.world.item.component.ItemLore lore = stack.get(net.minecraft.core.component.DataComponents.LORE);
+            if (lore == null) continue;
+            for (Component line : lore.lines()) {
+                String text = ItemNames.clean(line.getString());
+                Matcher m = MENU_MAGIC_FIND.matcher(text);
+                if (!m.find()) continue;
+                Integer magicFind = parseInt(m.group(1));
+                if (magicFind == null) continue;
+                ShoppingList.debug("Magic Find from profile menu: {}", text);
+                synchronized (KillTracker.class) {
+                    State s = load();
+                    if (s.lastMagicFind == magicFind && "profile".equals(s.magicFindFrom)) return;
+                    s.lastMagicFind = magicFind;
+                    s.magicFindFrom = "profile";
+                    changed();
+                }
+                return;
+            }
+        }
     }
 
     /** "Magic Find: 237 (last drop)": the value the estimates use and where it came from. */
