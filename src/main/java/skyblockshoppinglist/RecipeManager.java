@@ -121,6 +121,7 @@ public class RecipeManager {
     public synchronized void reload() {
         loadRecipes();
         NpcPrices.reload();
+        MobDrops.reload();
         ItemDescriptions.reload();
         // New recipes can bring new item names; add them to the current profile (once a profile is known).
         FilePathManager.seedResources();

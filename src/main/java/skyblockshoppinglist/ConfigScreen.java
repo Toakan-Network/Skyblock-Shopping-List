@@ -137,6 +137,33 @@ public final class ConfigScreen {
                     d.forgingSlots, s -> s.forgingSlots, (s, v) -> s.forgingSlots = v))
                 .option(placement("Forging panel", d.forgingPlacement,
                     s -> s.forgingPlacement, (s, v) -> s.forgingPlacement = v))
+                .option(toggle("Mob drops section", "For items on the list that drop from mobs: kills since the last "
+                    + "drop and about how many more it takes. Every combat kill counts, whatever the mob.",
+                    d.showMobDrops, s -> s.showMobDrops, (s, v) -> s.showMobDrops = v))
+                .option(placement("Mob drops panel", d.mobDropsPlacement,
+                    s -> s.mobDropsPlacement, (s, v) -> s.mobDropsPlacement = v))
+                .option(styled(Option.<HudStyle.KillCases>createBuilder()
+                    .name(Component.literal("Mob drops estimates"))
+                    .description(describe("Kills left until the drop.\nBest: lucky with your Magic Find (a quarter "
+                        + "of players have it by then).\nYou: the average with your Magic Find.\nWorst: the average "
+                        + "with no Magic Find.\nAll: the three together."))
+                    .controller(opt -> EnumControllerBuilder.create(opt).enumClass(HudStyle.KillCases.class)
+                        .formatValue(v -> Component.literal(switch (v) {
+                            case ALL -> "All";
+                            case BEST -> "Best";
+                            case YOUR -> "You";
+                            case WORST -> "Worst";
+                        }))),
+                    d.killCases, s -> s.killCases, (s, v) -> s.killCases = v))
+                .option(slider("Magic Find", "Your Magic Find for the estimates. 0 reads it from the tab list "
+                    + "(Stats widget) or the last RARE DROP message.", 0, 1000, d.magicFind,
+                    s -> s.magicFind, (s, v) -> s.magicFind = v))
+                .option(ButtonOption.createBuilder()
+                    .name(Component.literal("Reset kill counts"))
+                    .text(Component.literal("Reset"))
+                    .description(OptionDescription.of(Component.literal("Start every Mob drops kill count from 0.")))
+                    .action((screen, button) -> KillTracker.resetAll())
+                    .build())
                 .option(toggle("NPC price section", "Show at the bottom what every raw material on the list costs to "
                     + "buy from NPCs, and what NPCs pay for it. Only coin prices; items no NPC sells or buys are left out "
                     + "(the item count shows how many have a price).", d.showNpcPrice,
@@ -307,6 +334,9 @@ public final class ConfigScreen {
                 .option(size("Forging text size", "Size of the Forging section.", d.forgingScale,
                     s -> s.forgingScale, (s, v) -> s.forgingScale = v))
                 .option(align("Forging alignment", d.forgingAlign, s -> s.forgingAlign, (s, v) -> s.forgingAlign = v))
+                .option(size("Mob drops text size", "Size of the Mob drops section.", d.mobDropsScale,
+                    s -> s.mobDropsScale, (s, v) -> s.mobDropsScale = v))
+                .option(align("Mob drops alignment", d.mobDropsAlign, s -> s.mobDropsAlign, (s, v) -> s.mobDropsAlign = v))
                 .option(toggle("Text shadow", "Draw a shadow under HUD text.", d.textShadow,
                     s -> s.textShadow, (s, v) -> s.textShadow = v))
                 .option(toggle("Bold recipe names", "Show the recipes on your list (top rows) in bold.", d.boldRootNames,
@@ -368,6 +398,10 @@ public final class ConfigScreen {
                 .option(colour("Forging text", d.forgingText, s -> s.forgingText, (s, v) -> s.forgingText = v))
                 .option(colour("Forging text (not on list)", d.forgingOtherText,
                     s -> s.forgingOtherText, (s, v) -> s.forgingOtherText = v))
+                .option(colour("Mob drops header", d.mobDropsHeader, s -> s.mobDropsHeader, (s, v) -> s.mobDropsHeader = v))
+                .option(colour("Mob drops text", d.mobDropsText, s -> s.mobDropsText, (s, v) -> s.mobDropsText = v))
+                .option(colour("Mob drops text (overdue)", d.mobDropsOverdueText,
+                    s -> s.mobDropsOverdueText, (s, v) -> s.mobDropsOverdueText = v))
                 .build())
             .build();
     }

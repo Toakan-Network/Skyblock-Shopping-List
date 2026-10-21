@@ -49,12 +49,22 @@ public final class HudStyle {
     /** Forging lines for items the shopping list doesn't need (Forging section set to All). */
     public int forgingOtherText = 0xFFFF6B6B;
 
+    public int mobDropsHeader = 0xFFFFFF55;
+    public int mobDropsText = 0xFFFF9D00;
+    /** Mob drops lines past the 0 Magic Find average: the drop is overdue. */
+    public int mobDropsOverdueText = 0xFFFF6B6B;
+
     /** Which forge slots the Forging section shows: none, those making something on the list, or all of them. */
     public enum ForgingSlots { OFF, LISTED, ALL }
     /** Which rows show the forge time still ahead, e.g. [25hrs]. */
     public enum ForgeTimes { OFF, TOP_LEVEL, ALL }
     /** Which rows get a progress bar behind them: none, the top row, the top row and its ingredients, or all. */
     public enum ProgressBars { OFF, TOP_LEVEL, FIRST_LEVEL, ALL }
+    /**
+     * Which kill estimates the Mob drops panel shows: lucky with your Magic Find, the average with it, the average
+     * with none, or all three.
+     */
+    public enum KillCases { ALL, BEST, YOUR, WORST }
     /** How the HUD size reacts to the window: with its height, with GUI Scale, or not at all. */
     public enum Sizing { WINDOW, GUI_SCALE, FIXED }
 
@@ -82,9 +92,11 @@ public final class HudStyle {
     public float titleScale = 1.0f;
     public float craftableScale = 1.0f;
     public float forgingScale = 1.0f;
+    public float mobDropsScale = 1.0f;
     public Align titleAlign = Align.CENTRE;
     public Align craftableAlign = Align.CENTRE;
     public Align forgingAlign = Align.CENTRE;
+    public Align mobDropsAlign = Align.CENTRE;
     public boolean textShadow = false;
     public boolean boldRootNames = true;
 
@@ -111,10 +123,16 @@ public final class HudStyle {
     /** Progress bars on the recipe trees, and separately on the Total. */
     public ProgressBars progressBars = ProgressBars.OFF;
     public ProgressBars totalProgressBars = ProgressBars.OFF;
+    /** Kills-left estimates for list items that drop from mobs. */
+    public boolean showMobDrops = false;
+    public KillCases killCases = KillCases.ALL;
+    /** Magic Find for the estimates; 0 reads it from the tab list or the last RARE DROP message. */
+    public int magicFind = 0;
     // Panel placement is layout, so presets carry it.
     public Placement craftablePlacement = Placement.MAIN_PANEL;
     public Placement forgingPlacement = Placement.MAIN_PANEL;
     public Placement totalPlacement = Placement.MAIN_PANEL;
+    public Placement mobDropsPlacement = Placement.OWN_PANEL;
 
     private static volatile HudStyle current;
     /** Style drawn instead of the active one on this thread (the Appearance preview), or null. */
@@ -241,6 +259,9 @@ public final class HudStyle {
         hideFinished = from.hideFinished;
         progressBars = from.progressBars;
         totalProgressBars = from.totalProgressBars;
+        showMobDrops = from.showMobDrops;
+        killCases = from.killCases;
+        magicFind = from.magicFind;
     }
 
     /** Forgets the in-memory copy (after a reset deleted the file). */
@@ -261,13 +282,18 @@ public final class HudStyle {
         titleScale = clamp(titleScale, 0.5f, 2.0f);
         craftableScale = clamp(craftableScale, 0.5f, 2.0f);
         forgingScale = clamp(forgingScale, 0.5f, 2.0f);
+        mobDropsScale = clamp(mobDropsScale, 0.5f, 2.0f);
         hudScale = clamp(hudScale, 50, 300);
+        magicFind = clamp(magicFind, 0, 1000);
         if (titleAlign == null) titleAlign = Align.CENTRE;
         if (craftableAlign == null) craftableAlign = Align.CENTRE;
         if (forgingAlign == null) forgingAlign = Align.CENTRE;
+        if (mobDropsAlign == null) mobDropsAlign = Align.CENTRE;
         if (craftablePlacement == null) craftablePlacement = Placement.MAIN_PANEL;
         if (forgingPlacement == null) forgingPlacement = Placement.MAIN_PANEL;
         if (totalPlacement == null) totalPlacement = Placement.MAIN_PANEL;
+        if (mobDropsPlacement == null) mobDropsPlacement = Placement.OWN_PANEL;
+        if (killCases == null) killCases = KillCases.ALL;
         if (font == null || Identifier.tryParse(font) == null) font = DEFAULT_FONT;
         if (amountFormat == null) amountFormat = AmountFormat.REMAINING;
         if (forgeTimes == null) forgeTimes = ForgeTimes.ALL;

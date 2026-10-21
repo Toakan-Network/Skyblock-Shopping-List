@@ -38,6 +38,8 @@ public class FilePathManager {
     public static File forgeJson() { return profileFile("forge.json"); }
     /** Quick Forge % from the HOTM menu and the mayor forge bonus, for forge-time estimates. */
     public static File forgeSpeedJson() { return profileFile("forge_speed.json"); }
+    /** Kills since each Mob drops item last dropped, and the last Magic Find seen in a RARE DROP message. */
+    public static File killTrackerJson() { return profileFile("kill_tracker.json"); }
     /** The shopping list. */
     public static File shoppingListJson() { return profileFile("shopping_list.json"); }
 
@@ -59,6 +61,8 @@ public class FilePathManager {
     public static final File RECIPE_YIELDS_JSON = new File(DATA_DIR, "recipe_yields.json");
     /** Base forge time in seconds per forge item, written by the recipe fetch. */
     public static final File FORGE_TIMES_JSON = new File(DATA_DIR, "forge_times.json");
+    /** Item name to the mobs that drop it with the chance per kill, highest first; written by the recipe fetch. */
+    public static final File MOB_DROPS_JSON = new File(DATA_DIR, "mob_drops.json");
     /** Item name to "RARITY|TYPE" from its lore, written by the recipe fetch; feeds the List tab filters. */
     public static final File ITEM_TYPES_JSON = new File(DATA_DIR, "item_types.json");
     /** Item name to the sack that holds it ("Enchanted Mining Sack"), written by the recipe fetch. */

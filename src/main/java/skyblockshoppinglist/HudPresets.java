@@ -51,6 +51,7 @@ public final class HudPresets {
         Size craftable;
         Size forging;
         Size total;
+        Size mobDrops;
     }
 
     public static final class Size {
@@ -83,6 +84,7 @@ public final class HudPresets {
         preset.layout.craftable = size(widget.getPanelRect(SandboxWidget.Panel.CRAFTABLE));
         preset.layout.forging = size(widget.getPanelRect(SandboxWidget.Panel.FORGING));
         preset.layout.total = size(widget.getPanelRect(SandboxWidget.Panel.TOTAL));
+        preset.layout.mobDrops = size(widget.getPanelRect(SandboxWidget.Panel.MOB_DROPS));
         return preset;
     }
 
@@ -103,6 +105,7 @@ public final class HudPresets {
             applySize(SandboxWidget.Panel.CRAFTABLE, preset.layout.craftable);
             applySize(SandboxWidget.Panel.FORGING, preset.layout.forging);
             applySize(SandboxWidget.Panel.TOTAL, preset.layout.total);
+            applySize(SandboxWidget.Panel.MOB_DROPS, preset.layout.mobDrops);
         }
     }
 
