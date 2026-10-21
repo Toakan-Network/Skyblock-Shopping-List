@@ -238,6 +238,7 @@ public class ResourcesManager {
     private ShoppingResponse getShoppingList(List<ShoppingListEntry> entries, Map<String, Integer> snapshot,
                                              boolean deepestFirst) {
         Map<String, Map<String, Integer>> forging = RecipeManager.getInstance().getAllRecipes();
+        Map<String, Integer> yields = RecipeManager.getInstance().getAllYields();
         // Every item in the trees, by the name the recipes use, with the count it is tracked under (which may be
         // another spelling, e.g. "☘ Fine Jade Gemstone" for "Fine Jade Gemstone").
         java.util.Set<String> names = new java.util.LinkedHashSet<>();
@@ -268,7 +269,7 @@ public class ResourcesManager {
             required[i] = Math.max(entry.amount, need);
             int old = highestPossibleResources.getOrDefault(entry.recipe, 0);
             if (need > 0) {
-                buildRecipe(entry.recipe, need, forging, highestPossibleResources, currentAvailableResources, messages, 0);
+                buildRecipe(entry.recipe, need, forging, yields, highestPossibleResources, currentAvailableResources, messages, 0);
             }
             int crafted = highestPossibleResources.getOrDefault(entry.recipe, 0) - old;
             craftedNow[i] = Math.max(0, Math.min(need, crafted));
@@ -290,9 +291,9 @@ public class ResourcesManager {
             Map<String, Integer> recipe = forging.get(entry.recipe);
             if (recipe != null) {
                 // Expand both what is missing and what can be crafted now, so the steps still to do show.
-                giveBack(recipe, craftedNow[i], highestPossibleResources);
-                ingredients = expandIngredients(recipe, toCraft[i] + craftedNow[i], forging, highestPossibleResources,
-                    owned, 1, heights);
+                giveBack(recipe, RecipeManager.crafts(yields, entry.recipe, craftedNow[i]), highestPossibleResources);
+                ingredients = expandIngredients(recipe, RecipeManager.crafts(yields, entry.recipe, toCraft[i] + craftedNow[i]),
+                    forging, yields, highestPossibleResources, owned, 1, heights);
             }
             RecipeManager.RecipeNode root = new RecipeManager.RecipeNode(entry.recipe, toCraft[i], required[i], ingredients);
             root.toCraft = craftedNow[i];
@@ -390,23 +391,24 @@ public class ResourcesManager {
     }
 
     private void buildRecipe(String currentItem, int multiplier, Map<String, Map<String, Integer>> forging,
-                            Map<String, Integer> highestPossibleResources, Map<String, Integer> currentAvailableResources,
-                            Map<String, Integer> messages, int depth) {
+                            Map<String, Integer> yields, Map<String, Integer> highestPossibleResources,
+                            Map<String, Integer> currentAvailableResources, Map<String, Integer> messages, int depth) {
         Map<String, Integer> recipe = forging.get(currentItem);
         if (recipe == null || depth > RecipeManager.MAX_DEPTH) return;
+        int crafts = RecipeManager.crafts(yields, currentItem, multiplier);
         Map<String, Integer> madeResources = new LinkedHashMap<>();
         for (Map.Entry<String, Integer> entry : recipe.entrySet()) {
             String item = entry.getKey();
             int quantity = entry.getValue();
             if (forging.containsKey(item)) {
-                int need = Math.max(0, Counts.minus(Counts.times(quantity, multiplier), currentAvailableResources.getOrDefault(item, 0)));
+                int need = Math.max(0, Counts.minus(Counts.times(quantity, crafts), currentAvailableResources.getOrDefault(item, 0)));
                 if (need > 0) {
-                    buildRecipe(item, need, forging, highestPossibleResources, currentAvailableResources, messages, depth + 1);
+                    buildRecipe(item, need, forging, yields, highestPossibleResources, currentAvailableResources, messages, depth + 1);
                     madeResources.put(item, currentAvailableResources.getOrDefault(item, 0));
                     currentAvailableResources.put(item, 0);
                 } else {
-                    madeResources.put(item, Counts.times(quantity, multiplier));
-                    currentAvailableResources.put(item, Counts.minus(currentAvailableResources.getOrDefault(item, 0), Counts.times(quantity, multiplier)));
+                    madeResources.put(item, Counts.times(quantity, crafts));
+                    currentAvailableResources.put(item, Counts.minus(currentAvailableResources.getOrDefault(item, 0), Counts.times(quantity, crafts)));
                 }
             }
         }
@@ -418,22 +420,24 @@ public class ResourcesManager {
                         Counts.plus(currentAvailableResources.getOrDefault(item, 0), quantity));
             }
         }
-        check(currentItem, multiplier, forging, highestPossibleResources, currentAvailableResources, messages);
+        check(currentItem, multiplier, forging, yields, highestPossibleResources, currentAvailableResources, messages);
     }
 
     private void check(String currentItem, int multiplier, Map<String, Map<String, Integer>> forging,
-                       Map<String, Integer> highestPossibleResources, Map<String, Integer> currentAvailableResources,
-                       Map<String, Integer> messages) {
+                       Map<String, Integer> yields, Map<String, Integer> highestPossibleResources,
+                       Map<String, Integer> currentAvailableResources, Map<String, Integer> messages) {
         Map<String, Integer> recipe = forging.get(currentItem);
         if (recipe == null) return;
 
+        int yield = Math.max(1, yields.getOrDefault(currentItem, 1));
         List<Integer> count = new ArrayList<>();
         Map<String, Integer> possibleItemsDict = new LinkedHashMap<>();
 
         for (Map.Entry<String, Integer> entry : recipe.entrySet()) {
             String baseItem = entry.getKey();
             int quantityOfBaseItem = Math.max(1, entry.getValue());
-            int possibleItems = currentAvailableResources.getOrDefault(baseItem, 0) / quantityOfBaseItem;
+            // Items this ingredient is enough for: crafts it covers, times the items each craft makes.
+            int possibleItems = Counts.times(currentAvailableResources.getOrDefault(baseItem, 0) / quantityOfBaseItem, yield);
             possibleItemsDict.put(baseItem, possibleItems);
             count.add(Counts.minus(multiplier, possibleItems));
         }
@@ -453,24 +457,24 @@ public class ResourcesManager {
                           messages.getOrDefault(currentItem, 0) + amountAbleToCraft);
         }
 
-        allocate(currentItem, multiplier, maxcount, possibleItemsDict, forging,
+        allocate(currentItem, multiplier, maxcount, possibleItemsDict, forging, yields,
                 highestPossibleResources, currentAvailableResources);
     }
 
     private void allocate(String currentItem, int multiplier, int maxcount, Map<String, Integer> possibleItemsDict,
-                          Map<String, Map<String, Integer>> forging, Map<String, Integer> highestPossibleResources,
-                          Map<String, Integer> currentAvailableResources) {
+                          Map<String, Map<String, Integer>> forging, Map<String, Integer> yields,
+                          Map<String, Integer> highestPossibleResources, Map<String, Integer> currentAvailableResources) {
         Map<String, Integer> recipe = forging.get(currentItem);
         if (recipe == null) return;
 
-        int amountAbleToCraftOfHigherMaterial = multiplier - maxcount;
+        int craftsOfHigherMaterial = RecipeManager.crafts(yields, currentItem, multiplier - maxcount);
 
         for (Map.Entry<String, Integer> entry : recipe.entrySet()) {
             String baseItem = entry.getKey();
             int quantityOfBaseItem = entry.getValue();
             highestPossibleResources.put(baseItem,
                    Counts.minus(highestPossibleResources.getOrDefault(baseItem, 0),
-                   Counts.times(quantityOfBaseItem, amountAbleToCraftOfHigherMaterial)));
+                   Counts.times(quantityOfBaseItem, craftsOfHigherMaterial)));
         }
 
         if (multiplier != 0) {
@@ -478,17 +482,17 @@ public class ResourcesManager {
                 String baseItem = entry.getKey();
                 int quantityOfBaseItem = entry.getValue();
                 int possibleItems = possibleItemsDict.getOrDefault(baseItem, 0);
-                int amountLeftToAllocate = Math.min(multiplier, possibleItems);
+                int craftsLeftToAllocate = RecipeManager.crafts(yields, currentItem, Math.min(multiplier, possibleItems));
                 currentAvailableResources.put(baseItem,
                        Counts.minus(currentAvailableResources.getOrDefault(baseItem, 0),
-                       Counts.times(quantityOfBaseItem, amountLeftToAllocate)));
+                       Counts.times(quantityOfBaseItem, craftsLeftToAllocate)));
             }
         }
     }
 
     /**
-     * Phase 1 used up the ingredients of everything it crafted. Before expanding {@code crafted} of an item into
-     * its ingredients, those are put back so the ingredient rows can draw on them again.
+     * Phase 1 used up the ingredients of everything it crafted. Before expanding {@code crafted} crafts of an item
+     * into its ingredients, those are put back so the ingredient rows can draw on them again.
      */
     private static void giveBack(Map<String, Integer> recipe, int crafted, Map<String, Integer> highestPossibleResources) {
         if (crafted <= 0) return;
@@ -504,8 +508,8 @@ public class ResourcesManager {
      * ingredients, so every crafting step still to do shows; held items are not expanded.
      */
     private RecipeManager.RecipeNode expandRequiredRecipe(String currentName, int needed, Map<String, Map<String, Integer>> forging,
-                                                          Map<String, Integer> highestPossibleResources, Map<String, Integer> owned,
-                                                          int depth, Map<String, Integer> heights) {
+                                                          Map<String, Integer> yields, Map<String, Integer> highestPossibleResources,
+                                                          Map<String, Integer> owned, int depth, Map<String, Integer> heights) {
         int have = highestPossibleResources.getOrDefault(currentName, 0);
         int fromStock = Math.max(0, Math.min(have, needed));
         highestPossibleResources.put(currentName, have - fromStock);
@@ -521,8 +525,9 @@ public class ResourcesManager {
             node = new RecipeManager.RecipeNode(currentName, missing, needed, Collections.emptyList());
         } else {
             int toCraft = fromStock - fromHeld;
-            giveBack(recipe, toCraft, highestPossibleResources);
-            List<RecipeManager.RecipeNode> ingredients = expandIngredients(recipe, missing + toCraft, forging,
+            giveBack(recipe, RecipeManager.crafts(yields, currentName, toCraft), highestPossibleResources);
+            List<RecipeManager.RecipeNode> ingredients = expandIngredients(recipe,
+                RecipeManager.crafts(yields, currentName, missing + toCraft), forging, yields,
                 highestPossibleResources, owned, depth + 1, heights);
             node = new RecipeManager.RecipeNode(currentName, missing, needed, ingredients);
         }
@@ -531,18 +536,19 @@ public class ResourcesManager {
     }
 
     /**
-     * {@code times} of a recipe's ingredients as rows, in recipe order. They claim held stock in recipe order, or
-     * with {@code heights} (deepest steps first) the one with the most crafting steps under it first.
+     * {@code times} crafts of a recipe's ingredients as rows, in recipe order. They claim held stock in recipe
+     * order, or with {@code heights} (deepest steps first) the one with the most crafting steps under it first.
      */
     private List<RecipeManager.RecipeNode> expandIngredients(Map<String, Integer> recipe, int times,
                                                              Map<String, Map<String, Integer>> forging,
+                                                             Map<String, Integer> yields,
                                                              Map<String, Integer> highestPossibleResources,
                                                              Map<String, Integer> owned, int depth, Map<String, Integer> heights) {
         List<String> names = new ArrayList<>(recipe.keySet());
         RecipeManager.RecipeNode[] rows = new RecipeManager.RecipeNode[names.size()];
         for (int k : stockOrder(names, forging, heights)) {
             rows[k] = expandRequiredRecipe(names.get(k), Counts.times(recipe.get(names.get(k)), times), forging,
-                highestPossibleResources, owned, depth, heights);
+                yields, highestPossibleResources, owned, depth, heights);
         }
         return new ArrayList<>(java.util.Arrays.asList(rows));
     }

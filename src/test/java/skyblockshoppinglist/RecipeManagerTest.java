@@ -32,4 +32,13 @@ class RecipeManagerTest {
         // B -> A closed the loop A -> B -> A; only that edge goes.
         assertEquals(Map.of("X", 1), out.get("B"));
     }
+
+    @Test
+    void craftsRoundUpWhenACraftMakesSeveral() {
+        Map<String, Integer> yields = Map.of("Blaze Powder", 2);
+        assertEquals(211, RecipeManager.crafts(yields, "Blaze Powder", 422));
+        assertEquals(212, RecipeManager.crafts(yields, "Blaze Powder", 423));
+        assertEquals(0, RecipeManager.crafts(yields, "Blaze Powder", 0));
+        assertEquals(7, RecipeManager.crafts(yields, "Enchanted Eye of Ender", 7));
+    }
 }

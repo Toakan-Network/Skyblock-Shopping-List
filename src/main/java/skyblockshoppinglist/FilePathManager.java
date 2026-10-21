@@ -55,6 +55,8 @@ public class FilePathManager {
     public static final File GEMSTONE_RECIPES_JSON = new File(DATA_DIR, "gemstone_recipes.json");
     public static final File REMOTE_RECIPES_JSON = new File(DATA_DIR, "recipes_remote.json");
     public static final File REMOTE_FORGE_JSON = new File(DATA_DIR, "recipes_remote_forge.json");
+    /** Items one craft makes when that is more than one (Blaze Powder: 2), written by the recipe fetch. */
+    public static final File RECIPE_YIELDS_JSON = new File(DATA_DIR, "recipe_yields.json");
     /** Base forge time in seconds per forge item, written by the recipe fetch. */
     public static final File FORGE_TIMES_JSON = new File(DATA_DIR, "forge_times.json");
     /** Item name to "RARITY|TYPE" from its lore, written by the recipe fetch; feeds the List tab filters. */
