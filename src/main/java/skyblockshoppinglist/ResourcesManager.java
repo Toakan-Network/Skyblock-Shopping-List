@@ -248,58 +248,58 @@ public class ResourcesManager {
         Map<String, Integer> currentAvailableResources = counts.copy();
         Map<String, Integer> messages = new LinkedHashMap<>();
 
-        // Phase 1: craft what can be crafted, entry by entry, and note how many of each are still to make.
-        int[] toCraft = new int[entries.size()];
-        int[] fromStock = new int[entries.size()];
-        // How many of each entry can be crafted right now from what is held (shown as "can craft", not as held).
-        int[] craftedNow = new int[entries.size()];
-        int[] required = new int[entries.size()];
-        for (int i = 0; i < entries.size(); i++) {
-            ShoppingListEntry entry = entries.get(i);
+        // Phase 2 tells items craftable from materials apart from items actually held.
+        SharedCounts owned = counts.copy();
+        // Held stock before the trees claim it, for the level totals (owned is used up below).
+        SharedCounts held = counts.copy();
+        List<RecipeManager.RecipeNode> trees = new ArrayList<>();
+        Map<String, Integer> heights = deepestFirst ? new HashMap<>() : null;
+        // Both phases run per entry, so an entry claims its stock before the next one plans its crafts.
+        for (ShoppingListEntry entry : entries) {
+            // Phase 1: craft what can be crafted and note how many are still to make.
             // Have total: done once this many are held. Add more: once startCount + amount are held (as
             // SandboxWidget checks it), so copies made since the entry was added count.
             int target = (entry.isHaveTotal() ? 0 : entry.startCount) + entry.amount;
             // Held copies towards the target are kept for this entry, so later entries can't use them as well.
-            int held = Math.max(0, currentAvailableResources.getOrDefault(entry.recipe, 0));
-            fromStock[i] = Math.min(held, target);
-            int need = target - fromStock[i];
-            currentAvailableResources.put(entry.recipe, held - fromStock[i]);
-            highestPossibleResources.merge(entry.recipe, -fromStock[i], Integer::sum);
+            int stock = Math.max(0, currentAvailableResources.getOrDefault(entry.recipe, 0));
+            int fromStock = Math.min(stock, target);
+            int need = target - fromStock;
+            currentAvailableResources.put(entry.recipe, stock - fromStock);
+            highestPossibleResources.merge(entry.recipe, -fromStock, Integer::sum);
             // What the root row shows as required: the amount, or more if an Add more entry has lost stock since.
-            required[i] = Math.max(entry.amount, need);
+            int required = Math.max(entry.amount, need);
             int old = highestPossibleResources.getOrDefault(entry.recipe, 0);
             if (need > 0) {
                 buildRecipe(entry.recipe, need, forging, yields, highestPossibleResources, currentAvailableResources, messages, 0);
             }
             int crafted = highestPossibleResources.getOrDefault(entry.recipe, 0) - old;
-            craftedNow[i] = Math.max(0, Math.min(need, crafted));
-            toCraft[i] = Math.max(0, need - crafted);
-        }
+            // How many can be crafted right now from what is held (shown as "can craft", not as held).
+            int craftedNow = Math.max(0, Math.min(need, crafted));
+            int toCraft = Math.max(0, need - crafted);
 
-        // Phase 2: expand what is still missing. A root does not draw on existing stock of itself: the
-        // player asked for this many more. Phase 1 counted items craftable from materials as stock; owned
-        // tells them apart from items actually held.
-        SharedCounts owned = counts.copy();
-        for (int i = 0; i < entries.size(); i++) {
-            if (fromStock[i] > 0) owned.merge(entries.get(i).recipe, -fromStock[i], Integer::sum);
-        }
-        // Held stock before the trees claim it, for the level totals (owned is used up below).
-        SharedCounts held = owned.copy();
-        List<RecipeManager.RecipeNode> trees = new ArrayList<>();
-        Map<String, Integer> heights = deepestFirst ? new HashMap<>() : null;
-        for (int i = 0; i < entries.size(); i++) {
-            ShoppingListEntry entry = entries.get(i);
+            // Phase 2: expand what is still missing. A root does not draw on existing stock of itself: the
+            // player asked for this many more.
+            if (fromStock > 0) {
+                owned.merge(entry.recipe, -fromStock, Integer::sum);
+                held.merge(entry.recipe, -fromStock, Integer::sum);
+            }
             List<RecipeManager.RecipeNode> ingredients = new ArrayList<>();
             Map<String, Integer> recipe = forging.get(entry.recipe);
             if (recipe != null) {
                 // Expand both what is missing and what can be crafted now, so the steps still to do show.
-                giveBack(recipe, RecipeManager.crafts(yields, entry.recipe, craftedNow[i]), highestPossibleResources);
-                ingredients = expandIngredients(recipe, RecipeManager.crafts(yields, entry.recipe, toCraft[i] + craftedNow[i]),
+                giveBack(recipe, RecipeManager.crafts(yields, entry.recipe, craftedNow), highestPossibleResources);
+                ingredients = expandIngredients(recipe, RecipeManager.crafts(yields, entry.recipe, toCraft + craftedNow),
                     forging, yields, highestPossibleResources, owned, 1, heights);
             }
-            RecipeManager.RecipeNode root = new RecipeManager.RecipeNode(entry.recipe, toCraft[i], required[i], ingredients);
-            root.toCraft = craftedNow[i];
+            RecipeManager.RecipeNode root = new RecipeManager.RecipeNode(entry.recipe, toCraft, required, ingredients);
+            root.toCraft = craftedNow;
             trees.add(root);
+
+            // Later entries plan their crafts from what this one left.
+            currentAvailableResources.clear();
+            for (Map.Entry<String, Integer> left : highestPossibleResources.entrySet()) {
+                currentAvailableResources.put(left.getKey(), Math.max(0, left.getValue()));
+            }
         }
         return new ShoppingResponse(trees, totalOf(trees, forging), messages, held);
     }
