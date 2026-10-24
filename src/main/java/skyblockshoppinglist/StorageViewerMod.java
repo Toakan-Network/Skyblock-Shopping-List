@@ -53,6 +53,9 @@ public final class StorageViewerMod {
             if (title.contains("Sack")) {
                 SackReader.getInstance().readSack(menu, title);
             }
+            if (KillTracker.isProfileMenu(title) && HudStyle.get().showMobDrops) {
+                KillTracker.readProfileMenu(menu);
+            }
         } else if (++ticksOpen % REREAD_TICKS == 0) {
             // Both only write when something changed.
             String title = screen.getTitle().getString();

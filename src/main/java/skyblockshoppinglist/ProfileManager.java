@@ -23,7 +23,7 @@ public final class ProfileManager {
     /** Files that belong to one profile; everything else (HUD, settings, recipes) is shared. */
     static final String[] PROFILE_FILES = {
         "resources.json", "inventorydata.json", "allcontainerData.json", "sacks.json", "sacks_meta.json",
-        "coins.json", "forge.json", "forge_speed.json", "shopping_list.json",
+        "coins.json", "forge.json", "forge_speed.json", "shopping_list.json", "kill_tracker.json",
     };
     private static final File PROFILES_DIR = new File(FilePathManager.DATA_DIR, "profiles");
     private static final String LAST_PROFILE_FILE = "last_profile.txt";
@@ -152,6 +152,7 @@ public final class ProfileManager {
         CoinTracker.clear();
         PowderTracker.clear();
         ForgeTracker.clear();
+        KillTracker.clear();
         ForgeSpeed.clear();
         ShoppingListClient.clearInventorySnapshot();
     }

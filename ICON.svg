@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Circle Glow -->
+    <radialGradient id="bgGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#0f172a" />
+    </radialGradient>
+
+    <!-- Clipboard Wood Gradient -->
+    <linearGradient id="woodGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b45309" />
+      <stop offset="100%" stop-color="#78350f" />
+    </linearGradient>
+
+    <!-- Clip Metal Gradient -->
+    <linearGradient id="metalGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#cbd5e1" />
+      <stop offset="100%" stop-color="#64748b" />
+    </linearGradient>
+
+    <!-- Paper Gradient -->
+    <linearGradient id="paperGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+
+    <!-- Grass Top Face -->
+    <linearGradient id="grassTop" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#86efac" />
+      <stop offset="100%" stop-color="#22c55e" />
+    </linearGradient>
+
+    <!-- Dirt Left Face -->
+    <linearGradient id="dirtLeft" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#78350f" />
+      <stop offset="100%" stop-color="#451a03" />
+    </linearGradient>
+
+    <!-- Dirt Right Face -->
+    <linearGradient id="dirtRight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#92400e" />
+      <stop offset="100%" stop-color="#581c87" />
+    </linearGradient>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Container Icon Background -->
+  <rect width="512" height="512" rx="110" fill="url(#bgGlow)" />
+
+  <g filter="url(#shadow)">
+    <!-- Wooden Clipboard -->
+    <rect x="156" y="55" width="200" height="280" rx="16" fill="url(#woodGrad)" stroke="#451a03" stroke-width="4" />
+
+    <!-- Paper Sheet -->
+    <rect x="172" y="85" width="168" height="235" rx="8" fill="url(#paperGrad)" />
+
+    <!-- Metal Clip -->
+    <rect x="216" y="42" width="80" height="26" rx="6" fill="url(#metalGrad)" stroke="#334155" stroke-width="3" />
+    <circle cx="256" cy="55" r="5" fill="#334155" />
+
+    <!-- Checklist Lines & Icons -->
+    <!-- Row 1: Checked -->
+    <rect x="188" y="105" width="20" height="20" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2" />
+    <path d="M 193 115 L 197 119 L 204 110" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    <line x1="218" y1="115" x2="318" y2="115" stroke="#475569" stroke-width="5" stroke-linecap="round" />
+
+    <!-- Row 2: Checked -->
+    <rect x="188" y="138" width="20" height="20" rx="4" fill="#dcfce7" stroke="#16a34a" stroke-width="2" />
+    <path d="M 193 148 L 197 152 L 204 143" fill="none" stroke="#16a34a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+    <line x1="218" y1="148" x2="298" y2="148" stroke="#475569" stroke-width="5" stroke-linecap="round" />
+
+    <!-- Row 3: Unchecked -->
+    <rect x="188" y="171" width="20" height="20" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="2" />
+    <line x1="218" y1="181" x2="310" y2="181" stroke="#94a3b8" stroke-width="5" stroke-linecap="round" />
+
+    <!-- Row 4: Unchecked -->
+    <rect x="188" y="204" width="20" height="20" rx="4" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" />
+    <line x1="218" y1="214" x2="275" y2="214" stroke="#cbd5e1" stroke-width="5" stroke-linecap="round" />
+
+    <!-- Isometric Skyblock Block (Grass + Dirt Layer) -->
+    <!-- Dirt Base Left -->
+    <polygon points="136,335 256,395 256,455 136,395" fill="#5d4037" />
+    <polygon points="136,335 256,395 256,455 136,395" fill="url(#dirtLeft)" opacity="0.9" />
+
+    <!-- Dirt Base Right -->
+    <polygon points="256,395 376,335 376,395 256,455" fill="#4e342e" />
+    <polygon points="256,395 376,335 376,395 256,455" fill="url(#dirtRight)" opacity="0.9" />
+
+    <!-- Grass Layer Top Face -->
+    <polygon points="256,275 376,335 256,395 136,335" fill="url(#grassTop)" stroke="#15803d" stroke-width="2" />
+
+    <!-- Drip Grass Sides (Minecraft Side Texture Style) -->
+    <polygon points="136,335 256,395 256,412 225,397 225,410 185,390 185,368 136,344" fill="#16a34a" />
+    <polygon points="256,395 376,335 376,344 330,367 330,385 290,365 290,412 256,412" fill="#15803d" />
+  </g>
+</svg>

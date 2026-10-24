@@ -4,6 +4,7 @@
   "package": "skyblockshoppinglist.mixin",
   "compatibilityLevel": "JAVA_25",
   "client": [
+    "LivingEntityDeathMixin",
     "SackHighlightMixin",
     "SlotClickMixin"
   ],

@@ -45,6 +45,7 @@ public class SandboxWidget {
     private PanelRect craftablePanel = new PanelRect(270, 40, 180, 150);
     private PanelRect forgingPanel = new PanelRect(270, 200, 180, 120);
     private PanelRect totalPanel = new PanelRect(270, 330, 180, 150);
+    private PanelRect mobDropsPanel = new PanelRect(270, 490, 180, 100);
     private volatile Map<String, Boolean> expandedNodes = new ConcurrentHashMap<>();
     /**
      * Craftable lines ("3× Refined Diamond"), most first, ready to draw; replaced whole (never cleared and refilled)
@@ -53,6 +54,10 @@ public class SandboxWidget {
     private volatile List<Line> messages = List.of();
     /** "Forging -" lines for both Forging section settings, built together so they never disagree. */
     private volatile ForgingLines forgingLines = ForgingLines.EMPTY;
+    /** "Mob drops" lines: kills so far and the kill estimates for missing items that drop from mobs. */
+    private volatile List<Line> mobDropLines = List.of();
+    /** Update thread only: kill count, drop table and settings the mob drop lines were built for. */
+    private String mobDropKey = "";
     /** "NPC price -" lines: coins to buy every raw material at NPCs, and what NPCs pay for them. */
     private volatile List<String> npcPriceLines = List.of();
     /** {@link #npcPriceLines} ready for the HUD section, made when they are. */
@@ -416,6 +421,7 @@ public class SandboxWidget {
         config.craftablePanel = craftablePanel;
         config.forgingPanel = forgingPanel;
         config.totalPanel = totalPanel;
+        config.mobDropsPanel = mobDropsPanel;
         config.expandedNodes = new HashMap<>(expandedNodes);
         config.showTotal = showTotal;
         config.totalLevel = totalLevel;
@@ -476,6 +482,7 @@ public class SandboxWidget {
         if (config.craftablePanel != null) this.craftablePanel = config.craftablePanel;
         if (config.forgingPanel != null) this.forgingPanel = config.forgingPanel;
         if (config.totalPanel != null) this.totalPanel = config.totalPanel;
+        if (config.mobDropsPanel != null) this.mobDropsPanel = config.mobDropsPanel;
         // Before 4.22 the list was kept in widget_config.json: move it to its own file (with the other data
         // that ProfileManager hands to the first SkyBlock profile seen), then drop it from the config.
         if ((config.shoppingList != null || config.selectedRecipe != null) && !FilePathManager.shoppingListJson().exists()) {
@@ -515,6 +522,7 @@ public class SandboxWidget {
         craftablePanel = new PanelRect(270, 40, 180, 150);
         forgingPanel = new PanelRect(270, 200, 180, 120);
         totalPanel = new PanelRect(270, 330, 180, 150);
+        mobDropsPanel = new PanelRect(270, 490, 180, 100);
         expandedNodes = new ConcurrentHashMap<>();
         showTotal = true;
         totalLevel = 0;
@@ -540,6 +548,7 @@ public class SandboxWidget {
         PanelRect craftablePanel;
         PanelRect forgingPanel;
         PanelRect totalPanel;
+        PanelRect mobDropsPanel;
         Map<String, Boolean> expandedNodes;
         /** Read only: where the list was kept before 4.22 (now shopping_list.json, per profile). */
         List<ShoppingListEntry> shoppingList;
@@ -606,6 +615,14 @@ public class SandboxWidget {
                     updateForgingLines();
                 }
             }
+            // Kills come in between list changes; the settings can change without one too.
+            HudStyle style = HudStyle.get();
+            String mobDrops = KillTracker.getVersion() + "|" + MobDrops.getVersion() + "|" + style.showMobDrops + "|"
+                + style.killCases + "|" + style.magicFind + "|" + style.shortNumbers;
+            if (!mobDrops.equals(mobDropKey)) {
+                mobDropKey = mobDrops;
+                updateMobDropLines();
+            }
         } catch (RuntimeException e) {
             // Never let an exception escape: it would cancel the scheduled refresh for good.
             ShoppingList.LOGGER.error("Failed to update HUD recipe", e);
@@ -621,6 +638,8 @@ public class SandboxWidget {
             messages = List.of();
             listItemNames = Set.of();
             forgingLines = ForgingLines.EMPTY;
+            mobDropLines = List.of();
+            KillTracker.setTargets(Set.of());
             npcPriceLines = List.of();
             npcPriceHudLines = List.of();
             neededSacks = List.of();
@@ -713,7 +732,7 @@ public class SandboxWidget {
 
         List<RecipeManager.RecipeNode> tops = new ArrayList<>();
         int level = totalLevel;
-        RecipeManager.RecipeNode total = level == 0 ? response.total : ResourcesManager.levelTotalOf(response.trees, level);
+        RecipeManager.RecipeNode total = level == 0 ? response.total : ResourcesManager.levelTotalOf(response.trees, response.held, level);
         if (showTotal && !total.ingredients.isEmpty()) {
             tops.add(total);
             expandedNodes.putIfAbsent(makePathKey(LIST_KEY, total.name), true);
@@ -740,6 +759,7 @@ public class SandboxWidget {
             return;
         }
         updateForgingLines();
+        updateMobDropLines();
     }
 
     /**
@@ -964,6 +984,56 @@ public class SandboxWidget {
         return true;
     }
 
+    /**
+     * Mob drops lines for items the list is still missing that a mob drops, and tells {@link KillTracker} which
+     * items kills count towards.
+     */
+    private void updateMobDropLines() {
+        HudStyle style = HudStyle.get();
+        RecipeManager.RecipeNode tree = recipeTree;
+        Set<String> missing = new LinkedHashSet<>();
+        if (style.showMobDrops && tree != null) collectMissing(tree, missing, 0);
+        int magicFind = KillTracker.magicFind();
+        Set<String> targets = new HashSet<>();
+        List<Line> lines = new ArrayList<>();
+        for (String name : missing) {
+            // The mob you've been killing for it, else the likeliest one.
+            MobDrops.Source source = MobDrops.forMob(name, KillTracker.mob(name));
+            if (source == null) source = MobDrops.best(name);
+            if (source == null || !targets.add(ItemNames.normalize(name))) continue;
+            lines.add(mobDropLine(name, source, KillTracker.kills(name), magicFind, style.killCases));
+        }
+        // At the bottom, so you can see which Magic Find the estimates use.
+        if (style.showMobDrops) lines.add(new Line(KillTracker.magicFindLabel(), Tone.DONE));
+        KillTracker.setTargets(targets);
+        mobDropLines = List.copyOf(lines);
+    }
+
+    /**
+     * "Ender Necklace (Zealot): 312 kills, best 15, you 88, worst 400 left". Best is lucky with your Magic Find
+     * (a quarter of players have it by then), you is the average with it, worst the average with none. Past the
+     * worst case the line is {@link Tone#OTHER} (overdue).
+     */
+    private static Line mobDropLine(String name, MobDrops.Source source, int kills, int magicFind,
+                                    HudStyle.KillCases cases) {
+        double yours = MobDrops.effectiveChance(source.chance, magicFind);
+        long best = MobDrops.luckyKills(yours);
+        long you = MobDrops.expectedKills(yours);
+        long worst = MobDrops.expectedKills(source.chance);
+        String left = switch (cases) {
+            case BEST -> "~" + left(best, kills) + " left";
+            case YOUR -> "~" + left(you, kills) + " left";
+            case WORST -> "~" + left(worst, kills) + " left";
+            case ALL -> "best " + left(best, kills) + ", you " + left(you, kills) + ", worst " + left(worst, kills) + " left";
+        };
+        String text = name + " (" + source.mob + "): " + number(kills) + " kills, " + left;
+        return new Line(text, kills >= worst ? Tone.OTHER : Tone.TEXT);
+    }
+
+    private static String left(long target, int kills) {
+        return number(Math.max(0, target - kills));
+    }
+
     /** Forging lines: Listed has the forge slots making something on the list, All has those and then the rest. */
     private record ForgingLines(List<Line> listed, List<Line> all) {
         static final ForgingLines EMPTY = new ForgingLines(List.of(), List.of());
@@ -1008,7 +1078,7 @@ public class SandboxWidget {
     }
 
     /** The HUD panels: the shopping list, and Craftable / Forging / Total when set to their own panel. */
-    public enum Panel { MAIN, CRAFTABLE, FORGING, TOTAL }
+    public enum Panel { MAIN, CRAFTABLE, FORGING, TOTAL, MOB_DROPS }
 
     /**
      * Position (GUI pixels), size (HUD units, before scaling) and scale (percent, on top of the HUD scale) of one
@@ -1088,6 +1158,11 @@ public class SandboxWidget {
     /** A listed Forging line, then one for an item not on the list. */
     private static final List<Line> SAMPLE_FORGING = List.of(new Line("3× Mithril Plate - 2h 10m", Tone.TEXT),
         new Line("1× Refined Mithril - 5h 0m", Tone.OTHER));
+    /** A Mob drops line still in reach, then an overdue one. */
+    private static final List<Line> SAMPLE_MOB_DROPS = List.of(
+        new Line("Ender Necklace (Zealot): 312 kills, best 15, you 88, worst 400 left", Tone.TEXT),
+        new Line("Summoning Eye (Zealot): 1,020 kills, best 0, you 0, worst 0 left", Tone.OTHER),
+        new Line("Magic Find: 237 (last drop)", Tone.DONE));
     private static final List<Line> SAMPLE_NPC_PRICE =
         Line.plain(List.of("Buy: 1,240 coins (2/3 items)", "Sell: 310 coins (3/3 items)"));
 
@@ -1198,6 +1273,7 @@ public class SandboxWidget {
             case CRAFTABLE -> craftablePanel;
             case FORGING -> forgingPanel;
             case TOTAL -> totalPanel;
+            case MOB_DROPS -> mobDropsPanel;
         };
     }
 
@@ -1224,6 +1300,7 @@ public class SandboxWidget {
             case CRAFTABLE -> craftablePanel = rect;
             case FORGING -> forgingPanel = rect;
             case TOTAL -> totalPanel = rect;
+            case MOB_DROPS -> mobDropsPanel = rect;
         }
         saveConfiguration();
     }
@@ -1240,7 +1317,8 @@ public class SandboxWidget {
      * the one the panels were placed at. Render thread only.
      */
     private void recordMissingRefs() {
-        if (widgetRefWidth > 0 && craftablePanel.refWidth > 0 && forgingPanel.refWidth > 0 && totalPanel.refWidth > 0) return;
+        if (widgetRefWidth > 0 && craftablePanel.refWidth > 0 && forgingPanel.refWidth > 0 && totalPanel.refWidth > 0
+            && mobDropsPanel.refWidth > 0) return;
         synchronized (this) {
             Window window = Minecraft.getInstance().getWindow();
             if (widgetRefWidth <= 0) {
@@ -1251,6 +1329,7 @@ public class SandboxWidget {
             if (craftablePanel.refWidth <= 0) craftablePanel = withCurrentRef(craftablePanel);
             if (forgingPanel.refWidth <= 0) forgingPanel = withCurrentRef(forgingPanel);
             if (totalPanel.refWidth <= 0) totalPanel = withCurrentRef(totalPanel);
+            if (mobDropsPanel.refWidth <= 0) mobDropsPanel = withCurrentRef(mobDropsPanel);
             saveConfiguration();
         }
     }
@@ -1272,12 +1351,15 @@ public class SandboxWidget {
             forgingPanel.width, forgingPanel.height, forgingPanel.scalePercent());
         totalPanel = new PanelRect(sideX, forgingPanel.y + Math.round(forgingPanel.height * scaleFactor(Panel.FORGING)) + 10,
             totalPanel.width, totalPanel.height, totalPanel.scalePercent());
+        mobDropsPanel = new PanelRect(sideX, totalPanel.y + Math.round(totalPanel.height * scaleFactor(Panel.TOTAL)) + 10,
+            mobDropsPanel.width, mobDropsPanel.height, mobDropsPanel.scalePercent());
         Window window = Minecraft.getInstance().getWindow();
         widgetRefWidth = window.getGuiScaledWidth();
         widgetRefHeight = window.getGuiScaledHeight();
         setRef(craftablePanel);
         setRef(forgingPanel);
         setRef(totalPanel);
+        setRef(mobDropsPanel);
         saveConfiguration();
     }
 
@@ -1297,6 +1379,7 @@ public class SandboxWidget {
         if (style.showCraftable && style.craftablePlacement == HudStyle.Placement.OWN_PANEL) panels.add(Panel.CRAFTABLE);
         if (style.forgingSlots != HudStyle.ForgingSlots.OFF && style.forgingPlacement == HudStyle.Placement.OWN_PANEL) panels.add(Panel.FORGING);
         if (getInstance().isShowTotal() && style.totalPlacement == HudStyle.Placement.OWN_PANEL) panels.add(Panel.TOTAL);
+        if (style.showMobDrops && style.mobDropsPlacement == HudStyle.Placement.OWN_PANEL) panels.add(Panel.MOB_DROPS);
         return panels;
     }
 
@@ -1369,7 +1452,8 @@ public class SandboxWidget {
                 if (visibleLines > 0) rowsHeight = 2 + visibleLines * (style.rowHeight + style.rowGap);
             }
             case CRAFTABLE -> title = "Craftable";
-            default -> title = "Forging";
+            case FORGING -> title = "Forging";
+            default -> title = "Mob drops";
         }
         boolean empty = panel != Panel.MAIN && rowsHeight == 0 && sections.stream().allMatch(s -> s.lines().isEmpty());
         if (empty && !preview) return 0;
@@ -1493,6 +1577,15 @@ public class SandboxWidget {
             if (panel != Panel.MAIN || !forging.isEmpty()) {
                 sections.add(new Section("Forging", forging, style.forgingScale, style.forgingAlign,
                     style.forgingHeader, style.forgingText, style.forgingOtherText));
+            }
+        }
+        boolean mobDropsHere = style.showMobDrops
+            && (style.mobDropsPlacement == HudStyle.Placement.OWN_PANEL ? panel == Panel.MOB_DROPS : panel == Panel.MAIN);
+        if (mobDropsHere) {
+            List<Line> drops = previewing ? SAMPLE_MOB_DROPS : mobDropLines;
+            if (panel != Panel.MAIN || !drops.isEmpty()) {
+                sections.add(new Section("Mob drops", drops, style.mobDropsScale, style.mobDropsAlign,
+                    style.mobDropsHeader, style.mobDropsText, style.mobDropsOverdueText));
             }
         }
         // The bill goes last, at the bottom of the main panel.

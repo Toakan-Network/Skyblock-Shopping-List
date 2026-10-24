@@ -14,7 +14,10 @@ import java.util.*;
 
 public class RecipeManager {
     private static final RecipeManager INSTANCE = new RecipeManager();
+    /** Ingredients of one craft per output item. */
     private volatile Map<String, Map<String, Integer>> recipes = Collections.emptyMap();
+    /** Items one craft makes, for recipes that make more than one (Blaze Powder: 2); others make 1. */
+    private volatile Map<String, Integer> yields = Collections.emptyMap();
     private volatile List<String> recipeNames = Collections.emptyList();
     private volatile Set<String> itemNames = Collections.emptySet();
     /** Base forge time in seconds per forge item (before Quick Forge or mayor bonuses). */
@@ -80,6 +83,9 @@ public class RecipeManager {
             List<String> newNames = new ArrayList<>(allNames);
             newNames.sort(String::compareToIgnoreCase);
 
+            Map<String, Integer> recipeYields = JsonFiles.read(FilePathManager.RECIPE_YIELDS_JSON,
+                new com.google.gson.reflect.TypeToken<Map<String, Integer>>(){}.getType());
+            yields = recipeYields == null ? Collections.emptyMap() : Collections.unmodifiableMap(new HashMap<>(recipeYields));
             recipes = Collections.unmodifiableMap(sanitized);
             recipeNames = Collections.unmodifiableList(newNames);
             Map<String, Integer> times = JsonFiles.read(FilePathManager.FORGE_TIMES_JSON,
@@ -115,6 +121,7 @@ public class RecipeManager {
     public synchronized void reload() {
         loadRecipes();
         NpcPrices.reload();
+        MobDrops.reload();
         ItemDescriptions.reload();
         // New recipes can bring new item names; add them to the current profile (once a profile is known).
         FilePathManager.seedResources();
@@ -193,9 +200,10 @@ public class RecipeManager {
 
     public Map<String, Integer> getSimpleRecipe(String name, int amt) {
         Map<String, Integer> base = recipes.getOrDefault(name, Collections.emptyMap());
+        int crafts = crafts(yields, name, amt);
         Map<String, Integer> result = new LinkedHashMap<>();
         for (Map.Entry<String, Integer> entry : base.entrySet()) {
-            result.put(entry.getKey(), Counts.times(entry.getValue(), amt));
+            result.put(entry.getKey(), Counts.times(entry.getValue(), crafts));
         }
         return result;
     }
@@ -209,9 +217,10 @@ public class RecipeManager {
         if (recipe == null || depth > MAX_DEPTH) {
             return new RecipeNode(currentName, multiplier, Collections.emptyList());
         }
+        int crafts = crafts(yields, currentName, multiplier);
         List<RecipeNode> ingredients = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : recipe.entrySet()) {
-            ingredients.add(expandRecipe(entry.getKey(), Counts.times(entry.getValue(), multiplier), depth + 1));
+            ingredients.add(expandRecipe(entry.getKey(), Counts.times(entry.getValue(), crafts), depth + 1));
         }
         return new RecipeNode(currentName, multiplier, ingredients);
     }
@@ -219,6 +228,17 @@ public class RecipeManager {
     /** Every recipe, output name to ingredients. Read only: a reload replaces the map rather than changing it, so no copy. */
     public Map<String, Map<String, Integer>> getAllRecipes() {
         return recipes;
+    }
+
+    /** Items per craft for recipes that make more than one, by output name. Read only, as {@link #getAllRecipes}. */
+    public Map<String, Integer> getAllYields() {
+        return yields;
+    }
+
+    /** Crafts needed to make {@code amount} of {@code item}: one per item, or fewer when a craft makes several. */
+    static int crafts(Map<String, Integer> yields, String item, int amount) {
+        int yield = Math.max(1, yields.getOrDefault(item, 1));
+        return yield == 1 ? amount : -Math.floorDiv(-amount, yield);
     }
 
 

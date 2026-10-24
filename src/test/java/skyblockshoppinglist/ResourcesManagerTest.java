@@ -39,7 +39,7 @@ class ResourcesManagerTest {
     @Test
     void levelTotalSumsRowsAcrossTrees() {
         List<RecipeManager.RecipeNode> trees = List.of(tree(), tree());
-        RecipeManager.RecipeNode total = ResourcesManager.levelTotalOf(trees, 1);
+        RecipeManager.RecipeNode total = ResourcesManager.levelTotalOf(trees, Map.of(), 1);
         assertEquals(4, total.amount);
         assertEquals(16, total.required);
         // Rows still missing come first.
@@ -48,6 +48,27 @@ class ResourcesManagerTest {
         assertEquals(10, total.ingredients.get(0).required);
         assertEquals("Y", total.ingredients.get(1).name);
         assertEquals(6, total.ingredients.get(1).required);
+    }
+
+    @Test
+    void levelTotalCountsStockHeldDeeper() {
+        // X at level 1 is all missing; the held 3 went to the X deeper down, which level 1 doesn't reach.
+        RecipeManager.RecipeNode root = new RecipeManager.RecipeNode("R", 1, 1, List.of(
+            new RecipeManager.RecipeNode("X", 5, 5, List.of()),
+            new RecipeManager.RecipeNode("M", 1, 1, List.of(new RecipeManager.RecipeNode("X", 0, 3, List.of())))));
+        RecipeManager.RecipeNode total = ResourcesManager.levelTotalOf(List.of(root), Map.of("X", 3), 1);
+        RecipeManager.RecipeNode x = total.ingredients.stream().filter(n -> n.name.equals("X")).findFirst().orElseThrow();
+        assertEquals(2, x.amount);
+        assertEquals(5, x.required);
+    }
+
+    @Test
+    void levelTotalCapsHeldStockAtRequired() {
+        RecipeManager.RecipeNode total = ResourcesManager.levelTotalOf(List.of(tree()), Map.of("X", 100), 1);
+        RecipeManager.RecipeNode x = total.ingredients.stream().filter(n -> n.name.equals("X")).findFirst().orElseThrow();
+        assertEquals(0, x.amount);
+        assertEquals(5, x.required);
+        assertEquals(0, x.toCraft);
     }
 
     private static RecipeManager.RecipeNode tree() {

@@ -9,6 +9,7 @@ import io.github.moulberry.repo.data.NEUForgeRecipe;
 import io.github.moulberry.repo.data.NEUNpcShopRecipe;
 import io.github.moulberry.repo.data.NEUIngredient;
 import io.github.moulberry.repo.data.NEUKatUpgradeRecipe;
+import io.github.moulberry.repo.data.NEUMobDropRecipe;
 import io.github.moulberry.repo.data.NEUItem;
 import io.github.moulberry.repo.data.NEURecipe;
 import skyblockshoppinglist.FilePathManager;
@@ -42,7 +43,7 @@ public final class RemoteRecipeFetcher {
      * Bump when the way recipes are extracted from the repo changes, so cached snapshots are rebuilt
      * even if the remote reports "not modified".
      */
-    private static final String PARSER_VERSION = "13";
+    private static final String PARSER_VERSION = "15";
     /** NEU's pseudo item for coin costs in shop recipes. */
     private static final String COIN_ID = "SKYBLOCK_COIN";
     public static final String COINS_NAME = "Coins";
@@ -230,24 +231,33 @@ public final class RemoteRecipeFetcher {
             Map<String, Map<String, Integer>> forgeByInternal    = new LinkedHashMap<>();
             Map<String, Map<String, Integer>> shopByInternal     = new LinkedHashMap<>();
             Map<String, Map<String, Integer>> katByInternal      = new LinkedHashMap<>();
+            // Items per craft, per recipe kind: an item's crafting and forge recipes can make different amounts.
+            Map<String, Integer> craftingYields = new LinkedHashMap<>();
+            Map<String, Integer> forgeYields    = new LinkedHashMap<>();
+            Map<String, Integer> shopYields     = new LinkedHashMap<>();
             Map<String, Integer> forgeSecondsByInternal = new LinkedHashMap<>();
             Map<String, Double> buyPriceByInternal = new LinkedHashMap<>();
+            // Item id to the mobs that drop it, with the chance per kill (Mob drops panel).
+            Map<String, List<skyblockshoppinglist.MobDrops.Source>> dropsByInternal = new LinkedHashMap<>();
             for (NEUItem item : neuRepo.getItems().getItems().values()) {
                 for (NEURecipe recipe : item.getRecipes()) {
                     if (recipe instanceof NEUCraftingRecipe cr) {
-                        collectRecipeIngredients(craftingByInternal, cr.getAllOutputs(), cr.getAllInputs());
+                        collectRecipeIngredients(craftingByInternal, craftingYields, cr.getAllOutputs(), cr.getAllInputs());
                     } else if (recipe instanceof NEUForgeRecipe fr) {
                         boolean first = fr.getOutputStack() != null && !forgeByInternal.containsKey(fr.getOutputStack().getItemId());
-                        collectRecipeIngredients(forgeByInternal, fr.getAllOutputs(), fr.getAllInputs());
+                        collectRecipeIngredients(forgeByInternal, forgeYields, fr.getAllOutputs(), fr.getAllInputs());
                         // Same first-recipe-wins rule as the ingredients, so time and ingredients match.
                         if (first && fr.getDuration() > 0 && forgeByInternal.containsKey(fr.getOutputStack().getItemId())) {
                             forgeSecondsByInternal.put(fr.getOutputStack().getItemId(), fr.getDuration());
                         }
                     } else if (recipe instanceof NEUNpcShopRecipe shop) {
-                        collectRecipeIngredients(shopByInternal, shop.getAllOutputs(), shop.getAllInputs());
+                        collectRecipeIngredients(shopByInternal, shopYields, shop.getAllOutputs(), shop.getAllInputs());
                         collectCoinPrice(buyPriceByInternal, shop);
                     } else if (recipe instanceof NEUKatUpgradeRecipe kat) {
-                        collectRecipeIngredients(katByInternal, kat.getAllOutputs(), kat.getAllInputs());
+                        // A Kat upgrade makes one pet.
+                        collectRecipeIngredients(katByInternal, new LinkedHashMap<>(), kat.getAllOutputs(), kat.getAllInputs());
+                    } else if (recipe instanceof NEUMobDropRecipe md) {
+                        collectMobDrops(dropsByInternal, md);
                     }
                 }
             }
@@ -281,6 +291,12 @@ public final class RemoteRecipeFetcher {
             if (!craftingWire.isEmpty()) changed |= writeSnapshot(craftingWire, FilePathManager.REMOTE_RECIPES_JSON, meta);
             if (!forgeWire.isEmpty())    changed |= writeSnapshot(forgeWire, FilePathManager.REMOTE_FORGE_JSON, meta);
             changed |= writeSnapshot(shopWire, FilePathManager.REMOTE_SHOP_JSON, meta);
+            // Yields of the recipes kept above, under the names they use.
+            Map<String, Integer> yields = new LinkedHashMap<>();
+            putYields(yields, craftingByInternal, craftingYields, recipeNameById);
+            putYields(yields, forgeByInternal, forgeYields, recipeNameById);
+            putYields(yields, shopByInternal, shopYields, recipeNameById);
+            changed |= writeSnapshot(yields, FilePathManager.RECIPE_YIELDS_JSON, meta);
             // Base forge time per forge item, under the name its recipe uses (resolved after any renames above).
             Map<String, Integer> forgeSeconds = new LinkedHashMap<>();
             forgeSecondsByInternal.forEach((id, seconds) -> forgeSeconds.put(recipeNameById.getOrDefault(id, id), seconds));
@@ -320,6 +336,13 @@ public final class RemoteRecipeFetcher {
             Map<String, Double> buyPrices = new LinkedHashMap<>();
             buyPriceByInternal.forEach((id, coins) -> buyPrices.put(recipeNameById.getOrDefault(id, id), coins));
             changed |= writeSnapshot(buyPrices, FilePathManager.NPC_BUY_PRICES_JSON, meta);
+            // Highest chance first: the panel uses the first source.
+            Map<String, List<skyblockshoppinglist.MobDrops.Source>> mobDrops = new LinkedHashMap<>();
+            dropsByInternal.forEach((id, sources) -> {
+                sources.sort((a, b) -> Double.compare(b.chance, a.chance));
+                mobDrops.putIfAbsent(recipeNameById.getOrDefault(id, id), sources);
+            });
+            changed |= writeSnapshot(mobDrops, FilePathManager.MOB_DROPS_JSON, meta);
 
             skyblockshoppinglist.ShoppingList.debug("NEU repo parsed (library): {} crafting (incl. {} pet upgrades), {} forge, {} shop recipes", craftingWire.size(), katCount, forgeWire.size(), shopWire.size());
             if (changed) {
@@ -342,19 +365,20 @@ public final class RemoteRecipeFetcher {
     }
 
     /**
-     * Adds an {@code output → {ingredient: count per output item}} mapping into {@code target}, keyed by
-     * internal SkyBlock ID. Only the first recipe per output is kept: items with alternative recipes
-     * would otherwise have the ingredients of every alternative summed together.
+     * Adds an {@code output → {ingredient: count per craft}} mapping into {@code target}, keyed by internal
+     * SkyBlock ID, and into {@code yields} how many items one craft makes when that is more than one. Only the
+     * first recipe per output is kept: items with alternative recipes would otherwise have the ingredients of
+     * every alternative summed together.
      */
     private static void collectRecipeIngredients(
             Map<String, Map<String, Integer>> target,
+            Map<String, Integer> yields,
             Collection<NEUIngredient> outputs,
             Collection<NEUIngredient> inputs) {
         if (outputs == null || outputs.isEmpty() || inputs == null) return;
         NEUIngredient output = outputs.iterator().next();
         if (output == null || NEUIngredient.NEU_SENTINEL_EMPTY.equals(output.getItemId())) return;
         if (target.containsKey(output.getItemId())) return;
-        double outputCount = Math.max(1, output.getAmount());
         Map<String, Double> totals = new LinkedHashMap<>();
         for (NEUIngredient in : inputs) {
             // Skips free parts too, e.g. the zero-coin cost of some pet upgrades.
@@ -363,8 +387,19 @@ public final class RemoteRecipeFetcher {
         }
         if (totals.isEmpty()) return;
         Map<String, Integer> ing = new LinkedHashMap<>();
-        totals.forEach((id, amount) -> ing.put(id, (int) Math.max(1, Math.ceil(amount / outputCount))));
+        totals.forEach((id, amount) -> ing.put(id, (int) Math.max(1, Math.ceil(amount))));
         target.put(output.getItemId(), ing);
+        int outputCount = (int) output.getAmount();
+        if (outputCount > 1) yields.put(output.getItemId(), outputCount);
+    }
+
+    /** Adds the yield of each recipe in {@code recipes} that makes more than one, by the name the recipe uses. */
+    private static void putYields(Map<String, Integer> out, Map<String, Map<String, Integer>> recipes,
+                                  Map<String, Integer> yieldsById, Map<String, String> recipeNameById) {
+        for (String id : recipes.keySet()) {
+            Integer yield = yieldsById.get(id);
+            if (yield != null) out.putIfAbsent(recipeNameById.getOrDefault(id, id), yield);
+        }
     }
 
     /**
@@ -609,9 +644,10 @@ public final class RemoteRecipeFetcher {
     /** As {@link #hasSnapshot}, for every file the NEU repo is parsed into: a deleted one is only rebuilt by a fetch. */
     private static boolean hasNeuSnapshot() {
         return hasSnapshot() && java.util.stream.Stream.of(
-                FilePathManager.REMOTE_FORGE_JSON, FilePathManager.REMOTE_SHOP_JSON, FilePathManager.FORGE_TIMES_JSON, FilePathManager.ITEM_TYPES_JSON,
+                FilePathManager.REMOTE_FORGE_JSON, FilePathManager.REMOTE_SHOP_JSON, FilePathManager.RECIPE_YIELDS_JSON,
+                FilePathManager.FORGE_TIMES_JSON, FilePathManager.ITEM_TYPES_JSON,
                 FilePathManager.ITEM_SACKS_JSON, FilePathManager.ITEM_NAMES_JSON, FilePathManager.ITEM_REQUIREMENTS_JSON,
-                FilePathManager.ITEM_LORE_JSON, FilePathManager.NPC_BUY_PRICES_JSON)
+                FilePathManager.ITEM_LORE_JSON, FilePathManager.NPC_BUY_PRICES_JSON, FilePathManager.MOB_DROPS_JSON)
             .allMatch(File::isFile);
     }
 
@@ -669,6 +705,19 @@ public final class RemoteRecipeFetcher {
             }
         }
         return null;
+    }
+
+    /** Each drop of a mob's table with a plain percentage ("2%"), under the dropped item's id. */
+    private static void collectMobDrops(Map<String, List<skyblockshoppinglist.MobDrops.Source>> out, NEUMobDropRecipe md) {
+        String mob = stripMC(md.getName());
+        if (mob.isEmpty() || md.getDrops() == null) return;
+        for (NEUMobDropRecipe.Drop drop : md.getDrops()) {
+            if (drop.getDropItem() == null) continue;
+            String id = drop.getDropItem().getItemId();
+            Double chance = skyblockshoppinglist.MobDrops.parsePercent(drop.getChance());
+            if (id == null || id.isBlank() || chance == null) continue;
+            out.computeIfAbsent(id, k -> new ArrayList<>()).add(new skyblockshoppinglist.MobDrops.Source(mob, chance));
+        }
     }
 
     private static String stripMC(String s) {
