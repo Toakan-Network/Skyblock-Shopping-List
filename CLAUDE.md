@@ -35,6 +35,8 @@ small fixes don't need a docs note.
 ## Hypixel rules
 The mod must stay read-only and client-side (see the "Hypixel rules" section in `readme.md`): never send
 packets, chat or commands, never cancel or modify events, never automate clicks or item movement.
+One exception: a button the player clicks may send the one command it names (the list row's **R** runs
+`/recipe <name>`), only on SkyBlock, one command per click, never on its own.
 Tracking, the HUD and keybinds run only on SkyBlock (`SkyblockDetector`).
 
 ## Minecraft versions

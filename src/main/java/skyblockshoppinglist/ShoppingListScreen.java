@@ -93,10 +93,12 @@ public class ShoppingListScreen extends Screen {
         treeViewWidth = Math.max(120, Math.min(400, width - treeViewX - 20));
         // Narrow screens: shrink the move buttons, then drop them, so the name keeps some room.
         int moveWidth = treeViewWidth >= 200 ? 20 : treeViewWidth >= 164 ? 12 : 0;
-        // Row, right to left: × (-26), amount (-70), Have total / Add more (-88), ▼, ▲.
+        // Row, right to left: × (-26), amount (-70), Have total / Add more (-88), ▼, ▲, recipe (R).
         int modeX = -88;
-        int controlsLeft = moveWidth > 0 ? -modeX + 4 + 2 * moveWidth : -modeX;
+        int moveLeft = moveWidth > 0 ? -modeX + 4 + 2 * moveWidth : -modeX;
+        int controlsLeft = moveLeft + 18;
         listNameWidth = treeViewWidth - controlsLeft - 8;
+        boolean onSkyblock = SkyblockDetector.isOnSkyblock();
         int rows = Math.min(list.size(), PANEL_MAX_ROWS);
         for (int i = 0; i < rows; i++) {
             ShoppingListEntry entry = list.get(i);
@@ -107,6 +109,18 @@ public class ShoppingListScreen extends Screen {
             amountBoxes.put(entry.recipe, amount);
             savedAmounts.put(entry.recipe, amount.getValue());
             addRenderableWidget(amount);
+            // One command per click the player makes, only on SkyBlock: opens Hypixel's own recipe menu.
+            Button recipe = Button.builder(Component.literal("R"), button -> {
+                Minecraft client = Minecraft.getInstance();
+                if (client.player == null || !SkyblockDetector.isOnSkyblock()) return;
+                client.player.connection.sendCommand("recipe " + entry.recipe);
+            }).bounds(treeViewX + treeViewWidth - controlsLeft, y, 16, 18)
+              .tooltip(Tooltip.create(Component.literal(onSkyblock
+                  ? "Open the recipe: /recipe " + entry.recipe
+                  : "Open the recipe (only on SkyBlock)")))
+              .build();
+            recipe.active = onSkyblock;
+            addRenderableWidget(recipe);
             boolean total = entry.isHaveTotal();
             addRenderableWidget(Button.builder(Component.literal(total ? "=" : "+"), button -> {
                 widget.setEntryHaveTotal(entry.recipe, !total);
@@ -120,7 +134,7 @@ public class ShoppingListScreen extends Screen {
                 Button up = Button.builder(Component.literal("▲"), button -> {
                     widget.moveEntry(entry.recipe, -1);
                     rebuildWidgets();
-                }).bounds(treeViewX + treeViewWidth - controlsLeft, y, moveWidth, 18)
+                }).bounds(treeViewX + treeViewWidth - moveLeft, y, moveWidth, 18)
                   .tooltip(Tooltip.create(Component.literal("Move up: higher rows get shared materials first.")))
                   .build();
                 up.active = i > 0;
