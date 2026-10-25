@@ -1,6 +1,6 @@
 # Skyblock Shopping List (formerly InventoryReader)
 
-Fabric client mod (mod id `skyblock-shopping-list`, Java package `skyblockshoppinglist`) for Hypixel SkyBlock, Minecraft 26.2 and 26.3 from one jar (Loom 1.17, Java 25). Build with `./gradlew build`.
+Fabric client mod (mod id `skyblock-shopping-list`, Java package `uk.toakan.tad.skyblockshoppinglist`) for Hypixel SkyBlock, Minecraft 26.2 and 26.3 from one jar (Loom 1.17, Java 25). Build with `./gradlew build`.
 
 ## Versioning
 `mod_version` in `gradle.properties` is MAJOR.MINOR.PATCH, bumped in the same commit as the change:
