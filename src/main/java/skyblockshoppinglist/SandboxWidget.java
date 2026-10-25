@@ -1494,7 +1494,8 @@ public class SandboxWidget {
         float titleScale = Math.min(style.titleScale, (float) (width - 10) / Math.max(1, titleWidth));
         drawScaled(context, titleText, alignedX(style.titleAlign, width, 5, titleWidth * titleScale),
             (TITLE_BAR - 8 * titleScale) / 2f, titleScale, style.textShadow);
-        context.fill(0, TITLE_BAR - 1, width, TITLE_BAR, style.divider);
+        int edge = dividerInset(style);
+        context.fill(edge, TITLE_BAR - 1, width - edge, TITLE_BAR, style.divider);
 
         context.enableScissor(0, TITLE_BAR, width, panelHeight - cornerClip);
         int cursorY = TITLE_BAR + style.titleGap;
@@ -1649,7 +1650,7 @@ public class SandboxWidget {
         float scale = section.scale();
         context.nextStratum();
         if (!ownPanel) {
-            context.fill(0, y, width, y + 1, style.divider);
+            context.fill(dividerInset(style), y, width - dividerInset(style), y + 1, style.divider);
             y += 5;
             HudStyle.Prepared header = style.prepared(section.header() + " -", section.headerColor(), true);
             drawScaled(context, header, alignedX(section.align(), width, style.padding, header.width() * scale),
@@ -1670,6 +1671,11 @@ public class SandboxWidget {
             y += lineHeight;
         }
         return y + 2;
+    }
+
+    /** Dividers stop inside the border's inner ring, which is drawn on the panel's own edge columns. */
+    private static int dividerInset(HudStyle style) {
+        return style.panelBorderWidth > 0 ? 1 : 0;
     }
 
     /** Left edge for text of the given drawn width. */
