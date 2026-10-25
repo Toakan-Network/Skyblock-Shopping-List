@@ -356,6 +356,8 @@ public final class ConfigScreen {
                 .option(slider("Row height", "Height of each row. Rows shrink if the HUD runs out of room.", 10, 24,
                     d.rowHeight, s -> s.rowHeight, (s, v) -> s.rowHeight = v))
                 .option(slider("Row gap", "Space between rows.", 0, 6, d.rowGap, s -> s.rowGap, (s, v) -> s.rowGap = v))
+                .option(slider("Title gap", "Space between a panel's title bar and its first row.", 0, 12, d.titleGap,
+                    s -> s.titleGap, (s, v) -> s.titleGap = v))
                 .option(slider("Indent", "How far each ingredient level is pushed right.", 4, 20, d.indent,
                     s -> s.indent, (s, v) -> s.indent = v))
                 .option(slider("Padding", "Space between the panel edge and the rows.", 0, 16, d.padding,

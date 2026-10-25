@@ -1440,7 +1440,7 @@ public class SandboxWidget {
                 for (RecipeManager.RecipeNode top : root.ingredients) {
                     if (top != ownTotal) visibleLines += countVisibleRecipeTreeLines(top, LIST_KEY, 0);
                 }
-                rowsHeight = 2 + visibleLines * (style.rowHeight + style.rowGap);
+                rowsHeight = visibleLines * (style.rowHeight + style.rowGap);
             }
             case TOTAL -> {
                 title = "Total" + sacksReadTag();
@@ -1449,7 +1449,7 @@ public class SandboxWidget {
                     String key = makePathKey(LIST_KEY, ownTotal.name);
                     for (RecipeManager.RecipeNode child : ownTotal.ingredients) visibleLines += countVisibleRecipeTreeLines(child, key, 1);
                 }
-                if (visibleLines > 0) rowsHeight = 2 + visibleLines * (style.rowHeight + style.rowGap);
+                if (visibleLines > 0) rowsHeight = visibleLines * (style.rowHeight + style.rowGap);
             }
             case CRAFTABLE -> title = "Craftable";
             case FORGING -> title = "Forging";
@@ -1470,7 +1470,9 @@ public class SandboxWidget {
         }
         // With rounded corners wider than the padding, content stops above the bottom corners so it can't cover them.
         int cornerClip = Math.max(0, style.panelRadius - style.padding) > 0 ? style.panelRadius : 0;
-        int naturalHeight = TITLE_BAR + rowsHeight + sectionsHeight + (empty ? 14 : 4) + cornerClip;
+        // Below the content: 4 px under rows, 2 under section lines only, room for the hint when empty.
+        int bottom = empty ? 12 : panel == Panel.MAIN || rowsHeight > 0 ? 4 : 2;
+        int naturalHeight = TITLE_BAR + style.titleGap + rowsHeight + sectionsHeight + bottom + cornerClip;
         int panelHeight = Math.min(maxHeight, naturalHeight);
         if (measureOnly) return panelHeight;
 
@@ -1495,7 +1497,7 @@ public class SandboxWidget {
         context.fill(0, TITLE_BAR - 1, width, TITLE_BAR, style.divider);
 
         context.enableScissor(0, TITLE_BAR, width, panelHeight - cornerClip);
-        int cursorY = TITLE_BAR + 2;
+        int cursorY = TITLE_BAR + style.titleGap;
         currentPanelWidth = width;
         currentNodeLineHeight = style.rowHeight;
         currentRowGap = style.rowGap;

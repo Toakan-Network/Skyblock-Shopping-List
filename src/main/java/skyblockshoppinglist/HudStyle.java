@@ -79,6 +79,8 @@ public final class HudStyle {
     public int indent = 10;
     public int padding = 6;
     public int rowGap = 0;
+    /** Space between a panel's title bar and its first row or line. */
+    public int titleGap = 4;
     public int panelBorderWidth = 2;
     public int rowBorderWidth = 1;
     /** Corner rounding in pixels (0 = square). */
@@ -274,6 +276,7 @@ public final class HudStyle {
         indent = clamp(indent, 4, 20);
         padding = clamp(padding, 0, 16);
         rowGap = clamp(rowGap, 0, 6);
+        titleGap = clamp(titleGap, 0, 12);
         panelBorderWidth = clamp(panelBorderWidth, 0, 4);
         rowBorderWidth = clamp(rowBorderWidth, 0, 2);
         panelRadius = clamp(panelRadius, 0, 6);
