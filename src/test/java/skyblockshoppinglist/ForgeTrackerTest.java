@@ -1,11 +1,17 @@
 package skyblockshoppinglist;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class ForgeTrackerTest {
+    @BeforeAll
+    static void language() {
+        ModLanguage.use();
+    }
+
     @Test
     void parseDurationAddsEveryPart() {
         assertEquals((12 * 3600 + 23 * 60 + 50) * 1000L, ForgeTracker.parseDuration("12h 23m 50s"));

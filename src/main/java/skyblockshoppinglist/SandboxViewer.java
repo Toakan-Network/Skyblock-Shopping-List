@@ -11,6 +11,7 @@ import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 
 public class SandboxViewer extends Screen {
@@ -123,7 +124,7 @@ public class SandboxViewer extends Screen {
         if (picker == null) picker = new RecipePicker(font, craftAmount, this::setCraftAmount);
         picker.init(this::addRenderableWidget, width, height);
         addHudButton();
-        this.addRenderableWidget(Button.builder(Component.literal("Add to list"), button -> addSelectedToList())
+        this.addRenderableWidget(Button.builder(Component.translatable("skyblock-shopping-list.screen.recipes.add"), button -> addSelectedToList())
             .bounds(width / 2 - 60, height - MenuTabs.BOTTOM_BAR, 120, 20).build());
         loadRecipes();
         if (mode == Mode.FORGE && selectedRecipe != null && remainingResult == null) {
@@ -141,32 +142,37 @@ public class SandboxViewer extends Screen {
     }
 
     private static Component hudLabel() {
-        return Component.literal("HUD: " + (SandboxWidget.getInstance().isEnabled() ? "ON" : "OFF"));
+        return Component.translatable(SandboxWidget.getInstance().isEnabled()
+            ? "skyblock-shopping-list.screen.hud.on" : "skyblock-shopping-list.screen.hud.off");
     }
 
     private void addSelectedToList() {
         Minecraft client = Minecraft.getInstance();
         if (selectedRecipe == null) {
-            if (client.player != null) client.player.sendOverlayMessage(Component.literal("Pick a recipe first"));
+            if (client.player != null) {
+                client.player.sendOverlayMessage(Component.translatable("skyblock-shopping-list.screen.recipes.pick_first"));
+            }
             return;
         }
         SandboxWidget widget = SandboxWidget.getInstance();
         SandboxWidget.AddResult result = widget.addToList(selectedRecipe, craftAmount);
-        String message = switch (result) {
-            case ADDED -> "Added " + craftAmount + "× " + selectedRecipe + " to the shopping list";
-            case INCREASED -> "Added " + craftAmount + " more " + selectedRecipe;
-            case FULL -> "Shopping list full (" + widget.getShoppingList().size() + "/" + widget.getMaxRecipes() + ")";
-            case WAITING -> SandboxWidget.WAITING_MESSAGE;
+        Component message = switch (result) {
+            case ADDED -> Component.translatable("skyblock-shopping-list.screen.recipes.added", craftAmount, selectedRecipe);
+            case INCREASED -> Component.translatable("skyblock-shopping-list.screen.recipes.increased", craftAmount, selectedRecipe);
+            case FULL -> Component.translatable("skyblock-shopping-list.screen.list.full", widget.getShoppingList().size(),
+                widget.getMaxRecipes());
+            case WAITING -> Component.translatable(SandboxWidget.WAITING_MESSAGE);
         };
-        if (client.player != null) client.player.sendOverlayMessage(Component.literal(message));
+        if (client.player != null) client.player.sendOverlayMessage(message);
     }
 
     private void initModifyResources() {
         resourceAmountFields.clear();
         activeTextField = null;
 
-        searchBox = new EditBox(this.font, MenuTabs.LEFT_X, MenuTabs.CONTROLS_Y, 210, 20, Component.literal("Search Resources"));
-        searchBox.setHint(Component.literal("Search resources..."));
+        searchBox = new EditBox(this.font, MenuTabs.LEFT_X, MenuTabs.CONTROLS_Y, 210, 20,
+            Component.translatable("skyblock-shopping-list.screen.resources.search"));
+        searchBox.setHint(Component.translatable("skyblock-shopping-list.screen.resources.search.hint"));
         searchBox.setValue(resourceSearchTerm);
         searchBox.setResponder(this::onResourceSearchChanged);
         this.addRenderableWidget(searchBox);
@@ -176,7 +182,7 @@ public class SandboxViewer extends Screen {
             loadResources();
             button.setMessage(showAllLabel());
         }).bounds(MenuTabs.LEFT_X + 216, MenuTabs.CONTROLS_Y, 110, 20)
-          .tooltip(Tooltip.create(Component.literal("OFF: only items you have. ON: every tracked item, so you can set one you have none of.")))
+          .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.screen.resources.show_all.tooltip")))
           .build());
         addHudButton();
 
@@ -185,7 +191,8 @@ public class SandboxViewer extends Screen {
 
 
     private static Component showAllLabel() {
-        return Component.literal("Show all: " + (showAllResources ? "ON" : "OFF"));
+        return Component.translatable(showAllResources
+            ? "skyblock-shopping-list.screen.resources.show_all.on" : "skyblock-shopping-list.screen.resources.show_all.off");
     }
 
     private void loadResources() {
@@ -241,7 +248,7 @@ public class SandboxViewer extends Screen {
         messages.clear();
         if (remainingResult.messages != null && !remainingResult.messages.isEmpty()) {
             for (Map.Entry<String, Integer> entry : remainingResult.messages.entrySet()) {
-                String message = "You need to craft x" + entry.getValue() + " " + entry.getKey();
+                String message = I18n.get("skyblock-shopping-list.screen.forge.need", entry.getValue(), entry.getKey());
                 messages.add(message);
             }
         }
@@ -250,7 +257,7 @@ public class SandboxViewer extends Screen {
             && remainingResult.full_recipe.ingredients.stream().allMatch(child -> child.amount <= 0);
 
         if (messages.isEmpty() && !craftable) {
-            String message = "Missing resources to craft " + selectedRecipe;
+            String message = I18n.get("skyblock-shopping-list.screen.forge.missing", selectedRecipe);
             messages.add(message);
         }
     }
@@ -463,7 +470,8 @@ public class SandboxViewer extends Screen {
 
             switch (mode) {
                 case RESOURCES -> {
-                    MenuTabs.sectionTitle(context, font, "Your resources", MenuTabs.LEFT_X, MenuTabs.SECTION_Y);
+                    MenuTabs.sectionTitle(context, font, I18n.get("skyblock-shopping-list.screen.resources"), MenuTabs.LEFT_X,
+                        MenuTabs.SECTION_Y);
                     int contentWidth = this.width - 2 * MenuTabs.LEFT_X;
                     renderModifyResources(context, MenuTabs.LEFT_X, MenuTabs.FILTER_Y, contentWidth, panelBottom() - MenuTabs.FILTER_Y);
                 }
@@ -486,16 +494,18 @@ public class SandboxViewer extends Screen {
 
     /** Recipes and Forge tabs: the picker on the left, the selected recipe in a panel on the right. */
     private void renderRecipeTabs(GuiGraphicsExtractor context, int mouseX, int mouseY) {
-        picker.render(context, mouseX, mouseY, "Pick a recipe", Set.of(), selectedRecipe);
+        picker.render(context, mouseX, mouseY, I18n.get("skyblock-shopping-list.screen.recipes.picker_hint"), Set.of(), selectedRecipe);
         int x = picker.rightColumnX();
         int width = Math.max(120, this.width - x - MenuTabs.LEFT_X);
         int height = panelBottom() - PANEL_TOP;
-        MenuTabs.sectionTitle(context, font, selectedRecipe != null ? selectedRecipe : (mode == Mode.FORGE ? "Forge" : "Recipe"),
+        MenuTabs.sectionTitle(context, font, selectedRecipe != null ? selectedRecipe
+                : I18n.get(mode == Mode.FORGE ? "skyblock-shopping-list.screen.forge" : "skyblock-shopping-list.screen.recipes.recipe"),
             x, MenuTabs.SECTION_Y);
         boolean ready = selectedRecipe != null && (mode == Mode.FORGE ? remainingResult != null : expandedRecipeTree != null);
         if (!ready) {
             MenuTabs.panel(context, x, PANEL_TOP, width, height);
-            drawCenteredText(context, mode == Mode.FORGE ? "Select a recipe to forge" : "Select a recipe from the list",
+            drawCenteredText(context, I18n.get(mode == Mode.FORGE
+                    ? "skyblock-shopping-list.screen.forge.select" : "skyblock-shopping-list.screen.recipes.select"),
                 x + width / 2, PANEL_TOP + height / 2, TEXT_SECONDARY);
         } else if (mode == Mode.FORGE) {
             renderForgeDetails(context, x, PANEL_TOP, width, height);
@@ -512,7 +522,7 @@ public class SandboxViewer extends Screen {
 
         int[] scroll = renderMaterialsAndTree(context, x + 6, width - 12, recipeCombinedAreaX, recipeCombinedAreaY,
             recipeCombinedAreaWidth, recipeCombinedAreaHeight, recipeCombinedScrollOffset, expandedRecipeTree,
-            "Crafting Tree (Click to expand)");
+            I18n.get("skyblock-shopping-list.screen.recipes.tree"));
         recipeCombinedMaxScroll = scroll[0];
         recipeCombinedScrollOffset = scroll[1];
     }
@@ -522,10 +532,12 @@ public class SandboxViewer extends Screen {
 
         context.fill(x, rightColumnY, x + width, rightColumnY + 60, ITEM_BG);
         context.outline(x, rightColumnY, width, 60, BORDER_COLOR);
-        context.text(font, "Crafting Amount: ", x + 10, rightColumnY + 10, WHITE, false);
+        context.text(font, Component.translatable("skyblock-shopping-list.screen.forge.amount"), x + 10, rightColumnY + 10,
+            WHITE, false);
         context.text(font, craftAmount + "", x + 120, rightColumnY + 10, GOLD, false);
         String statusIcon = craftable ? "✓" : "✗";
-        String craftableText = craftable ? "Can be crafted!" : "Missing ingredients";
+        String craftableText = I18n.get(craftable
+            ? "skyblock-shopping-list.screen.forge.craftable" : "skyblock-shopping-list.screen.forge.not_craftable");
         int craftableColor = craftable ? SUCCESS_GREEN : ERROR_RED;
         context.text(font, statusIcon, x + 10, rightColumnY + 30, craftableColor, false);
         context.text(font, craftableText, x + 30, rightColumnY + 30, craftableColor, false);
@@ -533,7 +545,8 @@ public class SandboxViewer extends Screen {
 
         if (!messages.isEmpty()) {
             context.fill(x, rightColumnY, x + width, rightColumnY + 30, ITEM_BG_ALT);
-            context.text(font, "Crafting Messages", x + 10, rightColumnY + 10, GOLD, false);
+            context.text(font, Component.translatable("skyblock-shopping-list.screen.forge.messages"), x + 10,
+                rightColumnY + 10, GOLD, false);
             rightColumnY += 35;
             int msgBoxHeight = Math.min(messages.size() * 20 + 10, 100);
             context.fill(x, rightColumnY, x + width, rightColumnY + msgBoxHeight, PANEL_BG);
@@ -554,7 +567,7 @@ public class SandboxViewer extends Screen {
 
         int[] scroll = renderMaterialsAndTree(context, x + 6, width - 12, forgeCombinedAreaX, forgeCombinedAreaY,
             forgeCombinedAreaWidth, forgeCombinedAreaHeight, forgeCombinedScrollOffset,
-            remainingResult != null ? remainingResult.full_recipe : null, "Required Recipe Tree (Click to Expand)");
+            remainingResult != null ? remainingResult.full_recipe : null, I18n.get("skyblock-shopping-list.screen.forge.tree"));
         forgeCombinedMaxScroll = scroll[0];
         forgeCombinedScrollOffset = scroll[1];
     }
@@ -587,7 +600,7 @@ public class SandboxViewer extends Screen {
         int drawY = contentY - offset;
 
         context.fill(x, drawY, x + width, drawY + headerH, ITEM_BG_ALT);
-        context.text(font, "Required Materials", x + 10, drawY + 6, GOLD, false);
+        context.text(font, Component.translatable("skyblock-shopping-list.screen.recipes.materials"), x + 10, drawY + 6, GOLD, false);
         drawY += headerH + 6;
         if (!noMaterials) {
             int materialIndex = 0;
@@ -605,7 +618,8 @@ public class SandboxViewer extends Screen {
             }
             drawY += materialRows * 34 + 4;
         } else {
-            context.text(font, "No materials required", x + 10, drawY + 5, TEXT_SECONDARY, false);
+            context.text(font, Component.translatable("skyblock-shopping-list.screen.recipes.no_materials"), x + 10, drawY + 5,
+                TEXT_SECONDARY, false);
             drawY += 24;
         }
 
@@ -734,16 +748,20 @@ public class SandboxViewer extends Screen {
         context.fill(contentX, gridStartY, contentX + leftPanelWidth, gridStartY + headerHeight, ITEM_BG_ALT);
         context.outline(contentX, gridStartY, leftPanelWidth, headerHeight, BORDER_COLOR);
 
-        context.text(font, "Resource Name", contentX + 12, gridStartY + 8, GOLD, false);
-        context.text(font, "Amount", contentX + leftPanelWidth - 120, gridStartY + 8, GOLD, false);
-        context.text(font, "Actions", contentX + leftPanelWidth - 60, gridStartY + 8, GOLD, false);
+        context.text(font, Component.translatable("skyblock-shopping-list.screen.resources.name"), contentX + 12, gridStartY + 8,
+            GOLD, false);
+        context.text(font, Component.translatable("skyblock-shopping-list.screen.amount"), contentX + leftPanelWidth - 120,
+            gridStartY + 8, GOLD, false);
+        context.text(font, Component.translatable("skyblock-shopping-list.screen.resources.actions"), contentX + leftPanelWidth - 60,
+            gridStartY + 8, GOLD, false);
 
         int listStartY = gridStartY + headerHeight;
         context.fill(contentX, listStartY, contentX + leftPanelWidth, contentY + contentHeight, PANEL_BG);
         context.outline(contentX, gridStartY, leftPanelWidth, contentHeight, BORDER_COLOR);
 
         if (totalItems == 0) {
-            drawCenteredText(context, "No resources found", contentX + leftPanelWidth / 2, listStartY + 30, TEXT_SECONDARY);
+            drawCenteredText(context, I18n.get("skyblock-shopping-list.screen.resources.none"), contentX + leftPanelWidth / 2,
+                listStartY + 30, TEXT_SECONDARY);
             return;
         }
 

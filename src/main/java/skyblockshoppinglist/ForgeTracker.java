@@ -1,6 +1,7 @@
 package skyblockshoppinglist;
 
 import com.google.gson.reflect.TypeToken;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -133,13 +134,13 @@ public final class ForgeTracker {
     /** Time left as "12h 23m", "5m", "<1m", or "Ready". */
     public static String formatRemaining(long endsAt, long now) {
         long minutes = (endsAt - now) / 60_000;
-        if (endsAt <= now) return "Ready";
-        if (minutes < 1) return "<1m";
+        if (endsAt <= now) return I18n.get("skyblock-shopping-list.time.ready");
+        if (minutes < 1) return I18n.get("skyblock-shopping-list.time.under_minute");
         long days = minutes / 1440;
         long hours = (minutes % 1440) / 60;
         long mins = minutes % 60;
-        if (days > 0) return days + "d " + hours + "h";
-        if (hours > 0) return hours + "h " + mins + "m";
-        return mins + "m";
+        if (days > 0) return I18n.get("skyblock-shopping-list.time.days", days, hours);
+        if (hours > 0) return I18n.get("skyblock-shopping-list.time.hours", hours, mins);
+        return I18n.get("skyblock-shopping-list.time.minutes", mins);
     }
 }

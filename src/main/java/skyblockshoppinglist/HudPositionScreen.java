@@ -8,6 +8,8 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
 /**
@@ -49,7 +51,7 @@ public class HudPositionScreen extends Screen {
 
     /** @param parent screen to return to on Done, or null to close. */
     public HudPositionScreen(Screen parent) {
-        super(Component.literal("Move HUD"));
+        super(Component.translatable("skyblock-shopping-list.move_hud"));
         this.parent = parent;
         this.widget = SandboxWidget.getInstance();
         loadRects();
@@ -63,11 +65,11 @@ public class HudPositionScreen extends Screen {
     @Override
     protected void init() {
         int buttonWidth = 90;
-        addRenderableWidget(Button.builder(Component.literal("Reset position"), button -> {
+        addRenderableWidget(Button.builder(Component.translatable("skyblock-shopping-list.move_hud.reset"), button -> {
             widget.resetPanelPositions();
             loadRects();
         }).bounds(width - 2 * buttonWidth - 8, 1, buttonWidth, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("Done"), button -> onClose())
+        addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onClose())
             .bounds(width - buttonWidth - 4, 1, buttonWidth, 20).build());
     }
 
@@ -81,16 +83,16 @@ public class HudPositionScreen extends Screen {
         context.fill(0, 0, width, height, 0x40000000);
         context.fill(0, 0, width, 22, MenuTabs.HEADER_BG);
         context.outline(0, 0, width, 22, MenuTabs.HEADER_BORDER);
-        context.text(font, "Move HUD", 8, 7, GOLD, false);
+        context.text(font, title, 8, 7, GOLD, false);
         // Hint and position in the title bar, shortened to whatever fits left of the buttons.
         SandboxWidget.PanelRect mainRect = rects.get(SandboxWidget.Panel.MAIN);
         SandboxWidget.PanelRect shown = active != null && rects.containsKey(active) ? rects.get(active) : mainRect;
-        String hint = "Drag to move (Shift: no snap), corner to scale, edge to resize";
+        String hint = I18n.get("skyblock-shopping-list.move_hud.hint");
         if (shown != null) {
-            hint += "   X=" + shown.x + " Y=" + shown.y + " W=" + shown.width + " H=" + shown.height
-                + " Scale=" + shown.scalePercent() + "%";
+            hint += I18n.get("skyblock-shopping-list.move_hud.position", shown.x, shown.y, shown.width, shown.height,
+                shown.scalePercent());
         }
-        int hintX = 8 + font.width("Move HUD") + 12;
+        int hintX = 8 + font.width(title) + 12;
         context.text(font, font.plainSubstrByWidth(hint, Math.max(0, width - 2 * 90 - 16 - hintX)), hintX, 7, 0xFFBBBBBB, false);
 
         for (Map.Entry<SandboxWidget.Panel, SandboxWidget.PanelRect> e : rects.entrySet()) {
@@ -104,7 +106,7 @@ public class HudPositionScreen extends Screen {
             int drawn = widget.renderPanel(context, panel, r.x, r.y, r.width, r.height, scale, true);
             if (drawn == 0) {
                 context.fill(r.x, r.y, r.x + w, r.y + h, 0xCC271910);
-                context.text(font, "Shopping list is empty", r.x + 8, r.y + 8, 0xFFFFFFFF, false);
+                context.text(font, Component.translatable("skyblock-shopping-list.move_hud.empty"), r.x + 8, r.y + 8, 0xFFFFFFFF, false);
             }
             drawnHeights.put(panel, drawn == 0 ? h : Math.min(h, Math.round(drawn * scale)));
             boolean busy = panel == active && (dragging || resizing != Handle.NONE);

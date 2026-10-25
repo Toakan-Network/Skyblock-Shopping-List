@@ -2,6 +2,7 @@ package skyblockshoppinglist;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
@@ -36,16 +37,16 @@ public class ReminderManager {
      */
     public static void promptSacks(List<String> sacks) {
         if (sacks.isEmpty()) return;
-        Component message = Component.literal("Open your ").withStyle(ChatFormatting.WHITE)
-            .append(Component.literal(sackList(sacks)).withStyle(ChatFormatting.YELLOW))
-            .append(Component.literal(" for accurate counts.").withStyle(ChatFormatting.WHITE));
-        Notifier.send(Notifier.Type.SACK_PROMPT, "Sacks to open", message);
+        Component message = Component.translatable("skyblock-shopping-list.reminder.prompt",
+            Component.literal(sackList(sacks)).withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.WHITE);
+        Notifier.send(Notifier.Type.SACK_PROMPT, Component.translatable("skyblock-shopping-list.reminder.prompt.title"), message);
     }
 
     /** "Mining Sack, Combat Sack", or with more than {@link #MAX_SACKS_NAMED} "A, B, C +2 more". */
     private static String sackList(List<String> sacks) {
         String named = String.join(", ", sacks.subList(0, Math.min(MAX_SACKS_NAMED, sacks.size())));
-        return sacks.size() > MAX_SACKS_NAMED ? named + " +" + (sacks.size() - MAX_SACKS_NAMED) + " more" : named;
+        return sacks.size() > MAX_SACKS_NAMED
+            ? I18n.get("skyblock-shopping-list.reminder.more", named, sacks.size() - MAX_SACKS_NAMED) : named;
     }
 
     /** Warns, at most once an hour, when sacks haven't been opened for an hour and the list isn't empty. */
@@ -57,13 +58,14 @@ public class ReminderManager {
         if (now - lastRead < STALE_AFTER_MS || now - lastStaleWarning < STALE_AFTER_MS) return;
         lastStaleWarning = now;
 
-        String status = lastRead == 0
-            ? "Not read yet. "
-            : "Last checked " + (now - lastRead) / STALE_AFTER_MS + "h ago. ";
-        Component message = Component.literal(status).withStyle(ChatFormatting.WHITE)
-            .append(Component.literal(widget.getListSacks().isEmpty()
-                ? "Open your sacks to refresh them."
-                : "Open your " + sackList(widget.getListSacks()) + " to refresh them.").withStyle(ChatFormatting.YELLOW));
-        Notifier.send(Notifier.Type.STALE_SACKS, "Sack counts may be out of date", message);
+        Component status = lastRead == 0
+            ? Component.translatable("skyblock-shopping-list.reminder.stale.never")
+            : Component.translatable("skyblock-shopping-list.reminder.stale.last", (now - lastRead) / STALE_AFTER_MS);
+        Component message = status.copy().withStyle(ChatFormatting.WHITE)
+            .append((widget.getListSacks().isEmpty()
+                ? Component.translatable("skyblock-shopping-list.reminder.stale.open_all")
+                : Component.translatable("skyblock-shopping-list.reminder.stale.open", sackList(widget.getListSacks())))
+                .withStyle(ChatFormatting.YELLOW));
+        Notifier.send(Notifier.Type.STALE_SACKS, Component.translatable("skyblock-shopping-list.reminder.stale.title"), message);
     }
 }

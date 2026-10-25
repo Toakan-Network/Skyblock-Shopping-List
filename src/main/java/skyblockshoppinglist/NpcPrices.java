@@ -1,6 +1,7 @@
 package skyblockshoppinglist;
 
 import com.google.gson.reflect.TypeToken;
+import net.minecraft.client.resources.language.I18n;
 
 import java.io.File;
 import java.lang.reflect.Type;
@@ -79,11 +80,13 @@ public final class NpcPrices {
         }
         if (buyPriced == 0 && sellPriced == 0) return List.of();
         return List.of(
-            line("Buy", buyTotal, buyPriced, count),
-            line("Sell", sellTotal, sellPriced, count - coinRows));
+            line("skyblock-shopping-list.npc_price.buy", buyTotal, buyPriced, count),
+            line("skyblock-shopping-list.npc_price.sell", sellTotal, sellPriced, count - coinRows));
     }
 
-    private static String line(String label, double coins, int priced, int count) {
-        return String.format(java.util.Locale.ROOT, "%s: %,d coins (%d/%d items)", label, Math.round(coins), priced, count);
+    /** "Buy: 1,240 coins (2/3 items)"; {@code labelKey} is the lang key of "Buy" or "Sell". */
+    static String line(String labelKey, double coins, int priced, int count) {
+        return I18n.get("skyblock-shopping-list.npc_price.line", I18n.get(labelKey),
+            String.format(java.util.Locale.ROOT, "%,d", Math.round(coins)), priced, count);
     }
 }

@@ -44,38 +44,38 @@ public class WelcomeManager {
             Style.EMPTY.withBold(true).withColor(ChatFormatting.AQUA)
         ));
 
-        client.player.sendSystemMessage(Component.literal("§eA shopping list for Hypixel SkyBlock: pick recipes, see what you still need."));
+        client.player.sendSystemMessage(Component.translatable("skyblock-shopping-list.welcome.intro"));
         client.player.sendSystemMessage(Component.literal(""));
 
-        MutableComponent commandsText = Component.literal("§6§lCommands:").append(Component.literal("\n§e- Press "));
-        commandsText.append(Component.literal("§b" + ShoppingListClient.openMenuKeyName()).setStyle(Style.EMPTY.withBold(true).withColor(ChatFormatting.AQUA)));
-        commandsText.append(Component.literal("§e to open the menu"));
-        commandsText.append(Component.literal("\n§e- Press "));
-        commandsText.append(Component.literal("§b" + ShoppingListClient.moveHudKeyName()).setStyle(Style.EMPTY.withBold(true).withColor(ChatFormatting.AQUA)));
-        commandsText.append(Component.literal("§e to move the HUD"));
+        Style key = Style.EMPTY.withBold(true).withColor(ChatFormatting.AQUA);
+        MutableComponent commandsText = Component.translatable("skyblock-shopping-list.welcome.keys");
+        commandsText.append(Component.translatable("skyblock-shopping-list.welcome.keys.menu",
+            Component.literal(ShoppingListClient.openMenuKeyName()).setStyle(key)));
+        commandsText.append(Component.translatable("skyblock-shopping-list.welcome.keys.hud",
+            Component.literal(ShoppingListClient.moveHudKeyName()).setStyle(key)));
         client.player.sendSystemMessage(commandsText);
 
-        MutableComponent chatCommandsText = Component.literal("§6§lChat Commands:").setStyle(
+        MutableComponent chatCommandsText = Component.translatable("skyblock-shopping-list.welcome.commands").setStyle(
             Style.EMPTY.withBold(true).withColor(ChatFormatting.GOLD)
         );
         client.player.sendSystemMessage(chatCommandsText);
-        client.player.sendSystemMessage(Component.literal("§e- §b/ssl menu§e: Open the menu"));
-        client.player.sendSystemMessage(Component.literal("§e- §b/ssl hud§e: Move the HUD"));
-        client.player.sendSystemMessage(Component.literal("§e- §b/ssl reset§e: Reset all mod data"));
-        client.player.sendSystemMessage(Component.literal("§e- §b/ssl§e: Show all available commands"));
+        client.player.sendSystemMessage(Component.translatable("skyblock-shopping-list.welcome.commands.menu"));
+        client.player.sendSystemMessage(Component.translatable("skyblock-shopping-list.welcome.commands.hud"));
+        client.player.sendSystemMessage(Component.translatable("skyblock-shopping-list.welcome.commands.reset"));
+        client.player.sendSystemMessage(Component.translatable("skyblock-shopping-list.welcome.commands.help"));
 
         client.player.sendSystemMessage(Component.literal(""));
-        MutableComponent firstTimeText = Component.literal("§d§lFirst-Time Setup:").setStyle(
+        MutableComponent firstTimeText = Component.translatable("skyblock-shopping-list.welcome.setup").setStyle(
             Style.EMPTY.withBold(true).withColor(ChatFormatting.LIGHT_PURPLE)
         );
         client.player.sendSystemMessage(firstTimeText);
-        MutableComponent warningText = Component.literal("⚠️ Open your Backpacks and Ender Chest once so they are counted. The HUD tells you which Sacks to open. ⚠️").setStyle(
+        MutableComponent warningText = Component.translatable("skyblock-shopping-list.welcome.setup.storage").setStyle(
             Style.EMPTY.withBold(true).withColor(ChatFormatting.RED)
         );
         client.player.sendSystemMessage(warningText);
-        client.player.sendSystemMessage(Component.literal("§e1. Press §b" + ShoppingListClient.openMenuKeyName() + "§e and click recipes to add them to your shopping list"));
-        client.player.sendSystemMessage(Component.literal("§e2. Check or correct your counts in 'Your Resources'"));
-        client.player.sendSystemMessage(Component.literal("§e3. Press §b" + ShoppingListClient.toggleWidgetKeyName() + "§e to show the shopping list on screen"));
+        client.player.sendSystemMessage(Component.translatable("skyblock-shopping-list.welcome.setup.step1", ShoppingListClient.openMenuKeyName()));
+        client.player.sendSystemMessage(Component.translatable("skyblock-shopping-list.welcome.setup.step2"));
+        client.player.sendSystemMessage(Component.translatable("skyblock-shopping-list.welcome.setup.step3", ShoppingListClient.toggleWidgetKeyName()));
 
         try {
             WELCOME_FLAG_FILE.createNewFile();

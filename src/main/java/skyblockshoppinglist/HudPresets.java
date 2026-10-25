@@ -221,10 +221,9 @@ public final class HudPresets {
         }
     }
 
-    public static void toast(String title, String message) {
+    public static void toast(Component title, Component message) {
         Minecraft client = Minecraft.getInstance();
-        SystemToast.add(client.gui.toastManager(), TOAST,
-            Component.literal(title).withStyle(ChatFormatting.GOLD), Component.literal(message));
+        SystemToast.add(client.gui.toastManager(), TOAST, title.copy().withStyle(ChatFormatting.GOLD), message);
     }
 
     private static Map<String, Preset> readAll() {

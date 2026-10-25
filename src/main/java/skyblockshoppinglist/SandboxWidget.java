@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import java.util.*;
@@ -175,7 +176,8 @@ public class SandboxWidget {
         return this.enabled;
     }
     public enum AddResult { ADDED, INCREASED, FULL, WAITING }
-    public static final String WAITING_MESSAGE = "Waiting for your SkyBlock profile, try again in a moment";
+    /** Lang key of the message shown while the profile isn't known yet. */
+    public static final String WAITING_MESSAGE = "skyblock-shopping-list.waiting";
 
     /**
      * False for the few seconds after a server change on SkyBlock, before Hypixel names the profile: the list shown
@@ -184,7 +186,7 @@ public class SandboxWidget {
     private static boolean editable() {
         if (!SkyblockDetector.isOnSkyblock() || ProfileManager.isReady()) return true;
         Minecraft client = Minecraft.getInstance();
-        if (client.player != null) client.player.sendOverlayMessage(Component.literal(WAITING_MESSAGE));
+        if (client.player != null) client.player.sendOverlayMessage(Component.translatable(WAITING_MESSAGE));
         return false;
     }
 
@@ -383,7 +385,7 @@ public class SandboxWidget {
     }
     /** HUD heading. The recipes themselves are the top-level rows underneath. */
     public String getTitle() {
-        return "Shopping List";
+        return I18n.get("skyblock-shopping-list.hud.title");
     }
     /** The synthetic root the HUD draws (children: Total, then one tree per recipe), or null. */
     public RecipeManager.RecipeNode getDisplayRoot() {
@@ -685,8 +687,9 @@ public class SandboxWidget {
             }
             if (achieved) {
                 if (achievedEntries.add(entry.recipe) && announce) {
-                    String message = entry.amount + "× " + entry.recipe;
-                    toasts.add(() -> Notifier.send(Notifier.Type.ACHIEVED, "Item achieved", Component.literal(message)));
+                    Component message = Component.translatable("skyblock-shopping-list.notify.amount", entry.amount, entry.recipe);
+                    toasts.add(() -> Notifier.send(Notifier.Type.ACHIEVED,
+                        Component.translatable("skyblock-shopping-list.notify.achieved"), message));
                 }
                 if (autoRemove) toRemove.add(entry.recipe);
                 continue;
@@ -703,8 +706,9 @@ public class SandboxWidget {
             if (!ready) {
                 readyEntries.remove(entry.recipe);
             } else if (readyEntries.add(entry.recipe) && announce) {
-                String message = entry.amount + "× " + entry.recipe;
-                toasts.add(() -> Notifier.send(Notifier.Type.READY, "Ready to craft", Component.literal(message)));
+                Component message = Component.translatable("skyblock-shopping-list.notify.amount", entry.amount, entry.recipe);
+                toasts.add(() -> Notifier.send(Notifier.Type.READY,
+                    Component.translatable("skyblock-shopping-list.notify.ready"), message));
             }
         }
         readyEntries.retainAll(names);
@@ -720,7 +724,7 @@ public class SandboxWidget {
         sortedEntries.sort((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
         for (Map.Entry<String, Integer> entry : sortedEntries) {
             if (entry.getValue() != null && entry.getValue() > 0) {
-                newMessages.add(entry.getValue() + "× " + entry.getKey());
+                newMessages.add(I18n.get("skyblock-shopping-list.notify.amount", entry.getValue(), entry.getKey()));
             }
         }
 
@@ -1021,12 +1025,13 @@ public class SandboxWidget {
         long you = MobDrops.expectedKills(yours);
         long worst = MobDrops.expectedKills(source.chance);
         String left = switch (cases) {
-            case BEST -> "~" + left(best, kills) + " left";
-            case YOUR -> "~" + left(you, kills) + " left";
-            case WORST -> "~" + left(worst, kills) + " left";
-            case ALL -> "best " + left(best, kills) + ", you " + left(you, kills) + ", worst " + left(worst, kills) + " left";
+            case BEST -> I18n.get("skyblock-shopping-list.hud.mob_drops.left", left(best, kills));
+            case YOUR -> I18n.get("skyblock-shopping-list.hud.mob_drops.left", left(you, kills));
+            case WORST -> I18n.get("skyblock-shopping-list.hud.mob_drops.left", left(worst, kills));
+            case ALL -> I18n.get("skyblock-shopping-list.hud.mob_drops.left_all", left(best, kills), left(you, kills),
+                left(worst, kills));
         };
-        String text = name + " (" + source.mob + "): " + number(kills) + " kills, " + left;
+        String text = I18n.get("skyblock-shopping-list.hud.mob_drops.line", name, source.mob, number(kills), left);
         return new Line(text, kills >= worst ? Tone.OTHER : Tone.TEXT);
     }
 
@@ -1070,7 +1075,8 @@ public class SandboxWidget {
         List<Line> lines = new ArrayList<>();
         for (Map.Entry<String, int[]> e : counts.entrySet()) {
             ForgeTracker.Entry entry = firstOf.get(e.getKey());
-            String text = e.getValue()[0] + "× " + entry.name + " - " + ForgeTracker.formatRemaining(entry.endsAt, now);
+            String text = I18n.get("skyblock-shopping-list.hud.forging.line", e.getValue()[0], entry.name,
+                ForgeTracker.formatRemaining(entry.endsAt, now));
             Tone tone = !onList ? Tone.OTHER : entry.endsAt <= now ? Tone.DONE : Tone.TEXT;
             lines.add(new Line(text, tone));
         }
@@ -1154,17 +1160,35 @@ public class SandboxWidget {
     /** True while {@link #renderPreview} draws: panels show the sample list below, fully expanded. */
     private boolean previewing = false;
     private static final RecipeManager.RecipeNode SAMPLE_TREE = sampleTree();
-    private static final List<Line> SAMPLE_CRAFTABLE = Line.plain(List.of("1× Refined Diamond"));
+    // Sample lines are built when the preview draws, so they are in the current language.
+    private static List<Line> sampleCraftable() {
+        return Line.plain(List.of(I18n.get("skyblock-shopping-list.notify.amount", 1, "Refined Diamond")));
+    }
+
     /** A listed Forging line, then one for an item not on the list. */
-    private static final List<Line> SAMPLE_FORGING = List.of(new Line("3× Mithril Plate - 2h 10m", Tone.TEXT),
-        new Line("1× Refined Mithril - 5h 0m", Tone.OTHER));
+    private static List<Line> sampleForging() {
+        return List.of(
+            new Line(I18n.get("skyblock-shopping-list.hud.forging.line", 3, "Mithril Plate",
+                I18n.get("skyblock-shopping-list.time.hours", 2, 10)), Tone.TEXT),
+            new Line(I18n.get("skyblock-shopping-list.hud.forging.line", 1, "Refined Mithril",
+                I18n.get("skyblock-shopping-list.time.hours", 5, 0)), Tone.OTHER));
+    }
+
     /** A Mob drops line still in reach, then an overdue one. */
-    private static final List<Line> SAMPLE_MOB_DROPS = List.of(
-        new Line("Ender Necklace (Zealot): 312 kills, best 15, you 88, worst 400 left", Tone.TEXT),
-        new Line("Summoning Eye (Zealot): 1,020 kills, best 0, you 0, worst 0 left", Tone.OTHER),
-        new Line("Magic Find: 237 (last drop)", Tone.DONE));
-    private static final List<Line> SAMPLE_NPC_PRICE =
-        Line.plain(List.of("Buy: 1,240 coins (2/3 items)", "Sell: 310 coins (3/3 items)"));
+    private static List<Line> sampleMobDrops() {
+        return List.of(
+            new Line(I18n.get("skyblock-shopping-list.hud.mob_drops.line", "Ender Necklace", "Zealot", "312",
+                I18n.get("skyblock-shopping-list.hud.mob_drops.left_all", 15, 88, 400)), Tone.TEXT),
+            new Line(I18n.get("skyblock-shopping-list.hud.mob_drops.line", "Summoning Eye", "Zealot", "1,020",
+                I18n.get("skyblock-shopping-list.hud.mob_drops.left_all", 0, 0, 0)), Tone.OTHER),
+            new Line(I18n.get("skyblock-shopping-list.magic_find.from", 237,
+                I18n.get("skyblock-shopping-list.magic_find.last_drop")), Tone.DONE));
+    }
+
+    private static List<Line> sampleNpcPrice() {
+        return Line.plain(List.of(NpcPrices.line("skyblock-shopping-list.npc_price.buy", 1240, 2, 3),
+            NpcPrices.line("skyblock-shopping-list.npc_price.sell", 310, 3, 3)));
+    }
 
     /** A small made-up list showing every row state: done, partly gathered, missing and can craft. */
     private static RecipeManager.RecipeNode sampleTree() {
@@ -1443,7 +1467,7 @@ public class SandboxWidget {
                 rowsHeight = visibleLines * (style.rowHeight + style.rowGap);
             }
             case TOTAL -> {
-                title = "Total" + sacksReadTag();
+                title = I18n.get("skyblock-shopping-list.hud.total") + sacksReadTag();
                 int visibleLines = 0;
                 if (ownTotal != null) {
                     String key = makePathKey(LIST_KEY, ownTotal.name);
@@ -1451,9 +1475,9 @@ public class SandboxWidget {
                 }
                 if (visibleLines > 0) rowsHeight = visibleLines * (style.rowHeight + style.rowGap);
             }
-            case CRAFTABLE -> title = "Craftable";
-            case FORGING -> title = "Forging";
-            default -> title = "Mob drops";
+            case CRAFTABLE -> title = I18n.get("skyblock-shopping-list.hud.craftable");
+            case FORGING -> title = I18n.get("skyblock-shopping-list.hud.forging");
+            default -> title = I18n.get("skyblock-shopping-list.hud.mob_drops");
         }
         boolean empty = panel != Panel.MAIN && rowsHeight == 0 && sections.stream().allMatch(s -> s.lines().isEmpty());
         if (empty && !preview) return 0;
@@ -1514,7 +1538,7 @@ public class SandboxWidget {
             }
         }
         if (empty) {
-            HudStyle.Prepared hint = style.prepared("(nothing yet)", style.itemText, false);
+            HudStyle.Prepared hint = style.prepared(I18n.get("skyblock-shopping-list.hud.nothing_yet"), style.itemText, false);
             drawScaled(context, hint, (width - hint.width()) / 2f, cursorY + 2, 1f, style.textShadow);
         }
         for (int i = 0; i < sections.size(); i++) {
@@ -1555,7 +1579,7 @@ public class SandboxWidget {
         List<String> sacksLeft = neededSacks;
         if (sacksLeft.isEmpty()) return "";
         int listSackCount = listSacks.size();
-        return " (sacks " + (listSackCount - sacksLeft.size()) + "/" + listSackCount + " read)";
+        return I18n.get("skyblock-shopping-list.hud.sacks_read", listSackCount - sacksLeft.size(), listSackCount);
     }
 
     /** The Craftable / Forging blocks this panel shows. */
@@ -1567,36 +1591,36 @@ public class SandboxWidget {
             && (style.forgingPlacement == HudStyle.Placement.OWN_PANEL ? panel == Panel.FORGING : panel == Panel.MAIN);
         if (craftableHere) {
             // Built ready to draw, most first, by updateRecipeData: no per-frame work here.
-            List<Line> craftable = previewing ? SAMPLE_CRAFTABLE : messages;
+            List<Line> craftable = previewing ? sampleCraftable() : messages;
             if (panel != Panel.MAIN || !craftable.isEmpty()) {
-                sections.add(new Section("Craftable", craftable, style.craftableScale, style.craftableAlign,
+                sections.add(new Section(I18n.get("skyblock-shopping-list.hud.craftable"), craftable, style.craftableScale, style.craftableAlign,
                     style.sectionHeader, style.sectionText));
             }
         }
         if (forgingHere) {
             boolean all = style.forgingSlots == HudStyle.ForgingSlots.ALL;
             ForgingLines current = forgingLines;
-            List<Line> forging = previewing ? (all ? SAMPLE_FORGING : SAMPLE_FORGING.subList(0, 1))
+            List<Line> forging = previewing ? (all ? sampleForging() : sampleForging().subList(0, 1))
                 : all ? current.all() : current.listed();
             if (panel != Panel.MAIN || !forging.isEmpty()) {
-                sections.add(new Section("Forging", forging, style.forgingScale, style.forgingAlign,
+                sections.add(new Section(I18n.get("skyblock-shopping-list.hud.forging"), forging, style.forgingScale, style.forgingAlign,
                     style.forgingHeader, style.forgingText, style.forgingOtherText));
             }
         }
         boolean mobDropsHere = style.showMobDrops
             && (style.mobDropsPlacement == HudStyle.Placement.OWN_PANEL ? panel == Panel.MOB_DROPS : panel == Panel.MAIN);
         if (mobDropsHere) {
-            List<Line> drops = previewing ? SAMPLE_MOB_DROPS : mobDropLines;
+            List<Line> drops = previewing ? sampleMobDrops() : mobDropLines;
             if (panel != Panel.MAIN || !drops.isEmpty()) {
-                sections.add(new Section("Mob drops", drops, style.mobDropsScale, style.mobDropsAlign,
+                sections.add(new Section(I18n.get("skyblock-shopping-list.hud.mob_drops"), drops, style.mobDropsScale, style.mobDropsAlign,
                     style.mobDropsHeader, style.mobDropsText, style.mobDropsOverdueText));
             }
         }
         // The bill goes last, at the bottom of the main panel.
         if (style.showNpcPrice && panel == Panel.MAIN) {
-            List<Line> prices = previewing ? SAMPLE_NPC_PRICE : npcPriceHudLines;
+            List<Line> prices = previewing ? sampleNpcPrice() : npcPriceHudLines;
             if (!prices.isEmpty()) {
-                sections.add(new Section("NPC price", prices, style.craftableScale, style.craftableAlign,
+                sections.add(new Section(I18n.get("skyblock-shopping-list.hud.npc_price"), prices, style.craftableScale, style.craftableAlign,
                     style.sectionHeader, style.sectionText));
             }
         }
@@ -1761,7 +1785,8 @@ public class SandboxWidget {
             : HudStyle.Prepared.EMPTY;
         HudStyle.Prepared amount = style.prepared(amountText(node) + " ", statusColor, false);
         boolean bold = level == 0 && style.boldRootNames;
-        HudStyle.Prepared name = style.prepared(node.name, nameColor, bold);
+        HudStyle.Prepared name = style.prepared(level == 0 && "Total".equals(node.name)
+            ? I18n.get("skyblock-shopping-list.hud.total") : node.name, nameColor, bold);
         String forge = forgeText(node, level);
         HudStyle.Prepared tag = forge.isEmpty() ? HudStyle.Prepared.EMPTY : style.prepared(forge, nameColor, false);
         int lockWidth = showsLock(node) ? LOCK_WIDTH : 0;
@@ -1974,10 +1999,10 @@ public class SandboxWidget {
         if (mode == HudStyle.ForgeTimes.OFF || (mode == HudStyle.ForgeTimes.TOP_LEVEL && level > 0)) return "";
         long left = node.forgeLeft(System.currentTimeMillis());
         if (left <= 0) return "";
-        if (left < 60_000) return "[<1m]";
+        if (left < 60_000) return I18n.get("skyblock-shopping-list.hud.forge_time.under_minute");
         long minutes = (left + 59_999) / 60_000;
-        if (minutes < 60) return "[" + minutes + "m]";
-        return "[" + ((minutes + 59) / 60) + "hrs]";
+        if (minutes < 60) return I18n.get("skyblock-shopping-list.hud.forge_time.minutes", minutes);
+        return I18n.get("skyblock-shopping-list.hud.forge_time.hours", (minutes + 59) / 60);
     }
 
     /**

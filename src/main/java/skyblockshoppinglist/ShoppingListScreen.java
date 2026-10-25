@@ -13,6 +13,7 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 
@@ -75,7 +76,7 @@ public class ShoppingListScreen extends Screen {
     }
 
     private Component hudLabel() {
-        return Component.literal("HUD: " + (widget.isEnabled() ? "ON" : "OFF"));
+        return Component.translatable(widget.isEnabled() ? "skyblock-shopping-list.screen.hud.on" : "skyblock-shopping-list.screen.hud.off");
     }
 
     private void initRecipeTab() {
@@ -103,7 +104,8 @@ public class ShoppingListScreen extends Screen {
         for (int i = 0; i < rows; i++) {
             ShoppingListEntry entry = list.get(i);
             int y = PANEL_TOP + i * PANEL_ROW;
-            EditBox amount = new EditBox(font, treeViewX + treeViewWidth - 70, y, 40, 18, Component.literal("Amount"));
+            EditBox amount = new EditBox(font, treeViewX + treeViewWidth - 70, y, 40, 18,
+                Component.translatable("skyblock-shopping-list.screen.amount"));
             amount.setMaxLength(6);
             amount.setValue(String.valueOf(entry.amount));
             amountBoxes.put(entry.recipe, amount);
@@ -115,9 +117,9 @@ public class ShoppingListScreen extends Screen {
                 if (client.player == null || !SkyblockDetector.isOnSkyblock()) return;
                 client.player.connection.sendCommand("recipe " + entry.recipe);
             }).bounds(treeViewX + treeViewWidth - controlsLeft, y, 16, 18)
-              .tooltip(Tooltip.create(Component.literal(onSkyblock
-                  ? "Open the recipe: /recipe " + entry.recipe
-                  : "Open the recipe (only on SkyBlock)")))
+              .tooltip(Tooltip.create(onSkyblock
+                  ? Component.translatable("skyblock-shopping-list.screen.list.recipe", entry.recipe)
+                  : Component.translatable("skyblock-shopping-list.screen.list.recipe.off")))
               .build();
             recipe.active = onSkyblock;
             addRenderableWidget(recipe);
@@ -126,16 +128,15 @@ public class ShoppingListScreen extends Screen {
                 widget.setEntryHaveTotal(entry.recipe, !total);
                 rebuildWidgets();
             }).bounds(treeViewX + treeViewWidth + modeX, y, 16, 18)
-              .tooltip(Tooltip.create(Component.literal(total
-                  ? "Have total (=): the amount is how many you want in total; what you hold counts.\nClick for Add more."
-                  : "Add more (+): the amount is how many more to make on top of what you hold.\nClick for Have total.")))
+              .tooltip(Tooltip.create(Component.translatable(total
+                  ? "skyblock-shopping-list.screen.list.have_total" : "skyblock-shopping-list.screen.list.add_more")))
               .build());
             if (moveWidth > 0) {
                 Button up = Button.builder(Component.literal("▲"), button -> {
                     widget.moveEntry(entry.recipe, -1);
                     rebuildWidgets();
                 }).bounds(treeViewX + treeViewWidth - moveLeft, y, moveWidth, 18)
-                  .tooltip(Tooltip.create(Component.literal("Move up: higher rows get shared materials first.")))
+                  .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.screen.list.move_up")))
                   .build();
                 up.active = i > 0;
                 addRenderableWidget(up);
@@ -143,7 +144,7 @@ public class ShoppingListScreen extends Screen {
                     widget.moveEntry(entry.recipe, 1);
                     rebuildWidgets();
                 }).bounds(treeViewX + treeViewWidth + modeX - 2 - moveWidth, y, moveWidth, 18)
-                  .tooltip(Tooltip.create(Component.literal("Move down: lower rows get what is left.")))
+                  .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.screen.list.move_down")))
                   .build();
                 down.active = i < list.size() - 1;
                 addRenderableWidget(down);
@@ -159,7 +160,7 @@ public class ShoppingListScreen extends Screen {
         // Room under the preview for the NPC price line.
         treeViewHeight = Math.max(60, height - 52 - treeViewY);
 
-        addRenderableWidget(Button.builder(Component.literal("Clear list"), button -> {
+        addRenderableWidget(Button.builder(Component.translatable("skyblock-shopping-list.screen.list.clear"), button -> {
             widget.clearList();
             rebuildWidgets();
         }).bounds(width / 2 - 60, height - MenuTabs.BOTTOM_BAR, 120, 20).build());
@@ -177,11 +178,11 @@ public class ShoppingListScreen extends Screen {
             savedWidth = 0;
             return;
         }
-        EditBox nameBox = new EditBox(font, savedX, 55, savedWidth - 88, 20, Component.literal("List name"));
+        EditBox nameBox = new EditBox(font, savedX, 55, savedWidth - 88, 20, Component.translatable("skyblock-shopping-list.screen.saved.name"));
         nameBox.setMaxLength(SavedLists.NAME_LIMIT);
-        nameBox.setHint(Component.literal("List name..."));
+        nameBox.setHint(Component.translatable("skyblock-shopping-list.screen.saved.name.hint"));
         nameBox.setValue(saveName);
-        Button save = Button.builder(Component.literal("Save"), button -> {
+        Button save = Button.builder(Component.translatable("skyblock-shopping-list.screen.saved.save"), button -> {
             String name = saveName.trim();
             // Read now: amounts typed since the rows were built are in the list but not in {@code list}.
             List<ShoppingListEntry> current = widget.getShoppingList();
@@ -190,20 +191,23 @@ public class ShoppingListScreen extends Screen {
             pendingDelete = null;
             rebuildWidgets();
         }).bounds(savedX + savedWidth - 84, 55, 40, 20)
-          .tooltip(Tooltip.create(Component.literal("Save the shopping list under this name. A saved list with the same name is replaced.")))
+          .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.screen.saved.save.tooltip")))
           .build();
-        Button paste = Button.builder(Component.literal("Paste"), button -> {
+        Button paste = Button.builder(Component.translatable("skyblock-shopping-list.screen.saved.paste"), button -> {
             SavedLists.Import imported = SavedLists.importCode(Minecraft.getInstance().keyboardHandler.getClipboard());
             if (imported == null) {
-                HudPresets.toast("No list code", "The clipboard doesn't hold a saved list code with known recipes.");
+                HudPresets.toast(Component.translatable("skyblock-shopping-list.toast.no_list_code"),
+                    Component.translatable("skyblock-shopping-list.toast.no_list_code.message"));
                 return;
             }
-            HudPresets.toast("Saved list imported", "\"" + imported.name() + "\": " + imported.added() + " recipe(s)"
-                + (imported.unknown() > 0 ? ", " + imported.unknown() + " unknown left out" : ""));
+            HudPresets.toast(Component.translatable("skyblock-shopping-list.toast.list_imported"), imported.unknown() > 0
+                ? Component.translatable("skyblock-shopping-list.toast.list_imported.unknown", imported.name(), imported.added(),
+                    imported.unknown())
+                : Component.translatable("skyblock-shopping-list.toast.list_imported.message", imported.name(), imported.added()));
             pendingDelete = null;
             rebuildWidgets();
         }).bounds(savedX + savedWidth - 40, 55, 40, 20)
-          .tooltip(Tooltip.create(Component.literal("Save a list from a share code on the clipboard. Your shopping list is not changed.")))
+          .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.screen.saved.paste.tooltip")))
           .build();
         save.active = !saveName.isBlank() && !list.isEmpty();
         nameBox.setResponder(text -> {
@@ -223,15 +227,16 @@ public class ShoppingListScreen extends Screen {
             int y = SAVED_TOP + (i - savedScroll) * PANEL_ROW;
             addRenderableWidget(Button.builder(fitPlain(name, savedWidth - 70, 0xFFFFFFFF), button -> loadSaved(name))
                 .bounds(savedX, y, savedWidth - 60, 18)
-                .tooltip(Tooltip.create(Component.literal("Load \"" + name + "\": replaces the shopping list.")))
+                .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.screen.saved.load.tooltip", name)))
                 .build());
-            addRenderableWidget(Button.builder(Component.literal("Copy"), button -> {
+            addRenderableWidget(Button.builder(Component.translatable("skyblock-shopping-list.screen.saved.copy"), button -> {
                 String code = SavedLists.code(name);
                 if (code == null) return;
                 Minecraft.getInstance().keyboardHandler.setClipboard(code);
-                HudPresets.toast("List code copied", "Paste it anywhere to share \"" + name + "\".");
+                HudPresets.toast(Component.translatable("skyblock-shopping-list.toast.list_copied"),
+                    Component.translatable("skyblock-shopping-list.toast.list_copied.message", name));
             }).bounds(savedX + savedWidth - 56, y, 32, 18)
-              .tooltip(Tooltip.create(Component.literal("Copy \"" + name + "\" as a share code.")))
+              .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.screen.saved.copy.tooltip", name)))
               .build());
             boolean armed = name.equals(pendingDelete);
             addRenderableWidget(Button.builder(Component.literal(armed ? "?" : "×"), button -> {
@@ -243,7 +248,8 @@ public class ShoppingListScreen extends Screen {
                 }
                 rebuildWidgets();
             }).bounds(savedX + savedWidth - 20, y, 20, 18)
-              .tooltip(Tooltip.create(Component.literal(armed ? "Click again to delete \"" + name + "\"." : "Delete this saved list.")))
+              .tooltip(Tooltip.create(armed ? Component.translatable("skyblock-shopping-list.screen.saved.delete.confirm", name)
+                  : Component.translatable("skyblock-shopping-list.screen.saved.delete.tooltip")))
               .build());
         }
     }
@@ -257,12 +263,12 @@ public class ShoppingListScreen extends Screen {
         Minecraft client = Minecraft.getInstance();
         if (result != null && client.player != null) {
             if (result.dropped() > 0) {
-                client.player.sendOverlayMessage(Component.literal("Loaded \"" + name + "\" without its last "
-                    + result.dropped() + " recipe(s): the list holds " + widget.getMaxRecipes() + " (Settings)")
+                client.player.sendOverlayMessage(Component.translatable("skyblock-shopping-list.screen.saved.loaded_dropped", name,
+                    result.dropped(), widget.getMaxRecipes())
                     .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
             } else if (result.skipped() > 0) {
-                client.player.sendOverlayMessage(Component.literal("Loaded \"" + name + "\": " + result.skipped()
-                    + " recipe(s) already done, skipped")
+                client.player.sendOverlayMessage(Component.translatable("skyblock-shopping-list.screen.saved.loaded_skipped", name,
+                    result.skipped())
                     .setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN)));
             }
         }
@@ -345,10 +351,10 @@ public class ShoppingListScreen extends Screen {
 
     private void renderRecipeTab(GuiGraphicsExtractor context, int mouseX, int mouseY) {
         MenuTabs.renderBackground(context, font, width, height, MenuTabs.Tab.SHOPPING_LIST);
-        picker.render(context, mouseX, mouseY, "Click a recipe to add it", builtRowSet, null);
+        picker.render(context, mouseX, mouseY, I18n.get("skyblock-shopping-list.screen.list.picker_hint"), builtRowSet, null);
         renderListPanel(context);
         renderSavedLists(context);
-        MenuTabs.sectionTitle(context, font, "Preview", treeViewX, treeViewY - 13);
+        MenuTabs.sectionTitle(context, font, I18n.get("skyblock-shopping-list.screen.list.preview"), treeViewX, treeViewY - 13);
 
         MenuTabs.panel(context, treeViewX, treeViewY, treeViewWidth, treeViewHeight);
 
@@ -382,14 +388,17 @@ public class ShoppingListScreen extends Screen {
                 context.fill(treeViewX + treeViewWidth - scrollbarWidth - 4, scrollbarY, treeViewX + treeViewWidth - 4, scrollbarY + scrollbarHeight, MenuTabs.BORDER);
             }
         } else if (!builtRows.isEmpty()) {
-            context.text(font, "Working out the list...", treeViewX + 20, treeViewY + 20, MenuTabs.TEXT_DIM, false);
+            context.text(font, Component.translatable("skyblock-shopping-list.screen.list.working"), treeViewX + 20, treeViewY + 20,
+                MenuTabs.TEXT_DIM, false);
         } else {
-            context.text(font, "Click recipes on the left", treeViewX + 10, treeViewY + 20, MenuTabs.TEXT_DIM, false);
+            context.text(font, Component.translatable("skyblock-shopping-list.screen.list.preview_empty"), treeViewX + 10,
+                treeViewY + 20, MenuTabs.TEXT_DIM, false);
         }
         context.disableScissor();
         List<String> prices = widget.getNpcPriceLines();
         if (!prices.isEmpty() && !builtRows.isEmpty()) {
-            context.text(font, fitPlain("NPC price - " + String.join("   ", prices), treeViewWidth, 0xFFFF9D00),
+            context.text(font, fitPlain(I18n.get("skyblock-shopping-list.screen.list.npc_price", String.join("   ", prices)),
+                treeViewWidth, 0xFFFF9D00),
                 treeViewX, treeViewY + treeViewHeight + 4, 0xFFFFFFFF, false);
         }
     }
@@ -401,11 +410,12 @@ public class ShoppingListScreen extends Screen {
     private void renderListPanel(GuiGraphicsExtractor context) {
         // Names as of the last rebuild (tick() rebuilds when the list changes): no copy of the list per frame.
         List<String> list = builtRows;
-        String header = "Shopping list (" + list.size() + "/" + widget.getMaxRecipes() + ")";
+        String header = I18n.get("skyblock-shopping-list.screen.list.header", list.size(), widget.getMaxRecipes());
         MenuTabs.sectionTitle(context, font, header, treeViewX, MenuTabs.SECTION_Y);
         int rows = Math.min(list.size(), PANEL_MAX_ROWS);
         if (rows == 0) {
-            context.text(font, "Empty - click a recipe on the left to add it", treeViewX + 4, PANEL_TOP + 5, MenuTabs.TEXT_DIM, false);
+            context.text(font, Component.translatable("skyblock-shopping-list.screen.list.empty"), treeViewX + 4, PANEL_TOP + 5,
+                MenuTabs.TEXT_DIM, false);
             return;
         }
         for (int i = 0; i < rows; i++) {
@@ -414,16 +424,18 @@ public class ShoppingListScreen extends Screen {
             context.text(font, fitPlain(list.get(i), listNameWidth, MenuTabs.TEXT), treeViewX + 4, y + 5, 0xFFFFFFFF, false);
         }
         if (list.size() > rows) {
-            context.text(font, "+" + (list.size() - rows) + " more", treeViewX + 4, PANEL_TOP + rows * PANEL_ROW, MenuTabs.TEXT_DIM, false);
+            context.text(font, Component.translatable("skyblock-shopping-list.screen.list.more", list.size() - rows), treeViewX + 4,
+                PANEL_TOP + rows * PANEL_ROW, MenuTabs.TEXT_DIM, false);
         }
     }
 
     private void renderSavedLists(GuiGraphicsExtractor context) {
         if (savedWidth == 0) return;
-        MenuTabs.sectionTitle(context, font, "Saved lists", savedX, MenuTabs.SECTION_Y);
+        MenuTabs.sectionTitle(context, font, I18n.get("skyblock-shopping-list.screen.saved"), savedX, MenuTabs.SECTION_Y);
         int count = SavedLists.names().size();
         if (count == 0) {
-            context.text(font, fitPlain("Name the list and click Save", savedWidth, MenuTabs.TEXT_DIM), savedX, SAVED_TOP + 5, 0xFFFFFFFF, false);
+            context.text(font, fitPlain(I18n.get("skyblock-shopping-list.screen.saved.empty"), savedWidth, MenuTabs.TEXT_DIM), savedX,
+                SAVED_TOP + 5, 0xFFFFFFFF, false);
             return;
         }
         if (savedScroll > 0) {
@@ -480,7 +492,8 @@ public class ShoppingListScreen extends Screen {
         int lockWidth = SandboxWidget.showsLock(node) ? SandboxWidget.LOCK_WIDTH : 0;
         int nameX = amountX + font.width(amount);
         int room = rowX + nodeWidth - 4 - nameX - font.width(tag) - lockWidth;
-        Component name = SandboxWidget.fitName(font, style, node.name, nameColor, bold, room);
+        String shown = level == 0 && "Total".equals(node.name) ? I18n.get("skyblock-shopping-list.hud.total") : node.name;
+        Component name = SandboxWidget.fitName(font, style, shown, nameColor, bold, room);
         context.text(font, name, nameX, y + 4, 0xFFFFFFFF, style.textShadow);
         context.text(font, tag, nameX + font.width(name), y + 4, 0xFFFFFFFF, style.textShadow);
         if (lockWidth > 0) SandboxWidget.drawLock(context, nameX + font.width(name) + font.width(tag), y + 4, nameColor);
@@ -512,9 +525,10 @@ public class ShoppingListScreen extends Screen {
     /** "Requires: HotM 6", then "Needs below:" and one line per requirement further down the tree. */
     private static List<Component> lockTooltip(RecipeManager.RecipeNode node) {
         List<Component> lines = new ArrayList<>();
-        if (!node.ownLock.isEmpty()) lines.add(Component.literal("Requires: " + node.ownLock));
+        if (!node.ownLock.isEmpty()) lines.add(Component.translatable("skyblock-shopping-list.screen.list.requires", node.ownLock));
         if (!node.locksBelow.isEmpty()) {
-            lines.add(Component.literal("Needs below:").setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)));
+            lines.add(Component.translatable("skyblock-shopping-list.screen.list.needs_below")
+                .setStyle(Style.EMPTY.withColor(ChatFormatting.GRAY)));
             for (String lock : node.locksBelow) lines.add(Component.literal("  " + lock));
         }
         return lines;
@@ -558,8 +572,8 @@ public class ShoppingListScreen extends Screen {
             if (result == SandboxWidget.AddResult.FULL) {
                 Minecraft client = Minecraft.getInstance();
                 if (client.player != null) {
-                    client.player.sendOverlayMessage(Component.literal("Shopping list full ("
-                        + widget.getShoppingList().size() + "/" + widget.getMaxRecipes() + ")")
+                    client.player.sendOverlayMessage(Component.translatable("skyblock-shopping-list.screen.list.full",
+                        widget.getShoppingList().size(), widget.getMaxRecipes())
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
                 }
             } else {
@@ -617,7 +631,8 @@ public class ShoppingListScreen extends Screen {
                     Minecraft client = Minecraft.getInstance();
                     int available = ResourcesManager.getInstance().getResourceByName(node.name);
                     boolean hasEnough = available >= node.required;
-                    Component message = Component.literal("You have " + available + "/" + node.required + " of " + node.name)
+                    Component message = Component.translatable("skyblock-shopping-list.screen.list.you_have", available, node.required,
+                            node.name)
                         .setStyle(Style.EMPTY.withColor(hasEnough ? ChatFormatting.GREEN : ChatFormatting.RED));
                     if (client.player != null) {
                         client.player.sendOverlayMessage(message);

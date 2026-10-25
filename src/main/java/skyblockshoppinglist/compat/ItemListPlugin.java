@@ -33,7 +33,7 @@ public final class ItemListPlugin implements Plugin {
             String name = recipeName(output);
             if (name == null) return Optional.empty();
             return Optional.of(Button.builder(Component.literal("☰"), button -> add(name))
-                .tooltip(Tooltip.create(Component.literal("Add " + name + " to your shopping list")))
+                .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.item_list.add.tooltip", name)))
                 .size(12, 12)
                 .build());
         });
@@ -59,9 +59,9 @@ public final class ItemListPlugin implements Plugin {
         Minecraft client = Minecraft.getInstance();
         if (client.player == null) return;
         Component message = result == SandboxWidget.AddResult.FULL
-            ? Component.literal("Shopping list full (" + widget.getShoppingList().size() + "/"
-                + widget.getMaxRecipes() + ")").setStyle(Style.EMPTY.withColor(ChatFormatting.RED))
-            : Component.literal("Added " + name + " to your shopping list").setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN));
+            ? Component.translatable("skyblock-shopping-list.screen.list.full", widget.getShoppingList().size(), widget.getMaxRecipes())
+                .setStyle(Style.EMPTY.withColor(ChatFormatting.RED))
+            : Component.translatable("skyblock-shopping-list.item_list.added", name).setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN));
         client.player.sendOverlayMessage(message);
     }
 }

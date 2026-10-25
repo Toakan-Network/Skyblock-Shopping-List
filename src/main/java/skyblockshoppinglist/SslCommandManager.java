@@ -24,15 +24,15 @@ public final class SslCommandManager {
         return
             literal(name)
                 .executes(context -> {
-                    context.getSource().sendFeedback(Component.literal(ShoppingList.NAME + " commands (/ssl):")
+                    context.getSource().sendFeedback(Component.translatable("skyblock-shopping-list.command.help", ShoppingList.NAME)
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
-                    context.getSource().sendFeedback(Component.literal("- /ssl reset: Reset this profile's tracked data and the HUD settings (saved lists and presets are kept)")
+                    context.getSource().sendFeedback(Component.translatable("skyblock-shopping-list.command.help.reset")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));
-                    context.getSource().sendFeedback(Component.literal("- /ssl menu: Open the menu (shopping list, resources, recipes, settings)")
+                    context.getSource().sendFeedback(Component.translatable("skyblock-shopping-list.command.help.menu")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));
-                    context.getSource().sendFeedback(Component.literal("- /ssl hud: Move or resize the HUD")
+                    context.getSource().sendFeedback(Component.translatable("skyblock-shopping-list.command.help.hud")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));
-                    context.getSource().sendFeedback(Component.literal("- /ssl credits: Show credits")
+                    context.getSource().sendFeedback(Component.translatable("skyblock-shopping-list.command.help.credits")
                         .setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE)));
                     return 1;
                 })
@@ -44,7 +44,7 @@ public final class SslCommandManager {
                         HudStyle.clear();
                         SandboxWidget.getInstance().resetConfiguration();
                         context.getSource().sendFeedback(
-                            Component.literal(ShoppingList.NAME + " data reset!")
+                            Component.translatable("skyblock-shopping-list.command.reset", ShoppingList.NAME)
                                 .setStyle(Style.EMPTY.withColor(ChatFormatting.GREEN))
                         );
                         return 1;
@@ -66,11 +66,11 @@ public final class SslCommandManager {
                 .then(literal("credits")
                     .executes(context -> {
                         context.getSource().sendFeedback(
-                            Component.literal(ShoppingList.NAME + " by Tad, based on Inventory Reader by Scholiboi")
+                            Component.translatable("skyblock-shopping-list.command.credits", ShoppingList.NAME)
                                 .setStyle(Style.EMPTY.withColor(ChatFormatting.GOLD))
                         );
                         context.getSource().sendFeedback(
-                            Component.literal("Data source: NotEnoughUpdates-REPO")
+                            Component.translatable("skyblock-shopping-list.command.credits.data")
                                 .setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE))
                                 .append(Component.literal(" • "))
                                 .append(Component.literal("https://github.com/NotEnoughUpdates/NotEnoughUpdates-REPO")

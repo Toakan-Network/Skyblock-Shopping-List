@@ -13,6 +13,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 
@@ -76,7 +77,7 @@ final class RecipePicker {
         });
         add.accept(searchField);
 
-        EditBox amountBox = new EditBox(font, right - 40, MenuTabs.CONTROLS_Y, 40, 20, Component.literal("Amount"));
+        EditBox amountBox = new EditBox(font, right - 40, MenuTabs.CONTROLS_Y, 40, 20, Component.translatable("skyblock-shopping-list.screen.amount"));
         amountBox.setMaxLength(6);
         amountBox.setValue(String.valueOf(amount));
         amountBox.setResponder(text -> {
@@ -92,16 +93,16 @@ final class RecipePicker {
         int gap = 2;
         int w = (listWidth - 3 * gap) / 4;
         int x = LIST_X;
-        matchButton = filterButton(add, Component.literal(matchUses ? "Uses" : "Name"), x, w,
-            "Name: search item names.\nUses: search ingredients, e.g. coal finds Torch.");
+        matchButton = filterButton(add, matchLabel(), x, w, I18n.get("skyblock-shopping-list.picker.match.tooltip"));
         x += w + gap;
-        typeButton = filterButton(add, Component.literal(typeFilter.label), x, w,
-            "Item type: Armor, Accessory, Pet, Weapon, Tool, Equipment or Other.");
+        typeButton = filterButton(add, Component.translatable(typeFilter.labelKey), x, w,
+            I18n.get("skyblock-shopping-list.picker.type.tooltip"));
         x += w + gap;
-        rarityButton = filterButton(add, Component.literal(rarityFilter.label), x, w, "Rarity: Common to Divine, or Special.");
+        rarityButton = filterButton(add, Component.translatable(rarityFilter.labelKey), x, w,
+            I18n.get("skyblock-shopping-list.picker.rarity.tooltip"));
         x += w + gap;
-        ownedButton = filterButton(add, Component.literal(ownedFilter.label), x, right - x,
-            "Owned: items you have at least one of (inventory, sacks, storage).\nMissing: items you have none of.");
+        ownedButton = filterButton(add, Component.translatable(ownedFilter.labelKey), x, right - x,
+            I18n.get("skyblock-shopping-list.picker.owned.tooltip"));
     }
 
     private Button filterButton(Consumer<AbstractWidget> add, Component label, int x, int width, String tooltip) {
@@ -134,7 +135,7 @@ final class RecipePicker {
         int panelHeight = rowsShown * ROW_HEIGHT + 10;
         MenuTabs.panel(context, LIST_X, panelTop, right - LIST_X, panelHeight);
         if (filtered.isEmpty()) {
-            context.text(font, "No recipes found", LIST_X + 10, LIST_TOP + 5, MenuTabs.TEXT_DIM, false);
+            context.text(font, Component.translatable("skyblock-shopping-list.picker.none"), LIST_X + 10, LIST_TOP + 5, MenuTabs.TEXT_DIM, false);
             return;
         }
         boolean scrolls = filtered.size() > rowsShown;
@@ -198,24 +199,30 @@ final class RecipePicker {
     }
 
     private Component searchHint() {
-        return Component.literal(matchUses ? "Search ingredients..." : "Search recipes...");
+        return Component.translatable(matchUses
+            ? "skyblock-shopping-list.picker.search.uses" : "skyblock-shopping-list.picker.search.name");
+    }
+
+    private Component matchLabel() {
+        return Component.translatable(matchUses
+            ? "skyblock-shopping-list.picker.match.uses" : "skyblock-shopping-list.picker.match.name");
     }
 
     /** Steps the filter behind {@code button} by {@code step} (1 forward, -1 back), wrapping around, and re-filters. */
     private void cycle(Button button, int step) {
         if (button == matchButton) {
             matchUses = !matchUses;
-            button.setMessage(Component.literal(matchUses ? "Uses" : "Name"));
+            button.setMessage(matchLabel());
             searchField.setHint(searchHint());
         } else if (button == typeButton) {
             typeFilter = TypeFilter.values()[Math.floorMod(typeFilter.ordinal() + step, TypeFilter.values().length)];
-            button.setMessage(Component.literal(typeFilter.label));
+            button.setMessage(Component.translatable(typeFilter.labelKey));
         } else if (button == rarityButton) {
             rarityFilter = RarityFilter.values()[Math.floorMod(rarityFilter.ordinal() + step, RarityFilter.values().length)];
-            button.setMessage(Component.literal(rarityFilter.label));
+            button.setMessage(Component.translatable(rarityFilter.labelKey));
         } else if (button == ownedButton) {
             ownedFilter = OwnedFilter.values()[Math.floorMod(ownedFilter.ordinal() + step, OwnedFilter.values().length)];
-            button.setMessage(Component.literal(ownedFilter.label));
+            button.setMessage(Component.translatable(ownedFilter.labelKey));
         } else {
             return;
         }
@@ -244,20 +251,21 @@ final class RecipePicker {
 
     /** Groups of NEU item types ("HELMET" also covers "DUNGEON HELMET"); Other is any type in no group. */
     enum TypeFilter {
-        ALL("Type"),
-        ARMOR("Armor", "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS"),
-        ACCESSORY("Acc.", "ACCESSORY", "HATCESSORY"),
-        PET("Pet", "PET"),
-        WEAPON("Weapon", "SWORD", "LONGSWORD", "BOW", "WAND"),
-        TOOL("Tool", "PICKAXE", "AXE", "DRILL", "SHOVEL", "HOE", "FARMING TOOL", "FISHING ROD"),
-        EQUIPMENT("Equip", "NECKLACE", "CLOAK", "BELT", "GLOVES", "BRACELET"),
-        OTHER("Other");
+        ALL("skyblock-shopping-list.picker.type.all"),
+        ARMOR("skyblock-shopping-list.picker.type.armor", "HELMET", "CHESTPLATE", "LEGGINGS", "BOOTS"),
+        ACCESSORY("skyblock-shopping-list.picker.type.accessory", "ACCESSORY", "HATCESSORY"),
+        PET("skyblock-shopping-list.picker.type.pet", "PET"),
+        WEAPON("skyblock-shopping-list.picker.type.weapon", "SWORD", "LONGSWORD", "BOW", "WAND"),
+        TOOL("skyblock-shopping-list.picker.type.tool", "PICKAXE", "AXE", "DRILL", "SHOVEL", "HOE", "FARMING TOOL", "FISHING ROD"),
+        EQUIPMENT("skyblock-shopping-list.picker.type.equipment", "NECKLACE", "CLOAK", "BELT", "GLOVES", "BRACELET"),
+        OTHER("skyblock-shopping-list.picker.type.other");
 
-        final String label;
+        /** Lang key of the filter button's text. */
+        final String labelKey;
         final List<String> types;
 
-        TypeFilter(String label, String... types) {
-            this.label = label;
+        TypeFilter(String labelKey, String... types) {
+            this.labelKey = labelKey;
             this.types = List.of(types);
         }
 
@@ -282,15 +290,22 @@ final class RecipePicker {
     }
 
     enum RarityFilter {
-        ALL("Rarity", ""), COMMON("Com", "COMMON"), UNCOMMON("Unc", "UNCOMMON"), RARE("Rare", "RARE"),
-        EPIC("Epic", "EPIC"), LEGENDARY("Leg", "LEGENDARY"), MYTHIC("Myth", "MYTHIC"), DIVINE("Div", "DIVINE"),
-        SPECIAL("Spec", "SPECIAL");
+        ALL("skyblock-shopping-list.picker.rarity.all", ""),
+        COMMON("skyblock-shopping-list.picker.rarity.common", "COMMON"),
+        UNCOMMON("skyblock-shopping-list.picker.rarity.uncommon", "UNCOMMON"),
+        RARE("skyblock-shopping-list.picker.rarity.rare", "RARE"),
+        EPIC("skyblock-shopping-list.picker.rarity.epic", "EPIC"),
+        LEGENDARY("skyblock-shopping-list.picker.rarity.legendary", "LEGENDARY"),
+        MYTHIC("skyblock-shopping-list.picker.rarity.mythic", "MYTHIC"),
+        DIVINE("skyblock-shopping-list.picker.rarity.divine", "DIVINE"),
+        SPECIAL("skyblock-shopping-list.picker.rarity.special", "SPECIAL");
 
-        final String label;
+        /** Lang key of the filter button's text. */
+        final String labelKey;
         final String rarity;
 
-        RarityFilter(String label, String rarity) {
-            this.label = label;
+        RarityFilter(String labelKey, String rarity) {
+            this.labelKey = labelKey;
             this.rarity = rarity;
         }
 
@@ -301,12 +316,15 @@ final class RecipePicker {
     }
 
     enum OwnedFilter {
-        ALL("All"), MISSING("Missing"), OWNED("Owned");
+        ALL("skyblock-shopping-list.picker.owned.all"),
+        MISSING("skyblock-shopping-list.picker.owned.missing"),
+        OWNED("skyblock-shopping-list.picker.owned.owned");
 
-        final String label;
+        /** Lang key of the filter button's text. */
+        final String labelKey;
 
-        OwnedFilter(String label) {
-            this.label = label;
+        OwnedFilter(String labelKey) {
+            this.labelKey = labelKey;
         }
     }
 }

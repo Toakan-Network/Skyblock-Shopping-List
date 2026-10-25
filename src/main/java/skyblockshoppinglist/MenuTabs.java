@@ -15,16 +15,17 @@ import java.util.List;
 /** The menu's shared title bar and tab row, so every tab screen looks and switches the same way. */
 public final class MenuTabs {
     public enum Tab {
-        SHOPPING_LIST("List"),
-        RESOURCES("Resources"),
-        RECIPES("Recipes"),
-        FORGE("Forge"),
-        SETTINGS("Settings");
+        SHOPPING_LIST("skyblock-shopping-list.screen.tab.list"),
+        RESOURCES("skyblock-shopping-list.screen.tab.resources"),
+        RECIPES("skyblock-shopping-list.screen.tab.recipes"),
+        FORGE("skyblock-shopping-list.screen.tab.forge"),
+        SETTINGS("skyblock-shopping-list.screen.tab.settings");
 
-        final String label;
+        /** Lang key of the tab's name. */
+        final String labelKey;
 
-        Tab(String label) {
-            this.label = label;
+        Tab(String labelKey) {
+            this.labelKey = labelKey;
         }
     }
 
@@ -79,7 +80,7 @@ public final class MenuTabs {
         int width = tabWidth(screenWidth);
         for (int i = 0; i < tabs.length; i++) {
             Tab tab = tabs[i];
-            Button button = Button.builder(Component.literal(tab.label), b -> open(tab))
+            Button button = Button.builder(Component.translatable(tab.labelKey), b -> open(tab))
                 .bounds(LEFT + i * (width + GAP), TAB_Y, width, TAB_HEIGHT)
                 .build();
             button.active = tab != active;

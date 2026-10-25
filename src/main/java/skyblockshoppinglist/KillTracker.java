@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
@@ -235,10 +236,16 @@ public final class KillTracker {
     /** "Magic Find: 237 (last drop)": the value the estimates use and where it came from. */
     public static synchronized String magicFindLabel() {
         int set = HudStyle.get().magicFind;
-        if (set > 0) return "Magic Find: " + set + " (setting)";
+        if (set > 0) return I18n.get("skyblock-shopping-list.magic_find.from", set, I18n.get("skyblock-shopping-list.magic_find.setting"));
         State s = load();
-        if (s.magicFindFrom == null && s.lastMagicFind <= 0) return "Magic Find: not read yet (0)";
-        return "Magic Find: " + s.lastMagicFind + (s.magicFindFrom == null ? "" : " (" + s.magicFindFrom + ")");
+        if (s.magicFindFrom == null && s.lastMagicFind <= 0) return I18n.get("skyblock-shopping-list.magic_find.unread");
+        if (s.magicFindFrom == null) return I18n.get("skyblock-shopping-list.magic_find.value", s.lastMagicFind);
+        String from = switch (s.magicFindFrom) {
+            case "last drop" -> I18n.get("skyblock-shopping-list.magic_find.last_drop");
+            case "tab list" -> I18n.get("skyblock-shopping-list.magic_find.tab_list");
+            default -> s.magicFindFrom;
+        };
+        return I18n.get("skyblock-shopping-list.magic_find.from", s.lastMagicFind, from);
     }
 
     /** Kills since {@code item} last dropped. */

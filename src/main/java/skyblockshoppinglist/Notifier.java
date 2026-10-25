@@ -30,7 +30,7 @@ public final class Notifier {
     }
 
     /** Client-side only; never sent anywhere. Nothing happens outside SkyBlock or when the type is Off. */
-    public static void send(Type type, String title, Component message) {
+    public static void send(Type type, Component title, Component message) {
         Channel channel = SandboxWidget.getInstance().getNotifyChannel(type);
         if (channel == Channel.OFF || !SkyblockDetector.isOnSkyblock()) return;
         Minecraft client = Minecraft.getInstance();
@@ -39,12 +39,12 @@ public final class Notifier {
                 client.gui.hud.getChat().addClientSystemMessage(Component.literal("[" + ShoppingList.NAME + "] ")
                     .withStyle(ChatFormatting.GOLD)
                     // White unless the message styles itself, as in the toast; not the prefix's gold.
-                    .append(Component.literal(title + ": ").withStyle(ChatFormatting.WHITE).append(message)));
+                    .append(Component.translatable("skyblock-shopping-list.notify.line", title, message).withStyle(ChatFormatting.WHITE)));
             }
             if (channel.toast()) {
                 // A vanilla ID, so toast mods such as FancyNotify recognise it. add() never merges toasts.
                 SystemToast.add(client.gui.toastManager(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
-                    Component.literal(title).withStyle(ChatFormatting.GOLD), message);
+                    title.copy().withStyle(ChatFormatting.GOLD), message);
             }
         });
     }
