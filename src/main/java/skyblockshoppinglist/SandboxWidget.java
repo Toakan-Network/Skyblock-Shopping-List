@@ -1484,18 +1484,12 @@ public class SandboxWidget {
         context.nextStratum();
         RoundedBox.fill(context, 0, 0, width, panelHeight, style.panelRadius, style.panelBackground);
         RoundedBox.fill(context, 0, 0, width, TITLE_BAR, style.panelRadius, true, false, style.headerBackground);
-        for (int i = 0; i < style.panelBorderWidth; i++) {
-            // Outer border rings grow outward, so their radius grows with them to stay parallel.
-            RoundedBox.outline(context, -i, -i, width + i * 2, panelHeight + i * 2,
-                style.panelRadius > 0 ? style.panelRadius + i : 0, style.panelBorder);
-        }
         HudStyle.Prepared titleText = style.prepared(title, style.titleText, true);
         int titleWidth = titleText.width();
         float titleScale = Math.min(style.titleScale, (float) (width - 10) / Math.max(1, titleWidth));
         drawScaled(context, titleText, alignedX(style.titleAlign, width, 5, titleWidth * titleScale),
             (TITLE_BAR - 8 * titleScale) / 2f, titleScale, style.textShadow);
-        int edge = dividerInset(style);
-        context.fill(edge, TITLE_BAR - 1, width - edge, TITLE_BAR, style.divider);
+        context.fill(0, TITLE_BAR - 1, width, TITLE_BAR, style.divider);
 
         context.enableScissor(0, TITLE_BAR, width, panelHeight - cornerClip);
         int cursorY = TITLE_BAR + style.titleGap;
@@ -1537,6 +1531,13 @@ public class SandboxWidget {
             RoundedBox.fill(context, 0, panelHeight - coverHeight, width, coverHeight, style.panelRadius, false, true,
                 style.panelBackground);
             drawScaled(context, more, (width - more.width()) / 2f, panelHeight - 9, 1f, style.textShadow);
+        }
+        // The border goes on last, so dividers and the cut-off cover can't paint over its inner ring.
+        context.nextStratum();
+        for (int i = 0; i < style.panelBorderWidth; i++) {
+            // Outer border rings grow outward, so their radius grows with them to stay parallel.
+            RoundedBox.outline(context, -i, -i, width + i * 2, panelHeight + i * 2,
+                style.panelRadius > 0 ? style.panelRadius + i : 0, style.panelBorder);
         }
         context.pose().popMatrix();
         return panelHeight;
@@ -1650,7 +1651,7 @@ public class SandboxWidget {
         float scale = section.scale();
         context.nextStratum();
         if (!ownPanel) {
-            context.fill(dividerInset(style), y, width - dividerInset(style), y + 1, style.divider);
+            context.fill(0, y, width, y + 1, style.divider);
             y += 5;
             HudStyle.Prepared header = style.prepared(section.header() + " -", section.headerColor(), true);
             drawScaled(context, header, alignedX(section.align(), width, style.padding, header.width() * scale),
@@ -1671,11 +1672,6 @@ public class SandboxWidget {
             y += lineHeight;
         }
         return y + 2;
-    }
-
-    /** Dividers stop inside the border's inner ring, which is drawn on the panel's own edge columns. */
-    private static int dividerInset(HudStyle style) {
-        return style.panelBorderWidth > 0 ? 1 : 0;
     }
 
     /** Left edge for text of the given drawn width. */
