@@ -1,6 +1,6 @@
 # Skyblock Shopping List (formerly InventoryReader)
 
-Fabric client mod (mod id `skyblock-shopping-list`, Java package `skyblockshoppinglist`) for Hypixel SkyBlock, Minecraft 26.2 and 26.3 from one jar (Loom 1.17, Java 25). Build with `./gradlew build`.
+Fabric client mod (mod id `skyblock-shopping-list`, Java package `uk.toakan.tad.skyblockshoppinglist`) for Hypixel SkyBlock, Minecraft 26.2 and 26.3 from one jar (Loom 1.17, Java 25). Build with `./gradlew build`.
 
 ## Versioning
 `mod_version` in `gradle.properties` is MAJOR.MINOR.PATCH, bumped in the same commit as the change:
@@ -35,6 +35,8 @@ small fixes don't need a docs note.
 ## Hypixel rules
 The mod must stay read-only and client-side (see the "Hypixel rules" section in `readme.md`): never send
 packets, chat or commands, never cancel or modify events, never automate clicks or item movement.
+One exception: a button the player clicks may send the one command it names (the list row's **R** runs
+`/recipe <name>`), only on SkyBlock, one command per click, never on its own.
 Tracking, the HUD and keybinds run only on SkyBlock (`SkyblockDetector`).
 
 ## Minecraft versions

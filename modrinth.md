@@ -20,6 +20,7 @@ Nothing in the mod is limited to Ironman profiles. On a regular profile it works
 - [Forging](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forging)
 - [Mob drops](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#mob-drops)
 - [Recipe locks](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#recipe-locks)
+- [Event drops](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#event-drops): a ! on rows you can farm in a running mayor event
 - [NPC price](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#npc-price)
 - [Forge times](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forge-times)
 - [Recipes beyond the crafting table](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#recipes)
@@ -66,7 +67,7 @@ Recipe Data: On startup the mod downloads the [NotEnoughUpdates-REPO](https://gi
 
 NPC Sell Prices: On startup it reads Hypixel's public item list for NPC sell prices, and only downloads it again when Hypixel has changed it.
 
-Mayor Interaction Data: At most once an hour while you're on SkyBlock it reads Hypixel's public election data to know whether Cole's Molten Forge perk is active. With Forge times turned off (Settings > Rows), this data is not read.
+Mayor Interaction Data: At most once an hour while you're on SkyBlock it reads Hypixel's public election data to know whether Cole's Molten Forge perk is active and which mayor events are on. With Forge times and Event drops both turned off (Settings > Rows), this data is not read.
 
 No player data is sent anywhere.
 

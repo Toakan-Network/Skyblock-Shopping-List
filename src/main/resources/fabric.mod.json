@@ -20,13 +20,13 @@
 	"environment": "client",
 	"entrypoints": {
 		"client": [
-			"skyblockshoppinglist.ShoppingListClient"
+			"uk.toakan.tad.skyblockshoppinglist.ShoppingListClient"
 		],
 		"skyblock-item-list": [
-			"skyblockshoppinglist.compat.ItemListPlugin"
+			"uk.toakan.tad.skyblockshoppinglist.compat.ItemListPlugin"
 		],
 		"modmenu": [
-			"skyblockshoppinglist.compat.ModMenuCompat"
+			"uk.toakan.tad.skyblockshoppinglist.compat.ModMenuCompat"
 		]
 	},
 	"mixins": [
