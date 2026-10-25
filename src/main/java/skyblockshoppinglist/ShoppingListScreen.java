@@ -490,19 +490,27 @@ public class ShoppingListScreen extends Screen {
         String forge = SandboxWidget.forgeText(node, level);
         Component tag = forge.isEmpty() ? Component.empty() : style.text(forge, nameColor, false);
         int lockWidth = SandboxWidget.showsLock(node) ? SandboxWidget.LOCK_WIDTH : 0;
+        MayorEvents.Event event = node.amount > 0 ? MayorEvents.farmableNow(node.name) : null;
+        int eventWidth = event != null ? SandboxWidget.EVENT_WIDTH : 0;
         int nameX = amountX + font.width(amount);
-        int room = rowX + nodeWidth - 4 - nameX - font.width(tag) - lockWidth;
+        int room = rowX + nodeWidth - 4 - nameX - font.width(tag) - lockWidth - eventWidth;
         String shown = level == 0 && "Total".equals(node.name) ? I18n.get("skyblock-shopping-list.hud.total") : node.name;
         Component name = SandboxWidget.fitName(font, style, shown, nameColor, bold, room);
         context.text(font, name, nameX, y + 4, 0xFFFFFFFF, style.textShadow);
         context.text(font, tag, nameX + font.width(name), y + 4, 0xFFFFFFFF, style.textShadow);
         if (lockWidth > 0) SandboxWidget.drawLock(context, nameX + font.width(name) + font.width(tag), y + 4, nameColor);
+        if (eventWidth > 0) SandboxWidget.drawEvent(context, nameX + font.width(name) + font.width(tag) + lockWidth, y + 4);
         // Only inside the scrolled preview box, so a row scrolled out of view never shows a tooltip.
         boolean hovered = mouseX >= rowX && mouseX <= rowX + nodeWidth && mouseY >= y && mouseY <= y + 16
             && mouseY >= treeViewY && mouseY <= treeViewY + treeViewHeight;
         if (hovered) {
             // What unlocks the recipe, when it needs something; otherwise the item's description.
             List<Component> tooltip = lockWidth > 0 ? lockTooltip(node) : ItemDescriptions.tooltip(node.name);
+            if (event != null) {
+                tooltip = new ArrayList<>(tooltip);
+                tooltip.add(0, Component.translatable("skyblock-shopping-list.screen.list.event", event.label())
+                    .withStyle(ChatFormatting.GOLD));
+            }
             if (!tooltip.isEmpty()) context.setComponentTooltipForNextFrame(font, tooltip, mouseX, mouseY);
         }
 

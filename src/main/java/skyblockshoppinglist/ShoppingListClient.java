@@ -103,6 +103,7 @@ public class ShoppingListClient implements ClientModInitializer {
         CoinTracker.register();
         PowderTracker.register();
         KillTracker.register();
+        MayorEvents.register();
         ReminderManager.initialize();
         WelcomeManager.initialize();
         SandboxWidget.getInstance();

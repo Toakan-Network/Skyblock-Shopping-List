@@ -58,6 +58,8 @@ public final class HudStyle {
     public enum ForgingSlots { OFF, LISTED, ALL }
     /** Which rows show the forge time still ahead, e.g. [25hrs]. */
     public enum ForgeTimes { OFF, TOP_LEVEL, ALL }
+    /** When rows whose item needs a mayor's event get a "!": never, all term (perk active), or while it runs. */
+    public enum EventDrops { OFF, PERK_ACTIVE, EVENT_RUNNING }
     /** Which rows get a progress bar behind them: none, the top row, the top row and its ingredients, or all. */
     public enum ProgressBars { OFF, TOP_LEVEL, FIRST_LEVEL, ALL }
     /**
@@ -119,6 +121,8 @@ public final class HudStyle {
     public boolean showNpcPrice = true;
     /** A padlock after rows still to make whose recipe needs an unlock (collection, HotM, slayer level). */
     public boolean showRequirements = true;
+    /** A "!" after rows whose item only drops during a mayor's event: never, while the perk is on, or while it runs. */
+    public EventDrops eventDrops = EventDrops.EVENT_RUNNING;
     public ForgeTimes forgeTimes = ForgeTimes.ALL;
     /** Done ingredient rows (green) aren't drawn on the HUD. */
     public boolean hideFinished = true;
@@ -257,6 +261,7 @@ public final class HudStyle {
         showForging = null;
         showNpcPrice = from.showNpcPrice;
         showRequirements = from.showRequirements;
+        eventDrops = from.eventDrops;
         forgeTimes = from.forgeTimes;
         hideFinished = from.hideFinished;
         progressBars = from.progressBars;
@@ -297,6 +302,7 @@ public final class HudStyle {
         if (totalPlacement == null) totalPlacement = Placement.MAIN_PANEL;
         if (mobDropsPlacement == null) mobDropsPlacement = Placement.OWN_PANEL;
         if (killCases == null) killCases = KillCases.ALL;
+        if (eventDrops == null) eventDrops = EventDrops.EVENT_RUNNING;
         if (font == null || Identifier.tryParse(font) == null) font = DEFAULT_FONT;
         if (amountFormat == null) amountFormat = AmountFormat.REMAINING;
         if (forgeTimes == null) forgeTimes = ForgeTimes.ALL;

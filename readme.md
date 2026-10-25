@@ -28,6 +28,7 @@ Nothing in the mod is limited to Ironman profiles. On a regular profile it works
 - [Forging](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forging)
 - [Mob drops](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#mob-drops)
 - [Recipe locks](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#recipe-locks)
+- [Event drops](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#event-drops): a ! on rows you can farm in a running mayor event
 - [NPC price](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#npc-price)
 - [Forge times](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Shopping-List-HUD#forge-times)
 - [Recipes beyond the crafting table](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Recipes-and-Items#recipes)
@@ -92,7 +93,7 @@ Skyblock Shopping List is designed to stay within the [Hypixel Allowed Modificat
 - It does not automate anything: no clicking, crafting, moving items or opening menus for you.
 - The HUD only shows your own items and recipe arithmetic.
 
-Outside the game connection it downloads recipes from the NEU repository and NPC sell prices from Hypixel's public, keyless item list (`api.hypixel.net/v2/resources/skyblock/items`), and at most once an hour while you are on SkyBlock reads Hypixel's public, keyless election data (`api.hypixel.net/v2/resources/skyblock/election`) to know whether Cole's Molten Forge perk is active.
+Outside the game connection it downloads recipes from the NEU repository and NPC sell prices from Hypixel's public, keyless item list (`api.hypixel.net/v2/resources/skyblock/items`), and at most once an hour while you are on SkyBlock reads Hypixel's public, keyless election data (`api.hypixel.net/v2/resources/skyblock/election`) to know whether Cole's Molten Forge perk is active and which mayor events (Fishing Festival, Mining Fiesta, Mythological Ritual) are on.
 
 As Hypixel states, every modification is used at your own risk.
 
@@ -108,6 +109,7 @@ Each SkyBlock profile keeps its own data in `profiles/<account>/<profile>/`, so 
 - `forge_speed.json`: your Quick Forge % and the current mayor forge bonus
 
 `profiles/<account>/last_profile.txt` remembers the profile you used last. Shared by all profiles:
+- `mayor.json`: the current mayor's and minister's perks from the last election check
 - `hud_style.json`: your Appearance settings
 - `saved_lists.json`: your saved shopping lists; kept by a data reset
 - `presets/`: your saved HUD presets, one file each (share them by sending the file or a share code); kept by a data reset

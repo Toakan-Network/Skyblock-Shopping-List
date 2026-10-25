@@ -588,7 +588,7 @@ public class SandboxWidget {
     /** Runs on the update thread. Recomputes only when resources or the selection changed. */
     private void refreshIfStale() {
         try {
-            ForgeSpeed.refreshMayorIfDue();
+            MayorEvents.refreshIfDue();
             long version = resourcesManager.getVersion();
             long recipes = RecipeManager.getInstance().getVersion();
             // Read before recomputing: a request made while this runs is still seen as new next time.
@@ -1790,6 +1790,7 @@ public class SandboxWidget {
         String forge = forgeText(node, level);
         HudStyle.Prepared tag = forge.isEmpty() ? HudStyle.Prepared.EMPTY : style.prepared(forge, nameColor, false);
         int lockWidth = showsLock(node) ? LOCK_WIDTH : 0;
+        int eventWidth = showsEvent(node) ? EVENT_WIDTH : 0;
         if (level == 0 && "Total".equals(node.name)) {
             // How far the sack scan for this list has got; gone once every needed sack has been opened.
             String sacks = sacksReadTag();
@@ -1801,12 +1802,12 @@ public class SandboxWidget {
         int maxTextWidth = Math.max(10, nodeWidth - iconOffset);
         float textScale;
         if (forge.isEmpty()) {
-            int totalTextWidth = markWidth + amountWidth + name.width() + tagWidth + lockWidth;
+            int totalTextWidth = markWidth + amountWidth + name.width() + tagWidth + lockWidth + eventWidth;
             textScale = Math.min(rowScale, (float) maxTextWidth / Math.max(1, totalTextWidth));
         } else {
             // The forge time always shows; a long name is cut short to make room instead of shrinking the row.
             textScale = rowScale;
-            int room = Math.round(maxTextWidth / rowScale) - markWidth - amountWidth - tagWidth - lockWidth;
+            int room = Math.round(maxTextWidth / rowScale) - markWidth - amountWidth - tagWidth - lockWidth - eventWidth;
             // Kept by the style, so a frame measures nothing new.
             name = style.fitted(node.name, nameColor, bold, room);
         }
@@ -1820,6 +1821,7 @@ public class SandboxWidget {
         context.text(client.font, name.seq(), markWidth + amountWidth, 0, 0xFFFFFFFF, style.textShadow);
         context.text(client.font, tag.seq(), markWidth + amountWidth + nameWidth, 0, 0xFFFFFFFF, style.textShadow);
         if (lockWidth > 0) drawLock(context, markWidth + amountWidth + nameWidth + tagWidth, 0, nameColor);
+        if (eventWidth > 0) drawEvent(context, markWidth + amountWidth + nameWidth + tagWidth + lockWidth, 0);
         context.pose().popMatrix();
         y += nodeHeight + currentRowGap;
 
@@ -1947,6 +1949,22 @@ public class SandboxWidget {
 
     /** Room a padlock takes after a row's text, in font pixels: a gap, the 5 px lock and a pixel after it. */
     public static final int LOCK_WIDTH = 9;
+    /** Width of the "!" for a drop that can be farmed in a mayor's event now. */
+    public static final int EVENT_WIDTH = 6;
+    /** The "!": gold, like a mayor's perk in the election menu. */
+    private static final int EVENT_COLOR = 0xFFFFAA00;
+
+    /** Whether the row's item only drops during a mayor's event and that event is on now (Settings > Rows). */
+    public static boolean showsEvent(RecipeManager.RecipeNode node) {
+        return node.amount > 0 && MayorEvents.farmableNow(node.name) != null;
+    }
+
+    /** A 2x7 "!" drawn with fills, {@link #EVENT_WIDTH} wide, top-left at (x, y) of a text row. */
+    public static void drawEvent(GuiGraphicsExtractor context, int x, int y) {
+        int left = x + 2;
+        context.fill(left, y, left + 2, y + 5, EVENT_COLOR);
+        context.fill(left, y + 6, left + 2, y + 7, EVENT_COLOR);
+    }
 
     /** True when a row shows a padlock: Recipe locks on, and it or a row under it still to make needs an unlock. */
     public static boolean showsLock(RecipeManager.RecipeNode node) {

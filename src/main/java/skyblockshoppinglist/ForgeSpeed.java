@@ -3,7 +3,6 @@ package skyblockshoppinglist;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -11,35 +10,26 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
 
 import java.io.File;
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * How much faster the Forge runs for this player: the HOTM Quick Forge perk (read from the Heart of the
- * Mountain menu when it is opened) plus Cole's Molten Forge perk when he is mayor or minister (read from
- * Hypixel's public election resource, at most once an hour). The two stack additively.
+ * Mountain menu when it is opened) plus Cole's Molten Forge perk when he is mayor or minister (from
+ * {@link MayorEvents}' hourly election check). The two stack additively.
  */
 public final class ForgeSpeed {
     private static final Pattern QUICK_FORGE = Pattern.compile("forge,?\\s+by ([\\d.]+)%");
     private static final Pattern PERCENT = Pattern.compile("([\\d.]+)%");
-    private static final String ELECTION_URL = "https://api.hypixel.net/v2/resources/skyblock/election";
     private static final String MOLTEN_FORGE = "Molten Forge";
     /** Molten Forge's cut if its description can't be read. */
     private static final double MOLTEN_FORGE_DEFAULT = 25;
-    private static final long MAYOR_REFRESH_MS = 60 * 60 * 1000L;
-    private static final AtomicBoolean FETCHING = new AtomicBoolean(false);
 
     /** Saved to forge_speed.json. */
     private static final class Data {
         double quickForge;
         double mayorBonus;
-        long mayorCheckedAt;
         /**
          * The profile file this was read from; changes are only saved back there, so an update that lands during a
          * profile switch (the mayor check runs on another thread) can't write this profile's values to the next one.
@@ -81,43 +71,13 @@ public final class ForgeSpeed {
         }
     }
 
-    /** Starts a background check of the current mayor and minister when the last one is over an hour old. */
-    public static void refreshMayorIfDue() {
-        // Only Forge times uses the bonus; with them off there is no reason to ask.
-        if (HudStyle.get().forgeTimes == HudStyle.ForgeTimes.OFF) return;
-        if (System.currentTimeMillis() - get().mayorCheckedAt < MAYOR_REFRESH_MS || !SkyblockDetector.isOnSkyblock()) return;
-        if (!FETCHING.compareAndSet(false, true)) return;
-        HttpRequest request = HttpRequest.newBuilder(URI.create(ELECTION_URL)).timeout(Duration.ofSeconds(10)).GET().build();
-        Http.CLIENT.sendAsync(request, HttpResponse.BodyHandlers.ofString()).whenComplete((response, error) -> {
-            try {
-                // Failures are retried at the next hourly check; the last known bonus stays in use.
-                Double bonus = null;
-                if (error == null && response.statusCode() / 100 == 2) {
-                    try {
-                        bonus = moltenForgeBonus(response.body());
-                    } catch (RuntimeException e) {
-                        // Unreadable or changed JSON: still counts as a check, or it would be retried every second.
-                        ShoppingList.LOGGER.warn("Mayor check: could not read the election data: {}", e.toString());
-                    }
-                } else {
-                    ShoppingList.LOGGER.warn("Mayor check failed: {}", error != null ? error.toString() : "HTTP " + response.statusCode());
-                }
-                Double found = bonus;
-                update(d -> {
-                    d.mayorCheckedAt = System.currentTimeMillis();
-                    if (found != null) d.mayorBonus = found;
-                });
-            } catch (RuntimeException e) {
-                ShoppingList.LOGGER.warn("Mayor check failed: {}", e.toString());
-            } finally {
-                FETCHING.set(false);
-            }
-        });
+    /** Molten Forge's cut from the latest election check (0 when nobody has the perk). */
+    static void setMayorBonus(double bonus) {
+        if (get().mayorBonus != bonus) update(d -> d.mayorBonus = bonus);
     }
 
-    /** Molten Forge's cut in percent when the mayor or minister has it, else 0. */
-    private static double moltenForgeBonus(String body) {
-        JsonObject mayor = JsonParser.parseString(body).getAsJsonObject().getAsJsonObject("mayor");
+    /** Molten Forge's cut in percent when the mayor or minister has it, else 0. {@code mayor} is the election's "mayor". */
+    static double moltenForgeBonus(JsonObject mayor) {
         if (mayor == null) return 0;
         JsonArray perks = mayor.getAsJsonArray("perks");
         if (perks != null) {
@@ -193,7 +153,6 @@ public final class ForgeSpeed {
         Data next = new Data();
         next.quickForge = current.quickForge;
         next.mayorBonus = current.mayorBonus;
-        next.mayorCheckedAt = current.mayorCheckedAt;
         next.file = current.file;
         change.accept(next);
         data = next;

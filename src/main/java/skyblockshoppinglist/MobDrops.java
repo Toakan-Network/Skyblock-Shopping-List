@@ -54,6 +54,11 @@ public final class MobDrops {
         return version;
     }
 
+    /** Every mob that drops {@code item}, guaranteed drops included; empty when no mob does. */
+    public static List<Source> sources(String item) {
+        return drops.getOrDefault(ItemNames.normalize(item), List.of());
+    }
+
     /**
      * The item's best source (highest chance below 100%), or null when no mob drops it by chance. A guaranteed
      * drop needs no kill estimate.

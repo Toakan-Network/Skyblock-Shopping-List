@@ -192,6 +192,16 @@ public final class ConfigScreen {
                     d.forgeTimes, s -> s.forgeTimes, (s, v) -> s.forgeTimes = v))
                 .option(toggle("skyblock-shopping-list.config.rows.recipe_locks", d.showRequirements,
                     s -> s.showRequirements, (s, v) -> s.showRequirements = v))
+                .option(styled(Option.<HudStyle.EventDrops>createBuilder()
+                    .name(Component.translatable("skyblock-shopping-list.config.rows.event_drops"))
+                    .description(describe(Component.translatable("skyblock-shopping-list.config.rows.event_drops.desc")))
+                    .controller(opt -> EnumControllerBuilder.create(opt).enumClass(HudStyle.EventDrops.class)
+                        .formatValue(v -> Component.translatable(switch (v) {
+                            case OFF -> "skyblock-shopping-list.config.rows.event_drops.off";
+                            case PERK_ACTIVE -> "skyblock-shopping-list.config.rows.event_drops.perk_active";
+                            case EVENT_RUNNING -> "skyblock-shopping-list.config.rows.event_drops.event_running";
+                        }))),
+                    d.eventDrops, s -> s.eventDrops, (s, v) -> s.eventDrops = v))
                 .build())
             .group(OptionGroup.createBuilder()
                 .name(Component.translatable("skyblock-shopping-list.config.list"))

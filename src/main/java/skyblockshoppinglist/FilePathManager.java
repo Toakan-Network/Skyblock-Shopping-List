@@ -49,6 +49,8 @@ public class FilePathManager {
     public static final File WIDGET_CONFIG_JSON = new File(DATA_DIR, "widget_config.json");
     /** HUD colours, sizes, font and parts (Settings > Appearance). */
     public static final File HUD_STYLE_JSON = new File(DATA_DIR, "hud_style.json");
+    /** The current mayor's and minister's perks from the last election check (MayorEvents), for every profile. */
+    public static final File MAYOR_JSON = new File(DATA_DIR, "mayor.json");
     /** Saved HUD presets, one JSON file each. Not part of the data reset: they are the player's own work. */
     public static final File PRESETS_DIR = new File(DATA_DIR, "presets");
     /** Named shopping lists to swap in (List tab > Saved lists). Not part of the data reset, like presets. */
