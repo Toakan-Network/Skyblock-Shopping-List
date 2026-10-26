@@ -28,6 +28,8 @@ public class SandboxWidget {
     private volatile boolean enabled = false;
     /** Entries are never mutated in place; changes replace the entry so the update thread sees whole values. */
     private final List<ShoppingListEntry> shoppingList = new CopyOnWriteArrayList<>();
+    /** Saved list last loaded or saved (List tab), so Save writes back to it; this session only, "" for none. */
+    private volatile String currentSavedList = "";
     /**
      * Written by the update thread, read by the render thread; always replaced, never mutated. A synthetic
      * root whose children (Total, then one tree per recipe) are what the HUD shows.
@@ -323,6 +325,12 @@ public class SandboxWidget {
         shoppingList.clear();
         listChanged();
     }
+    public String getCurrentSavedList() {
+        return currentSavedList;
+    }
+    public void setCurrentSavedList(String name) {
+        currentSavedList = name == null ? "" : name;
+    }
     public List<ShoppingListEntry> getShoppingList() {
         List<ShoppingListEntry> copy = new ArrayList<>();
         for (ShoppingListEntry e : shoppingList) copy.add(e.copy());
@@ -374,6 +382,7 @@ public class SandboxWidget {
         listGeneration++;
         switchProfile.run();
         loadShoppingList();
+        currentSavedList = "";
         lastPromptedSacks = List.of();
         listGeneration++;
         scheduler.execute(() -> {
@@ -513,6 +522,7 @@ public class SandboxWidget {
         enabled = false;
         listGeneration++;
         shoppingList.clear();
+        currentSavedList = "";
         recipeTree = null;
         widgetX = 10;
         widgetY = 40;

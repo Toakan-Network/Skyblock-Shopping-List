@@ -66,6 +66,7 @@ public class ShoppingListScreen extends Screen {
         super(Component.literal(ShoppingList.NAME));
         this.widget = SandboxWidget.getInstance();
         this.recipeManager = RecipeManager.getInstance();
+        this.saveName = widget.getCurrentSavedList();
     }
 
     @Override
@@ -196,6 +197,7 @@ public class ShoppingListScreen extends Screen {
             List<ShoppingListEntry> current = widget.getShoppingList();
             if (name.isEmpty() || current.isEmpty()) return;
             SavedLists.save(name, current);
+            widget.setCurrentSavedList(name);
             pendingDelete = null;
             rebuildWidgets();
         }).bounds(savedX + savedWidth - 84, 55, 40, 20)
@@ -233,7 +235,9 @@ public class ShoppingListScreen extends Screen {
         for (int i = savedScroll; i < end; i++) {
             String name = names.get(i);
             int y = SAVED_TOP + (i - savedScroll) * PANEL_ROW;
-            addRenderableWidget(Button.builder(fitPlain(name, savedWidth - 70, 0xFFFFFFFF), button -> loadSaved(name))
+            // The list last loaded or saved, which Save writes back to.
+            int color = name.equals(widget.getCurrentSavedList()) ? GOLD : 0xFFFFFFFF;
+            addRenderableWidget(Button.builder(fitPlain(name, savedWidth - 70, color), button -> loadSaved(name))
                 .bounds(savedX, y, savedWidth - 60, 18)
                 .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.screen.saved.load.tooltip", name)))
                 .build());
@@ -250,6 +254,7 @@ public class ShoppingListScreen extends Screen {
             addRenderableWidget(Button.builder(Component.literal(armed ? "?" : "×"), button -> {
                 if (name.equals(pendingDelete)) {
                     SavedLists.delete(name);
+                    if (name.equals(widget.getCurrentSavedList())) widget.setCurrentSavedList("");
                     pendingDelete = null;
                 } else {
                     pendingDelete = name;
@@ -268,6 +273,7 @@ public class ShoppingListScreen extends Screen {
         SandboxWidget.LoadResult result = widget.replaceList(entries);
         pendingDelete = null;
         saveName = name;
+        widget.setCurrentSavedList(name);
         Minecraft client = Minecraft.getInstance();
         if (result != null && client.player != null) {
             if (result.dropped() > 0) {
