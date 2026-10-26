@@ -321,7 +321,7 @@
   "skyblock-shopping-list.screen.list.full": "Shopping list full (%s/%s)",
   "skyblock-shopping-list.screen.list.have_total": "Have total (=): the amount is how many you want in total; what you hold counts.\nClick for Add more.",
   "skyblock-shopping-list.screen.list.header": "Shopping list (%s/%s)",
-  "skyblock-shopping-list.screen.list.more": "+%s more",
+  "skyblock-shopping-list.screen.list.scroll": "%s above, %s below: scroll to see them",
   "skyblock-shopping-list.screen.list.move_down": "Move down: lower rows get what is left.",
   "skyblock-shopping-list.screen.list.move_up": "Move up: higher rows get shared materials first.",
   "skyblock-shopping-list.screen.list.needs_below": "Needs below:",
