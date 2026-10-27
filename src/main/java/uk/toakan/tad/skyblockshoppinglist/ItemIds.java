@@ -33,6 +33,7 @@ public final class ItemIds {
     private static volatile Map<String, String> namesById;
     /** {@link #namesById} turned round, for {@link #recipeCommand}; null until first needed. */
     private static volatile Map<String, String> idsByName;
+    private static volatile long version;
     /** "Name [ID]": the recipe name of an output whose shown name an earlier output already had. */
     private static final Pattern RENAMED = Pattern.compile("^(.+) \\[([A-Z0-9_:;\\-]+)]$");
     /**
@@ -64,6 +65,12 @@ public final class ItemIds {
         Map<String, String> loaded = JsonFiles.read(FilePathManager.ITEM_NAMES_JSON, MAP_TYPE);
         namesById = loaded != null ? Map.copyOf(loaded) : Map.of();
         idsByName = null;
+        version++;
+    }
+
+    /** Changes whenever the ID table is re-read, as names then may count under other entries. */
+    public static long getVersion() {
+        return version;
     }
 
     /**
