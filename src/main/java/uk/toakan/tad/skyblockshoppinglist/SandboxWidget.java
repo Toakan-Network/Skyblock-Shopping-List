@@ -7,6 +7,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SandboxWidget {
-    private static final Identifier SANDBOX_WIDGET_LAYER = Identifier.fromNamespaceAndPath(ShoppingList.MOD_ID, "sandbox_widget");
+    public static final Identifier SANDBOX_WIDGET_LAYER = Identifier.fromNamespaceAndPath(ShoppingList.MOD_ID, "sandbox_widget");
     /** Expansion-key root for the top-level nodes (Total and each recipe). */
     public static final String LIST_KEY = "list";
     public static final int MAX_RECIPES_LIMIT = 10;
@@ -1098,6 +1099,34 @@ public class SandboxWidget {
     public enum Panel { MAIN, CRAFTABLE, FORGING, TOTAL, MOB_DROPS }
 
     /**
+     * Where another mod has put a panel: top-left in GUI pixels, width and max height in HUD units, the scale to draw
+     * at (HUD units -> GUI pixels), and whether it is hidden.
+     */
+    public record Placement(int x, int y, int width, int height, float scale, boolean hidden) {}
+
+    /** Places the panels and opens the editor for them in place of the Move HUD screen (Huddable, when installed). */
+    public interface PanelPlacer {
+        /** This frame's placement, or null to use the panel's own. */
+        Placement place(Panel panel);
+
+        void openEditor(Screen parent);
+    }
+
+    /** Set by {@code compat.HuddableCompat}; null without Huddable. */
+    private static volatile PanelPlacer placer;
+
+    public static void setPlacer(PanelPlacer panelPlacer) {
+        placer = panelPlacer;
+    }
+
+    /** Opens the editor that places the panels: Huddable's when it does, otherwise the Move HUD screen. */
+    public static void openMoveHud(Screen parent) {
+        PanelPlacer current = placer;
+        if (current != null) current.openEditor(parent);
+        else Minecraft.getInstance().gui.setScreen(new HudPositionScreen(parent));
+    }
+
+    /**
      * Position (GUI pixels), size (HUD units, before scaling) and scale (percent, on top of the HUD scale) of one
      * panel.
      */
@@ -1422,12 +1451,32 @@ public class SandboxWidget {
         recordMissingRefs();
         int inset = HudStyle.get().panelBorderWidth + 1;
         List<Rect2i> drawn = new ArrayList<>(4);
+        PanelPlacer current = placer;
         for (Panel panel : activePanels()) {
-            PanelRect rect = getPanelRect(panel);
-            int height = renderPanel(context, panel, rect.x, rect.y, rect.width, rect.height, false);
+            Placement placed = current != null ? current.place(panel) : null;
+            if (placed != null && placed.hidden()) continue;
+            int x;
+            int y;
+            int width;
+            int maxHeight;
+            float scale;
+            if (placed != null) {
+                x = placed.x();
+                y = placed.y();
+                width = placed.width();
+                maxHeight = placed.height();
+                scale = placed.scale();
+            } else {
+                PanelRect rect = getPanelRect(panel);
+                x = rect.x;
+                y = rect.y;
+                width = rect.width;
+                maxHeight = rect.height;
+                scale = scaleFactor(panel);
+            }
+            int height = renderPanel(context, panel, x, y, width, maxHeight, scale, false);
             if (height <= 0) continue;
-            float scale = scaleFactor(panel);
-            drawn.add(new Rect2i(rect.x - inset, rect.y - inset, Math.round(rect.width * scale) + 2 * inset,
+            drawn.add(new Rect2i(x - inset, y - inset, Math.round(width * scale) + 2 * inset,
                 Math.round(height * scale) + 2 * inset));
         }
         drawnPanels = drawn;

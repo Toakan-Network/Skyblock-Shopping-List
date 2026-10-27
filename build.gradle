@@ -65,6 +65,11 @@ dependencies {
 
 }
 
+// Huddable (optional): its editor places the HUD panels when installed. Huddable isn't on a Maven repo, so its API
+// is compiled from signature-only copies in src/huddableStub and left out of the jar; only Huddable ever loads
+// uk.toakan.tad.skyblockshoppinglist.compat.HuddableCompat (fabric.mod.json entrypoint).
+sourceSets.main.java.srcDir "src/huddableStub/java"
+
 processResources {
 	inputs.property "version", project.version
 
@@ -87,6 +92,7 @@ java {
 }
 
 jar {
+	exclude "uk/toakan/tad/huddable/**"
 	from("LICENSE") {
 		rename { "${it}_${project.base.archivesName.get()}"}
 	}

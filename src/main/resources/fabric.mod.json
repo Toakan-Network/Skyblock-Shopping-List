@@ -27,6 +27,9 @@
 		],
 		"modmenu": [
 			"uk.toakan.tad.skyblockshoppinglist.compat.ModMenuCompat"
+		],
+		"huddable": [
+			"uk.toakan.tad.skyblockshoppinglist.compat.HuddableCompat"
 		]
 	},
 	"mixins": [
@@ -42,7 +45,8 @@
 	},
 	"suggests": {
 		"skyblock-item-list": "*",
-		"modmenu": "*"
+		"modmenu": "*",
+		"huddable": "*"
 	},
 	"breaks": {
 		"ir": "*"

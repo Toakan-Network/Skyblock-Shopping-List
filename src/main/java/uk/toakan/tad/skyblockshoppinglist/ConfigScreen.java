@@ -94,7 +94,7 @@ public final class ConfigScreen {
                     .name(Component.translatable("skyblock-shopping-list.config.hud.move"))
                     .text(Component.translatable("skyblock-shopping-list.config.open"))
                     .description(OptionDescription.of(Component.translatable("skyblock-shopping-list.config.hud.move.desc")))
-                    .action((screen, button) -> Minecraft.getInstance().gui.setScreen(new HudPositionScreen(screen)))
+                    .action((screen, button) -> SandboxWidget.openMoveHud(screen))
                     .build())
                 .option(ButtonOption.createBuilder()
                     .name(Component.translatable("skyblock-shopping-list.config.hud.reset_position"))

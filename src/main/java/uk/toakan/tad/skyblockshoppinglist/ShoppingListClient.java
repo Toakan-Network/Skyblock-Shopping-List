@@ -84,7 +84,7 @@ public class ShoppingListClient implements ClientModInitializer {
             }
             if ((moveHudKey.consumeClick() && onSkyblock) || shouldOpenMoveHud) {
                 shouldOpenMoveHud = false;
-                client.gui.setScreen(new HudPositionScreen(null));
+                SandboxWidget.openMoveHud(null);
             }
             if (toggleWidgetKey.consumeClick() && onSkyblock) {
                 SandboxWidget widget = SandboxWidget.getInstance();

@@ -247,6 +247,7 @@
   "skyblock-shopping-list.hud.sacks_read": " (sacks %s/%s read)",
   "skyblock-shopping-list.hud.title": "Shopping List",
   "skyblock-shopping-list.hud.total": "Total",
+  "skyblock-shopping-list.huddable.panel": "Shopping List: %s",
   "skyblock-shopping-list.item_list.add.tooltip": "Add %s to your shopping list",
   "skyblock-shopping-list.item_list.added": "Added %s to your shopping list",
   "skyblock-shopping-list.magic_find.from": "Magic Find: %s (%s)",
