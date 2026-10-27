@@ -38,16 +38,21 @@ public class ShoppingListClient implements ClientModInitializer {
     private static Map<String, Integer> lastInventory;
     private int tickCounter = 0;
 
+    private static final java.util.Map<String, Integer> INPUT_CODES = new java.util.concurrent.ConcurrentHashMap<>();
+
     /**
      * Reads an InputConstants code at runtime. The codes differ between Minecraft versions (26.3 moved
      * from GLFW to SDL), and javac would inline a direct reference, so one jar works on both this way.
      */
     public static int inputCode(String name) {
-        try {
-            return InputConstants.class.getField(name).getInt(null);
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("Missing InputConstants." + name, e);
-        }
+        // Looked up once per name: callers ask on every click.
+        return INPUT_CODES.computeIfAbsent(name, n -> {
+            try {
+                return InputConstants.class.getField(n).getInt(null);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Missing InputConstants." + n, e);
+            }
+        });
     }
 
     @Override
