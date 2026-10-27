@@ -31,7 +31,8 @@ public final class HuddableCompat implements HuddablePlugin {
                         SandboxWidget.PanelRect rect = SandboxWidget.getInstance().getPanelRect(panel);
                         return new HuddableApi.Box(rect.x, rect.y, rect.width, rect.height);
                     })
-                    .withBaseScale(() -> SandboxWidget.getInstance().scaleFactor(panel))
+                    // Huddable applies its own Size setting on top, so Shopping List's sizing is left out.
+                    .withBaseScale(() -> SandboxWidget.getInstance().panelScale(panel))
                     .resizable(SandboxWidget.minWidth(panel), SandboxWidget.minHeight(panel))
                     .listedWhen(() -> SandboxWidget.activePanels().contains(panel)));
             }

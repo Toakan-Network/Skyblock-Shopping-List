@@ -1304,6 +1304,11 @@ public class SandboxWidget {
         return scaleFactor() * storedRect(panel).scalePercent() / 100f;
     }
 
+    /** The HUD scale times the panel's own scale, without HUD sizing: for Huddable, whose own sizing applies. */
+    public float panelScale(Panel panel) {
+        return HudStyle.get().hudScale / 100f * storedRect(panel).scalePercent() / 100f;
+    }
+
     /**
      * Where a panel goes on the current screen: its saved position moved in proportion to how the screen size
      * changed since it was placed, then kept on screen.

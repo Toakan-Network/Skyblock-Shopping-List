@@ -183,7 +183,7 @@
   "skyblock-shopping-list.config.size.hud_scale": "HUD scale",
   "skyblock-shopping-list.config.size.hud_scale.desc": "Size of every HUD panel, in percent. 100%% is the original size.",
   "skyblock-shopping-list.config.size.sizing": "HUD sizing",
-  "skyblock-shopping-list.config.size.sizing.desc": "Window size: grows and shrinks with the game window (HUD scale 100%% is the original size at 1080p).\nMinecraft GUI Scale: follows GUI Scale in steps, like vanilla menus.\nFixed pixels: the same size on screen whatever the window or GUI Scale.",
+  "skyblock-shopping-list.config.size.sizing.desc": "Window size: grows and shrinks with the game window (HUD scale 100%% is the original size at 1080p).\nMinecraft GUI Scale: follows GUI Scale in steps, like vanilla menus.\nFixed pixels: the same size on screen whatever the window or GUI Scale.\nWith Huddable installed, its Size setting is used instead.",
   "skyblock-shopping-list.config.size.sizing.fixed": "Fixed pixels",
   "skyblock-shopping-list.config.size.sizing.gui_scale": "Minecraft GUI Scale",
   "skyblock-shopping-list.config.size.sizing.window": "Window size",
