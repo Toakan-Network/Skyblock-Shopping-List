@@ -43,7 +43,10 @@ public final class RemoteRecipeFetcher {
      * Bump when the way recipes are extracted from the repo changes, so cached snapshots are rebuilt
      * even if the remote reports "not modified".
      */
-    private static final String PARSER_VERSION = "15";
+    private static final String PARSER_VERSION = "16";
+    /** Components of a repo item stack that change how its icon looks; the rest (lore, custom data) is left out. */
+    private static final List<String> ICON_COMPONENTS = List.of("minecraft:profile", "minecraft:dyed_color",
+        "minecraft:enchantment_glint_override", "minecraft:potion_contents", "minecraft:item_model");
     /** NEU's pseudo item for coin costs in shop recipes. */
     private static final String COIN_ID = "SKYBLOCK_COIN";
     public static final String COINS_NAME = "Coins";
@@ -333,6 +336,8 @@ public final class RemoteRecipeFetcher {
                 lore.putIfAbsent(recipeNameById.getOrDefault(id, id), lines);
             }
             changed |= writeSnapshot(lore, FilePathManager.ITEM_LORE_JSON, meta);
+            changed |= writeSnapshot(itemIcons(repoExtracted, neuRepo.getItems().getItems().values(), used, recipeNameById),
+                FilePathManager.ITEM_ICONS_JSON, meta);
             Map<String, Double> buyPrices = new LinkedHashMap<>();
             buyPriceByInternal.forEach((id, coins) -> buyPrices.put(recipeNameById.getOrDefault(id, id), coins));
             changed |= writeSnapshot(buyPrices, FilePathManager.NPC_BUY_PRICES_JSON, meta);
@@ -347,6 +352,7 @@ public final class RemoteRecipeFetcher {
             uk.toakan.tad.skyblockshoppinglist.ShoppingList.debug("NEU repo parsed (library): {} crafting (incl. {} pet upgrades), {} forge, {} shop recipes", craftingWire.size(), katCount, forgeWire.size(), shopWire.size());
             if (changed) {
                 uk.toakan.tad.skyblockshoppinglist.ItemIds.reload();
+                uk.toakan.tad.skyblockshoppinglist.ItemIcons.reload();
                 uk.toakan.tad.skyblockshoppinglist.RecipeManager.getInstance().reload();
             } else {
                 uk.toakan.tad.skyblockshoppinglist.ShoppingList.debug("Recipes unchanged");
@@ -647,7 +653,8 @@ public final class RemoteRecipeFetcher {
                 FilePathManager.REMOTE_FORGE_JSON, FilePathManager.REMOTE_SHOP_JSON, FilePathManager.RECIPE_YIELDS_JSON,
                 FilePathManager.FORGE_TIMES_JSON, FilePathManager.ITEM_TYPES_JSON,
                 FilePathManager.ITEM_SACKS_JSON, FilePathManager.ITEM_NAMES_JSON, FilePathManager.ITEM_REQUIREMENTS_JSON,
-                FilePathManager.ITEM_LORE_JSON, FilePathManager.NPC_BUY_PRICES_JSON, FilePathManager.MOB_DROPS_JSON)
+                FilePathManager.ITEM_LORE_JSON, FilePathManager.NPC_BUY_PRICES_JSON, FilePathManager.MOB_DROPS_JSON,
+                FilePathManager.ITEM_ICONS_JSON)
             .allMatch(File::isFile);
     }
 
@@ -681,7 +688,79 @@ public final class RemoteRecipeFetcher {
         return out;
     }
 
-    private static final List<String> RARITIES = List.of("VERY SPECIAL", "UNCOMMON", "COMMON", "RARE", "EPIC",
+    /**
+     * Icons for the items the recipes name, as SNBT item stacks with only {@link #ICON_COMPONENTS}. The repo's
+     * itemsOverlay/&lt;data version&gt;/ID.snbt files hold modern stacks; per item the newest one this game can read
+     * wins. Items without one fall back to NEU's Minecraft item ID when it still names an item (damage 0 only: a
+     * damage value picked a variant that has its own ID now). Item models from Hypixel's resource pack are left out,
+     * as the pack may not be loaded.
+     */
+    private static Map<String, String> itemIcons(Path repo, Collection<NEUItem> items, java.util.Set<String> used,
+                                                 Map<String, String> recipeNameById) {
+        Map<String, Path> files = new java.util.HashMap<>();
+        int gameVersion = net.minecraft.SharedConstants.getCurrentVersion().dataVersion().version();
+        File[] dirs = repo.resolve("itemsOverlay").toFile().listFiles(File::isDirectory);
+        List<Integer> versions = new ArrayList<>();
+        if (dirs != null) {
+            for (File dir : dirs) {
+                try {
+                    int version = Integer.parseInt(dir.getName());
+                    if (version <= gameVersion) versions.add(version);
+                } catch (NumberFormatException e) {
+                    // Not a data version folder.
+                }
+            }
+        }
+        versions.sort(null);
+        for (int version : versions) {
+            File[] snbt = repo.resolve("itemsOverlay").resolve(Integer.toString(version)).toFile()
+                .listFiles((dir, name) -> name.endsWith(".snbt"));
+            if (snbt == null) continue;
+            for (File f : snbt) {
+                String id = f.getName().substring(0, f.getName().length() - ".snbt".length());
+                if (used.contains(id)) files.put(id, f.toPath());
+            }
+        }
+        Map<String, String> out = new java.util.TreeMap<>();
+        files.forEach((id, file) -> {
+            try {
+                net.minecraft.nbt.CompoundTag stack = net.minecraft.nbt.TagParser.parseCompoundFully(Files.readString(file));
+                String itemId = stack.getStringOr("id", "");
+                if (itemId.isEmpty()) return;
+                net.minecraft.nbt.CompoundTag components = stack.getCompoundOrEmpty("components");
+                net.minecraft.nbt.CompoundTag kept = new net.minecraft.nbt.CompoundTag();
+                for (String key : ICON_COMPONENTS) {
+                    net.minecraft.nbt.Tag value = components.get(key);
+                    if (value == null) continue;
+                    if (key.equals("minecraft:item_model") && !value.asString().orElse("").startsWith("minecraft:")) continue;
+                    kept.put(key, value);
+                }
+                // Enchanted items glow; the glint override draws that without the enchantments themselves.
+                if (!components.getCompoundOrEmpty("minecraft:enchantments").isEmpty()) {
+                    kept.putBoolean("minecraft:enchantment_glint_override", true);
+                }
+                net.minecraft.nbt.CompoundTag icon = new net.minecraft.nbt.CompoundTag();
+                icon.putString("id", itemId);
+                if (!kept.isEmpty()) icon.put("components", kept);
+                out.put(recipeNameById.getOrDefault(id, id), icon.toString());
+            } catch (Exception e) {
+                LOGGER.debug("Skipping icon {}: {}", id, e.toString());
+            }
+        });
+        for (NEUItem item : items) {
+            String id = item.getSkyblockItemId();
+            if (id == null || !used.contains(id) || files.containsKey(id) || item.getDamage() != 0) continue;
+            net.minecraft.resources.Identifier itemId = net.minecraft.resources.Identifier.tryParse(
+                String.valueOf(item.getMinecraftItemId()));
+            if (itemId == null || !net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(itemId)) continue;
+            net.minecraft.nbt.CompoundTag icon = new net.minecraft.nbt.CompoundTag();
+            icon.putString("id", itemId.toString());
+            out.putIfAbsent(recipeNameById.getOrDefault(id, id), icon.toString());
+        }
+        return out;
+    }
+
+    private static final List<String> RARITIES =List.of("VERY SPECIAL", "UNCOMMON", "COMMON", "RARE", "EPIC",
         "LEGENDARY", "MYTHIC", "DIVINE", "SPECIAL", "ULTIMATE", "SUPREME", "ADMIN");
 
     /**

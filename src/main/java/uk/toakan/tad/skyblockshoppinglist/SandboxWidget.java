@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -1821,7 +1822,11 @@ public class SandboxWidget {
         int markWidth = mark.width();
         int amountWidth = amount.width();
         int tagWidth = tag.width();
-        int maxTextWidth = Math.max(10, nodeWidth - iconOffset);
+        // The item's icon goes between the amount and the name, at the row's height (16 at most) whatever the text
+        // scale; a row on a shown level without an icon keeps the gap, so the names line up.
+        int iconSize = showsIcon(node, level) ? Math.min(nodeHeight, 16) : 0;
+        int iconSpace = iconSize > 0 ? iconSize + 2 : 0;
+        int maxTextWidth = Math.max(10, nodeWidth - iconOffset - iconSpace);
         float textScale;
         if (forge.isEmpty()) {
             int totalTextWidth = markWidth + amountWidth + name.width() + tagWidth + lockWidth + eventWidth;
@@ -1834,17 +1839,29 @@ public class SandboxWidget {
             name = style.fitted(node.name, nameColor, bold, room);
         }
         int nameWidth = name.width();
+        int nameX = markWidth + amountWidth + Math.round(iconSpace / textScale);
 
         context.pose().pushMatrix();
         context.pose().translate(x + indent + iconOffset, textY(y, nodeHeight, textScale));
         context.pose().scale(textScale, textScale);
         context.text(client.font, mark.seq(), 0, 0, 0xFFFFFFFF, style.textShadow);
         context.text(client.font, amount.seq(), markWidth, 0, 0xFFFFFFFF, style.textShadow);
-        context.text(client.font, name.seq(), markWidth + amountWidth, 0, 0xFFFFFFFF, style.textShadow);
-        context.text(client.font, tag.seq(), markWidth + amountWidth + nameWidth, 0, 0xFFFFFFFF, style.textShadow);
-        if (lockWidth > 0) drawLock(context, markWidth + amountWidth + nameWidth + tagWidth, 0, nameColor);
-        if (eventWidth > 0) drawEvent(context, markWidth + amountWidth + nameWidth + tagWidth + lockWidth, 0);
+        context.text(client.font, name.seq(), nameX, 0, 0xFFFFFFFF, style.textShadow);
+        context.text(client.font, tag.seq(), nameX + nameWidth, 0, 0xFFFFFFFF, style.textShadow);
+        if (lockWidth > 0) drawLock(context, nameX + nameWidth + tagWidth, 0, nameColor);
+        if (eventWidth > 0) drawEvent(context, nameX + nameWidth + tagWidth + lockWidth, 0);
         context.pose().popMatrix();
+        if (iconSize > 0) {
+            ItemStack icon = ItemIcons.icon(node.name);
+            if (!icon.isEmpty()) {
+                context.pose().pushMatrix();
+                context.pose().translate(x + indent + iconOffset + (markWidth + amountWidth) * textScale,
+                    y + (nodeHeight - iconSize) / 2f);
+                context.pose().scale(iconSize / 16f, iconSize / 16f);
+                context.fakeItem(icon, 0, 0);
+                context.pose().popMatrix();
+            }
+        }
         y += nodeHeight + currentRowGap;
 
         if (hasChildren && isExpanded) {
@@ -1869,10 +1886,23 @@ public class SandboxWidget {
      */
     private static boolean showsBar(RecipeManager.RecipeNode node, int level, String pathKey) {
         HudStyle style = HudStyle.get();
+        return onLevel(isInTotal(node, level, pathKey) ? style.totalProgressBars : style.progressBars, level);
+    }
+
+    /** Settings > Rows > Item icons: whether this row gets its item's icon. Levels count as for the bars; never the Total row. */
+    private static boolean showsIcon(RecipeManager.RecipeNode node, int level) {
+        if (level == 0 && "Total".equals(node.name)) return false;
+        return onLevel(HudStyle.get().itemIcons, level);
+    }
+
+    /** The Total row, or a row under it. */
+    private static boolean isInTotal(RecipeManager.RecipeNode node, int level, String pathKey) {
         String totalKey = makePathKey(LIST_KEY, "Total");
-        boolean inTotal = level == 0 ? "Total".equals(node.name)
-            : pathKey.equals(totalKey) || pathKey.startsWith(totalKey + ">");
-        return switch (inTotal ? style.totalProgressBars : style.progressBars) {
+        return level == 0 ? "Total".equals(node.name) : pathKey.equals(totalKey) || pathKey.startsWith(totalKey + ">");
+    }
+
+    private static boolean onLevel(HudStyle.ProgressBars mode, int level) {
+        return switch (mode) {
             case OFF -> false;
             case TOP_LEVEL -> level == 0;
             case FIRST_LEVEL -> level <= 1;

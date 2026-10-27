@@ -129,6 +129,8 @@ public final class HudStyle {
     /** Progress bars on the recipe trees, and separately on the Total. */
     public ProgressBars progressBars = ProgressBars.OFF;
     public ProgressBars totalProgressBars = ProgressBars.OFF;
+    /** Item icons in front of the names, on the same levels as the progress bars. */
+    public ProgressBars itemIcons = ProgressBars.OFF;
     /** Kills-left estimates for list items that drop from mobs. */
     public boolean showMobDrops = false;
     public KillCases killCases = KillCases.ALL;
@@ -266,6 +268,7 @@ public final class HudStyle {
         hideFinished = from.hideFinished;
         progressBars = from.progressBars;
         totalProgressBars = from.totalProgressBars;
+        itemIcons = from.itemIcons;
         showMobDrops = from.showMobDrops;
         killCases = from.killCases;
         magicFind = from.magicFind;
@@ -308,6 +311,7 @@ public final class HudStyle {
         if (forgeTimes == null) forgeTimes = ForgeTimes.ALL;
         if (progressBars == null) progressBars = ProgressBars.OFF;
         if (totalProgressBars == null) totalProgressBars = ProgressBars.OFF;
+        if (itemIcons == null) itemIcons = ProgressBars.OFF;
         // Files from before HUD sizing: Follow GUI Scale ON keeps following it, OFF gets the new default.
         if (followGuiScale != null) {
             if (Boolean.TRUE.equals(followGuiScale)) sizing = Sizing.GUI_SCALE;

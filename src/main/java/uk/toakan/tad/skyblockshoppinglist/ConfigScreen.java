@@ -180,6 +180,8 @@ public final class ConfigScreen {
                     s -> s.progressBars, (s, v) -> s.progressBars = v))
                 .option(progressBars("skyblock-shopping-list.config.rows.total_progress_bars", d.totalProgressBars,
                     s -> s.totalProgressBars, (s, v) -> s.totalProgressBars = v))
+                .option(progressBars("skyblock-shopping-list.config.rows.item_icons", d.itemIcons,
+                    s -> s.itemIcons, (s, v) -> s.itemIcons = v))
                 .option(styled(Option.<HudStyle.ForgeTimes>createBuilder()
                     .name(Component.translatable("skyblock-shopping-list.config.rows.forge_times"))
                     .description(describe(Component.translatable("skyblock-shopping-list.config.rows.forge_times.desc")))
