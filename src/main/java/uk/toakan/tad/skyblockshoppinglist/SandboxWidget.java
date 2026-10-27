@@ -1647,8 +1647,22 @@ public class SandboxWidget {
      * Wrapped section lines by (lines, width, font, {@link HudStyle#fontGeneration()}); render thread only. The
      * lines rarely change between frames.
      */
+    /**
+     * Lines compared by value: the Move HUD preview makes its sample lines afresh each frame, so identity would
+     * miss there. Line texts cache their hashes, so the lookup stays cheap.
+     */
     private record WrapKey(List<Line> lines, int maxWidth, String font, int fontGeneration) {}
-    private static final Map<WrapKey, List<WrappedLine>> WRAP_CACHE = new HashMap<>();
+
+    /**
+     * Render thread only. A handful of sections are on screen at once; past that the least recently used go
+     * first, rather than every entry (which made the HUD and the Move HUD preview re-wrap each other's lines).
+     */
+    private static final Map<WrapKey, List<WrappedLine>> WRAP_CACHE = new LinkedHashMap<>(32, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<WrapKey, List<WrappedLine>> eldest) {
+            return size() > 32;
+        }
+    };
 
     /** Splits each line into pieces that fit the content width at the section's scale. */
     private static List<WrappedLine> wrap(Minecraft client, HudStyle style, Section section, int contentWidth) {
@@ -1657,8 +1671,6 @@ public class SandboxWidget {
         WrapKey key = new WrapKey(List.copyOf(section.lines()), maxWidth, style.font, HudStyle.fontGeneration());
         List<WrappedLine> cached = WRAP_CACHE.get(key);
         if (cached != null) return cached;
-        // A handful of sections are on screen at once; drop old entries rather than growing forever.
-        if (WRAP_CACHE.size() > 16) WRAP_CACHE.clear();
         List<WrappedLine> out = new ArrayList<>();
         for (Line message : section.lines()) {
             StringBuilder line = new StringBuilder();
