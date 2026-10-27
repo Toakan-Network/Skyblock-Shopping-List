@@ -329,7 +329,7 @@
   "skyblock-shopping-list.screen.list.picker_hint": "Click a recipe to add it",
   "skyblock-shopping-list.screen.list.preview": "Preview",
   "skyblock-shopping-list.screen.list.preview_empty": "Click recipes on the left",
-  "skyblock-shopping-list.screen.list.recipe": "Open the recipe: /recipe %s",
+  "skyblock-shopping-list.screen.list.recipe": "Open the recipe: /%s",
   "skyblock-shopping-list.screen.list.recipe.off": "Open the recipe (only on SkyBlock)",
   "skyblock-shopping-list.screen.list.requires": "Requires: %s",
   "skyblock-shopping-list.screen.list.working": "Working out the list...",

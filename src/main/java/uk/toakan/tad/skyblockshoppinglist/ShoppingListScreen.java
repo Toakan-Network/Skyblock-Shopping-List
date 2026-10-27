@@ -117,13 +117,14 @@ public class ShoppingListScreen extends Screen {
             savedAmounts.put(entry.recipe, amount.getValue());
             addRenderableWidget(amount);
             // One command per click the player makes, only on SkyBlock: opens Hypixel's own recipe menu.
+            String command = ItemIds.recipeCommand(entry.recipe);
             Button recipe = Button.builder(Component.literal("R"), button -> {
                 Minecraft client = Minecraft.getInstance();
                 if (client.player == null || !SkyblockDetector.isOnSkyblock()) return;
-                client.player.connection.sendCommand("recipe " + entry.recipe);
+                client.player.connection.sendCommand(command);
             }).bounds(treeViewX + treeViewWidth - controlsLeft, y, 16, 18)
               .tooltip(Tooltip.create(onSkyblock
-                  ? Component.translatable("skyblock-shopping-list.screen.list.recipe", entry.recipe)
+                  ? Component.translatable("skyblock-shopping-list.screen.list.recipe", command)
                   : Component.translatable("skyblock-shopping-list.screen.list.recipe.off")))
               .build();
             recipe.active = onSkyblock;

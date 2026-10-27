@@ -4,6 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -26,6 +27,21 @@ class ItemIdsTest {
 
         List<String> names = ItemIds.gemNames(data).stream().sorted().toList();
         assertEquals(List.of("Fine Jade Gemstone", "Flawless Amber Gemstone", "Perfect Sapphire Gemstone"), names);
+    }
+
+    @Test
+    void recipeCommandUsesIdWhenKnown() {
+        Map<String, String> ids = Map.of("Enchanted Diamond", "ENCHANTED_DIAMOND", "Golden Dragon", "GOLDEN_DRAGON;4");
+        assertEquals("viewrecipe ENCHANTED_DIAMOND", ItemIds.recipeCommand("Enchanted Diamond", ids));
+        // Pets: NEU's "TYPE;rarity" isn't a Hypixel ID.
+        assertEquals("recipe Golden Dragon", ItemIds.recipeCommand("Golden Dragon", ids));
+        assertEquals("recipe Mystery Item", ItemIds.recipeCommand("Mystery Item", ids));
+    }
+
+    @Test
+    void recipeCommandReadsRenamedOutputs() {
+        assertEquals("viewrecipe UPGRADE_STONE_X", ItemIds.recipeCommand("Upgrade Stone [UPGRADE_STONE_X]", Map.of()));
+        assertEquals("recipe Bee", ItemIds.recipeCommand("Bee [BEE;4]", Map.of()));
     }
 
     @Test

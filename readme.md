@@ -89,7 +89,7 @@ The mod only runs on Hypixel SkyBlock. It uses the official Hypixel Mod API's lo
 
 ## Hypixel rules
 Skyblock Shopping List is designed to stay within the [Hypixel Allowed Modifications](https://support.hypixel.net/hc/en-us/articles/6472550754962-Hypixel-Allowed-Modifications) guidelines:
-- It is read-only. It looks at screens you open and chat messages you receive (only Hypixel's own `[Sacks]` summaries and `Profile ID` line, matched exactly so player chat can't trigger them), and never sends packets or chat messages to the server. The one command it sends is `/recipe <item>`, once, when you click the **R** button on a shopping list entry, and only on SkyBlock. It never hides or changes a message.
+- It is read-only. It looks at screens you open and chat messages you receive (only Hypixel's own `[Sacks]` summaries and `Profile ID` line, matched exactly so player chat can't trigger them), and never sends packets or chat messages to the server. The one command it sends is `/viewrecipe <item ID>` (or `/recipe <item>` when the ID isn't known, and for pets), once, when you click the **R** button on a shopping list entry, and only on SkyBlock. It never hides or changes a message.
 - It does not automate anything: no clicking, crafting, moving items or opening menus for you.
 - The HUD only shows your own items and recipe arithmetic.
 
