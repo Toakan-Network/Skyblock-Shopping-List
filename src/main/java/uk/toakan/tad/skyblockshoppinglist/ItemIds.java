@@ -31,6 +31,11 @@ public final class ItemIds {
     /** Pet rarities in the order of the NEU pet ID suffix ("BEE;4" = Legendary Bee). */
     private static final List<String> PET_TIERS = List.of("COMMON", "UNCOMMON", "RARE", "EPIC", "LEGENDARY", "MYTHIC");
     private static volatile Map<String, String> namesById;
+    /** {@link #namesById} turned round, for {@link #recipeCommand}; null until first needed. */
+    private static volatile Map<String, String> idsByName;
+    private static volatile long version;
+    /** "Name [ID]": the recipe name of an output whose shown name an earlier output already had. */
+    private static final Pattern RENAMED = Pattern.compile("^(.+) \\[([A-Z0-9_:;\\-]+)]$");
     /**
      * SkyBlock ID per stack. Reading it copies the item's whole custom data (26.2 only offers copyTag()), and
      * the inventory is scanned every 2 ticks. ItemStack uses identity equality and Hypixel sends a new stack
@@ -59,6 +64,46 @@ public final class ItemIds {
     public static void reload() {
         Map<String, String> loaded = JsonFiles.read(FilePathManager.ITEM_NAMES_JSON, MAP_TYPE);
         namesById = loaded != null ? Map.copyOf(loaded) : Map.of();
+        idsByName = null;
+        version++;
+    }
+
+    /** Changes whenever the ID table is re-read, as names then may count under other entries. */
+    public static long getVersion() {
+        return version;
+    }
+
+    /**
+     * The command (without the slash) that opens Hypixel's recipe menu for a recipe: {@code viewrecipe <ID>} when
+     * its SkyBlock ID is known, otherwise {@code recipe <name>} (Hypixel's /recipe takes the shown name,
+     * /viewrecipe the ID). Pets keep /recipe: their IDs here are NEU's "TYPE;rarity" form, not Hypixel's.
+     */
+    public static String recipeCommand(String recipeName) {
+        return recipeCommand(recipeName, idsByName());
+    }
+
+    static String recipeCommand(String recipeName, Map<String, String> idsByName) {
+        Matcher renamed = RENAMED.matcher(recipeName);
+        String name = renamed.matches() ? renamed.group(1) : recipeName;
+        String id = renamed.matches() ? renamed.group(2) : idsByName.get(recipeName);
+        if (id != null && !id.isEmpty() && id.indexOf(';') < 0) return "viewrecipe " + id;
+        return "recipe " + name;
+    }
+
+    /** Recipe name to SkyBlock ID; a name two IDs share is left out, as it can't say which one is meant. */
+    private static Map<String, String> idsByName() {
+        Map<String, String> ids = idsByName;
+        if (ids == null) {
+            Map<String, String> byName = new java.util.HashMap<>();
+            Set<String> shared = new java.util.HashSet<>();
+            names().forEach((id, name) -> {
+                if (byName.putIfAbsent(name, id) != null) shared.add(name);
+            });
+            shared.forEach(byName::remove);
+            ids = Map.copyOf(byName);
+            idsByName = ids;
+        }
+        return ids;
     }
 
     /** The item's SkyBlock ID (pets in NEU form), from the cache when this stack was seen before. */

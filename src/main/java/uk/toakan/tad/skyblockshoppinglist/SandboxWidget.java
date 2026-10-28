@@ -7,10 +7,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -20,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SandboxWidget {
-    private static final Identifier SANDBOX_WIDGET_LAYER = Identifier.fromNamespaceAndPath(ShoppingList.MOD_ID, "sandbox_widget");
+    public static final Identifier SANDBOX_WIDGET_LAYER = Identifier.fromNamespaceAndPath(ShoppingList.MOD_ID, "sandbox_widget");
     /** Expansion-key root for the top-level nodes (Total and each recipe). */
     public static final String LIST_KEY = "list";
     public static final int MAX_RECIPES_LIMIT = 10;
@@ -28,6 +30,8 @@ public class SandboxWidget {
     private volatile boolean enabled = false;
     /** Entries are never mutated in place; changes replace the entry so the update thread sees whole values. */
     private final List<ShoppingListEntry> shoppingList = new CopyOnWriteArrayList<>();
+    /** Saved list last loaded or saved (List tab), so Save writes back to it; this session only, "" for none. */
+    private volatile String currentSavedList = "";
     /**
      * Written by the update thread, read by the render thread; always replaced, never mutated. A synthetic
      * root whose children (Total, then one tree per recipe) are what the HUD shows.
@@ -135,6 +139,8 @@ public class SandboxWidget {
     private int currentRowGap = 0;
     private float currentTreeScale = 1.0f;
     private int currentPanelWidth = 250;
+    /** Render thread only: space between the panel's sides and its content (padding, or more for a sprite frame). */
+    private int currentPadding = 6;
     /** Render thread only: the tree level drawn with no indent (1 in the Total panel, whose rows are level 1). */
     private int currentBaseLevel = 0;
 
@@ -323,6 +329,12 @@ public class SandboxWidget {
         shoppingList.clear();
         listChanged();
     }
+    public String getCurrentSavedList() {
+        return currentSavedList;
+    }
+    public void setCurrentSavedList(String name) {
+        currentSavedList = name == null ? "" : name;
+    }
     public List<ShoppingListEntry> getShoppingList() {
         List<ShoppingListEntry> copy = new ArrayList<>();
         for (ShoppingListEntry e : shoppingList) copy.add(e.copy());
@@ -374,6 +386,7 @@ public class SandboxWidget {
         listGeneration++;
         switchProfile.run();
         loadShoppingList();
+        currentSavedList = "";
         lastPromptedSacks = List.of();
         listGeneration++;
         scheduler.execute(() -> {
@@ -513,6 +526,7 @@ public class SandboxWidget {
         enabled = false;
         listGeneration++;
         shoppingList.clear();
+        currentSavedList = "";
         recipeTree = null;
         widgetX = 10;
         widgetY = 40;
@@ -1087,6 +1101,43 @@ public class SandboxWidget {
     public enum Panel { MAIN, CRAFTABLE, FORGING, TOTAL, MOB_DROPS }
 
     /**
+     * Where another mod has put a panel: top-left in GUI pixels, width and max height in HUD units, the scale to draw
+     * at (HUD units -> GUI pixels), and whether it is hidden.
+     */
+    public record Placement(int x, int y, int width, int height, float scale, boolean hidden) {}
+
+    /** Places the panels and opens the editor for them in place of the Move HUD screen (Huddable, when installed). */
+    public interface PanelPlacer {
+        /** This frame's placement, or null to use the panel's own. */
+        Placement place(Panel panel);
+
+        void openEditor(Screen parent);
+
+        /** Space to keep content off the frame the placer draws for {@code panel}, or -1 when it draws none. */
+        default int frameInset(Panel panel) {
+            return -1;
+        }
+
+        /** Draws the placer's frame over the panel (0, 0, width, height in the current pose). */
+        default void drawFrame(GuiGraphicsExtractor context, Panel panel, int width, int height) {
+        }
+    }
+
+    /** Set by {@code compat.HuddableCompat}; null without Huddable. */
+    private static volatile PanelPlacer placer;
+
+    public static void setPlacer(PanelPlacer panelPlacer) {
+        placer = panelPlacer;
+    }
+
+    /** Opens the editor that places the panels: Huddable's when it does, otherwise the Move HUD screen. */
+    public static void openMoveHud(Screen parent) {
+        PanelPlacer current = placer;
+        if (current != null) current.openEditor(parent);
+        else Minecraft.getInstance().gui.setScreen(new HudPositionScreen(parent));
+    }
+
+    /**
      * Position (GUI pixels), size (HUD units, before scaling) and scale (percent, on top of the HUD scale) of one
      * panel.
      */
@@ -1213,7 +1264,7 @@ public class SandboxWidget {
             previewing = true;
             try {
                 // Keep the outward panel border inside the column.
-                int inset = style.panelBorderWidth + 1;
+                int inset = style.outerInset();
                 List<Panel> panels = activePanels();
                 // One scale for every panel: as wide as the column allows, but short enough to leave room for the
                 // description text under it.
@@ -1262,6 +1313,11 @@ public class SandboxWidget {
     /** HUD units -> GUI pixels for one panel: the HUD scale times that panel's own scale. */
     public float scaleFactor(Panel panel) {
         return scaleFactor() * storedRect(panel).scalePercent() / 100f;
+    }
+
+    /** The HUD scale times the panel's own scale, without HUD sizing: for Huddable, whose own sizing applies. */
+    public float panelScale(Panel panel) {
+        return HudStyle.get().hudScale / 100f * storedRect(panel).scalePercent() / 100f;
     }
 
     /**
@@ -1409,14 +1465,34 @@ public class SandboxWidget {
 
     private void render(GuiGraphicsExtractor context) {
         recordMissingRefs();
-        int inset = HudStyle.get().panelBorderWidth + 1;
+        int inset = HudStyle.get().outerInset();
         List<Rect2i> drawn = new ArrayList<>(4);
+        PanelPlacer current = placer;
         for (Panel panel : activePanels()) {
-            PanelRect rect = getPanelRect(panel);
-            int height = renderPanel(context, panel, rect.x, rect.y, rect.width, rect.height, false);
+            Placement placed = current != null ? current.place(panel) : null;
+            if (placed != null && placed.hidden()) continue;
+            int x;
+            int y;
+            int width;
+            int maxHeight;
+            float scale;
+            if (placed != null) {
+                x = placed.x();
+                y = placed.y();
+                width = placed.width();
+                maxHeight = placed.height();
+                scale = placed.scale();
+            } else {
+                PanelRect rect = getPanelRect(panel);
+                x = rect.x;
+                y = rect.y;
+                width = rect.width;
+                maxHeight = rect.height;
+                scale = scaleFactor(panel);
+            }
+            int height = renderPanel(context, panel, x, y, width, maxHeight, scale, false);
             if (height <= 0) continue;
-            float scale = scaleFactor(panel);
-            drawn.add(new Rect2i(rect.x - inset, rect.y - inset, Math.round(rect.width * scale) + 2 * inset,
+            drawn.add(new Rect2i(x - inset, y - inset, Math.round(width * scale) + 2 * inset,
                 Math.round(height * scale) + 2 * inset));
         }
         drawnPanels = drawn;
@@ -1484,7 +1560,14 @@ public class SandboxWidget {
 
         Minecraft client = Minecraft.getInstance();
         boolean ownPanel = panel != Panel.MAIN;
-        int contentWidth = width - 2 * style.padding;
+        // A Huddable frame set for this panel replaces Shopping List's own frame styling.
+        PanelPlacer current = placer;
+        int huddableInset = current == null ? -1 : current.frameInset(panel);
+        boolean huddableFrame = huddableInset >= 0;
+        boolean drawnFrame = !huddableFrame && style.frame == HudStyle.Frame.DRAWN;
+        int frameInset = huddableFrame ? huddableInset : style.frame.inset;
+        currentPadding = Math.max(style.padding, frameInset);
+        int contentWidth = width - 2 * currentPadding;
         List<List<WrappedLine>> wrapped = new ArrayList<>();
         int sectionsHeight = 0;
         for (Section section : sections) {
@@ -1492,8 +1575,10 @@ public class SandboxWidget {
             wrapped.add(lines);
             sectionsHeight += sectionHeight(section, lines.size(), ownPanel);
         }
-        // With rounded corners wider than the padding, content stops above the bottom corners so it can't cover them.
-        int cornerClip = Math.max(0, style.panelRadius - style.padding) > 0 ? style.panelRadius : 0;
+        // With rounded corners wider than the padding, content stops above the bottom corners so it can't cover them;
+        // a sprite frame keeps it above the bottom edge art.
+        int cornerClip = !drawnFrame ? frameInset
+            : Math.max(0, style.panelRadius - style.padding) > 0 ? style.panelRadius : 0;
         // Below the content: 4 px under rows, 2 under section lines only, room for the hint when empty.
         int bottom = empty ? 12 : panel == Panel.MAIN || rowsHeight > 0 ? 4 : 2;
         int naturalHeight = TITLE_BAR + style.titleGap + rowsHeight + sectionsHeight + bottom + cornerClip;
@@ -1506,16 +1591,24 @@ public class SandboxWidget {
 
         // Its own stratum, so the panel isn't tested against everything vanilla and other mods drew before it.
         context.nextStratum();
-        RoundedBox.fill(context, 0, 0, width, panelHeight, style.panelRadius, style.panelBackground);
-        RoundedBox.fill(context, 0, 0, width, TITLE_BAR, style.panelRadius, true, false, style.headerBackground);
+        if (drawnFrame) {
+            RoundedBox.fill(context, 0, 0, width, panelHeight, style.panelRadius, style.panelBackground);
+            RoundedBox.fill(context, 0, 0, width, TITLE_BAR, style.panelRadius, true, false, style.headerBackground);
+        } else if (huddableFrame) {
+            current.drawFrame(context, panel, width, panelHeight);
+        } else {
+            PackFrames.drawFrame(context, style.frame.kind, style.framePack, 0, 0, width, panelHeight);
+        }
         HudStyle.Prepared titleText = style.prepared(title, style.titleText, true);
         int titleWidth = titleText.width();
         float titleScale = Math.min(style.titleScale, (float) (width - 10) / Math.max(1, titleWidth));
         drawScaled(context, titleText, alignedX(style.titleAlign, width, 5, titleWidth * titleScale),
             (TITLE_BAR - 8 * titleScale) / 2f, titleScale, style.textShadow);
-        context.fill(0, TITLE_BAR - 1, width, TITLE_BAR, style.divider);
+        context.fill(frameInset, TITLE_BAR - 1, width - frameInset, TITLE_BAR, style.divider);
 
-        context.enableScissor(0, TITLE_BAR, width, panelHeight - cornerClip);
+        // A sprite frame can't be covered with a fill when cut off, so the content stops above the "…" line instead.
+        boolean cutOff = naturalHeight > panelHeight;
+        context.enableScissor(0, TITLE_BAR, width, panelHeight - cornerClip - (cutOff && !drawnFrame ? 9 : 0));
         int cursorY = TITLE_BAR + style.titleGap;
         currentPanelWidth = width;
         currentNodeLineHeight = style.rowHeight;
@@ -1523,7 +1616,7 @@ public class SandboxWidget {
         currentTreeScale = style.rowHeight / 16.0f;
         if (panel == Panel.MAIN) {
             for (RecipeManager.RecipeNode top : root.ingredients) {
-                if (top != ownTotal) cursorY = renderRecipeTree(context, top, style.padding, cursorY, 0, LIST_KEY);
+                if (top != ownTotal) cursorY = renderRecipeTree(context, top, currentPadding, cursorY, 0, LIST_KEY);
             }
         } else if (panel == Panel.TOTAL && ownTotal != null) {
             // Its rows are drawn like ingredients (level 1), but from the left edge with no line up to a parent.
@@ -1531,7 +1624,7 @@ public class SandboxWidget {
             currentBaseLevel = 1;
             try {
                 for (RecipeManager.RecipeNode child : ownTotal.ingredients) {
-                    cursorY = renderRecipeTree(context, child, style.padding, cursorY, 1, key);
+                    cursorY = renderRecipeTree(context, child, currentPadding, cursorY, 1, key);
                 }
             } finally {
                 currentBaseLevel = 0;
@@ -1546,19 +1639,22 @@ public class SandboxWidget {
         }
         context.disableScissor();
 
-        if (naturalHeight > panelHeight) {
+        if (cutOff) {
             // Cut off: tell the player there is more (raise the max height in Move HUD, or collapse rows).
             context.nextStratum();
             HudStyle.Prepared more = style.prepared("…", style.itemText, true);
-            // At least twice the radius tall, or RoundedBox clamps the curve and the bottom corners change shape.
-            int coverHeight = Math.max(9, style.panelRadius * 2);
-            RoundedBox.fill(context, 0, panelHeight - coverHeight, width, coverHeight, style.panelRadius, false, true,
-                style.panelBackground);
-            drawScaled(context, more, (width - more.width()) / 2f, panelHeight - 9, 1f, style.textShadow);
+            if (drawnFrame) {
+                // At least twice the radius tall, or RoundedBox clamps the curve and the bottom corners change shape.
+                int coverHeight = Math.max(9, style.panelRadius * 2);
+                RoundedBox.fill(context, 0, panelHeight - coverHeight, width, coverHeight, style.panelRadius, false, true,
+                    style.panelBackground);
+            }
+            int moreY = drawnFrame ? panelHeight - 9 : panelHeight - cornerClip - 9;
+            drawScaled(context, more, (width - more.width()) / 2f, moreY, 1f, style.textShadow);
         }
         // The border goes on last, so dividers and the cut-off cover can't paint over its inner ring.
         context.nextStratum();
-        for (int i = 0; i < style.panelBorderWidth; i++) {
+        for (int i = 0; drawnFrame && i < style.panelBorderWidth; i++) {
             // Outer border rings grow outward, so their radius grows with them to stay parallel.
             RoundedBox.outline(context, -i, -i, width + i * 2, panelHeight + i * 2,
                 style.panelRadius > 0 ? style.panelRadius + i : 0, style.panelBorder);
@@ -1637,8 +1733,22 @@ public class SandboxWidget {
      * Wrapped section lines by (lines, width, font, {@link HudStyle#fontGeneration()}); render thread only. The
      * lines rarely change between frames.
      */
+    /**
+     * Lines compared by value: the Move HUD preview makes its sample lines afresh each frame, so identity would
+     * miss there. Line texts cache their hashes, so the lookup stays cheap.
+     */
     private record WrapKey(List<Line> lines, int maxWidth, String font, int fontGeneration) {}
-    private static final Map<WrapKey, List<WrappedLine>> WRAP_CACHE = new HashMap<>();
+
+    /**
+     * Render thread only. A handful of sections are on screen at once; past that the least recently used go
+     * first, rather than every entry (which made the HUD and the Move HUD preview re-wrap each other's lines).
+     */
+    private static final Map<WrapKey, List<WrappedLine>> WRAP_CACHE = new LinkedHashMap<>(32, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<WrapKey, List<WrappedLine>> eldest) {
+            return size() > 32;
+        }
+    };
 
     /** Splits each line into pieces that fit the content width at the section's scale. */
     private static List<WrappedLine> wrap(Minecraft client, HudStyle style, Section section, int contentWidth) {
@@ -1647,8 +1757,6 @@ public class SandboxWidget {
         WrapKey key = new WrapKey(List.copyOf(section.lines()), maxWidth, style.font, HudStyle.fontGeneration());
         List<WrappedLine> cached = WRAP_CACHE.get(key);
         if (cached != null) return cached;
-        // A handful of sections are on screen at once; drop old entries rather than growing forever.
-        if (WRAP_CACHE.size() > 16) WRAP_CACHE.clear();
         List<WrappedLine> out = new ArrayList<>();
         for (Line message : section.lines()) {
             StringBuilder line = new StringBuilder();
@@ -1678,7 +1786,7 @@ public class SandboxWidget {
             context.fill(0, y, width, y + 1, style.divider);
             y += 5;
             HudStyle.Prepared header = style.prepared(section.header() + " -", section.headerColor(), true);
-            drawScaled(context, header, alignedX(section.align(), width, style.padding, header.width() * scale),
+            drawScaled(context, header, alignedX(section.align(), width, currentPadding, header.width() * scale),
                 y, scale, style.textShadow);
             y += Math.round(13 * scale);
         }
@@ -1691,7 +1799,7 @@ public class SandboxWidget {
                 case DONE -> style.done;
             };
             HudStyle.Prepared text = style.prepared(line.text(), color, false);
-            drawScaled(context, text, alignedX(section.align(), width, style.padding, text.width() * scale),
+            drawScaled(context, text, alignedX(section.align(), width, currentPadding, text.width() * scale),
                 y, scale, style.textShadow);
             y += lineHeight;
         }
@@ -1752,7 +1860,7 @@ public class SandboxWidget {
         boolean hasChildren = hasVisibleChildren(node, level);
         boolean showRemaining = isShowRemaining();
         int nodeHeight = currentNodeLineHeight;
-        int nodeWidth = Math.max(100, currentPanelWidth - 2 * style.padding) - indent;
+        int nodeWidth = Math.max(100, currentPanelWidth - 2 * currentPadding) - indent;
         boolean uncertain = isUncertain(node);
         int statusColor = uncertain ? UNCERTAIN_COLOR : progressColor(node, showRemaining);
 
@@ -1799,7 +1907,11 @@ public class SandboxWidget {
         int markWidth = mark.width();
         int amountWidth = amount.width();
         int tagWidth = tag.width();
-        int maxTextWidth = Math.max(10, nodeWidth - iconOffset);
+        // The item's icon goes between the amount and the name, at the row's height (16 at most) whatever the text
+        // scale; a row on a shown level without an icon keeps the gap, so the names line up.
+        int iconSize = showsIcon(node, level) ? Math.min(nodeHeight, 16) : 0;
+        int iconSpace = iconSize > 0 ? iconSize + 2 : 0;
+        int maxTextWidth = Math.max(10, nodeWidth - iconOffset - iconSpace);
         float textScale;
         if (forge.isEmpty()) {
             int totalTextWidth = markWidth + amountWidth + name.width() + tagWidth + lockWidth + eventWidth;
@@ -1812,17 +1924,29 @@ public class SandboxWidget {
             name = style.fitted(node.name, nameColor, bold, room);
         }
         int nameWidth = name.width();
+        int nameX = markWidth + amountWidth + Math.round(iconSpace / textScale);
 
         context.pose().pushMatrix();
         context.pose().translate(x + indent + iconOffset, textY(y, nodeHeight, textScale));
         context.pose().scale(textScale, textScale);
         context.text(client.font, mark.seq(), 0, 0, 0xFFFFFFFF, style.textShadow);
         context.text(client.font, amount.seq(), markWidth, 0, 0xFFFFFFFF, style.textShadow);
-        context.text(client.font, name.seq(), markWidth + amountWidth, 0, 0xFFFFFFFF, style.textShadow);
-        context.text(client.font, tag.seq(), markWidth + amountWidth + nameWidth, 0, 0xFFFFFFFF, style.textShadow);
-        if (lockWidth > 0) drawLock(context, markWidth + amountWidth + nameWidth + tagWidth, 0, nameColor);
-        if (eventWidth > 0) drawEvent(context, markWidth + amountWidth + nameWidth + tagWidth + lockWidth, 0);
+        context.text(client.font, name.seq(), nameX, 0, 0xFFFFFFFF, style.textShadow);
+        context.text(client.font, tag.seq(), nameX + nameWidth, 0, 0xFFFFFFFF, style.textShadow);
+        if (lockWidth > 0) drawLock(context, nameX + nameWidth + tagWidth, 0, nameColor);
+        if (eventWidth > 0) drawEvent(context, nameX + nameWidth + tagWidth + lockWidth, 0);
         context.pose().popMatrix();
+        if (iconSize > 0) {
+            ItemStack icon = ItemIcons.icon(node.name);
+            if (!icon.isEmpty()) {
+                context.pose().pushMatrix();
+                context.pose().translate(x + indent + iconOffset + (markWidth + amountWidth) * textScale,
+                    y + (nodeHeight - iconSize) / 2f);
+                context.pose().scale(iconSize / 16f, iconSize / 16f);
+                context.fakeItem(icon, 0, 0);
+                context.pose().popMatrix();
+            }
+        }
         y += nodeHeight + currentRowGap;
 
         if (hasChildren && isExpanded) {
@@ -1847,10 +1971,23 @@ public class SandboxWidget {
      */
     private static boolean showsBar(RecipeManager.RecipeNode node, int level, String pathKey) {
         HudStyle style = HudStyle.get();
+        return onLevel(isInTotal(node, level, pathKey) ? style.totalProgressBars : style.progressBars, level);
+    }
+
+    /** Settings > Rows > Item icons: whether this row gets its item's icon. Levels count as for the bars; never the Total row. */
+    private static boolean showsIcon(RecipeManager.RecipeNode node, int level) {
+        if (level == 0 && "Total".equals(node.name)) return false;
+        return onLevel(HudStyle.get().itemIcons, level);
+    }
+
+    /** The Total row, or a row under it. */
+    private static boolean isInTotal(RecipeManager.RecipeNode node, int level, String pathKey) {
         String totalKey = makePathKey(LIST_KEY, "Total");
-        boolean inTotal = level == 0 ? "Total".equals(node.name)
-            : pathKey.equals(totalKey) || pathKey.startsWith(totalKey + ">");
-        return switch (inTotal ? style.totalProgressBars : style.progressBars) {
+        return level == 0 ? "Total".equals(node.name) : pathKey.equals(totalKey) || pathKey.startsWith(totalKey + ">");
+    }
+
+    private static boolean onLevel(HudStyle.ProgressBars mode, int level) {
+        return switch (mode) {
             case OFF -> false;
             case TOP_LEVEL -> level == 0;
             case FIRST_LEVEL -> level <= 1;

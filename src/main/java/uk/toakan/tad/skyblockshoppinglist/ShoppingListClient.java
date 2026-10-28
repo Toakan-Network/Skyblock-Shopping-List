@@ -36,18 +36,30 @@ public class ShoppingListClient implements ClientModInitializer {
 
     /** Last inventory contents written to inventorydata.json; null until loaded. */
     private static Map<String, Integer> lastInventory;
+    /**
+     * Each slot's stack and count at the last check, and the item name table then. When none changed there is
+     * nothing to count: the scan runs every 2 ticks and nearly always finds the inventory as it was.
+     */
+    private static ItemStack[] lastStacks = new ItemStack[0];
+    private static int[] lastCounts = new int[0];
+    private static long lastNamesVersion = -1;
     private int tickCounter = 0;
+
+    private static final java.util.Map<String, Integer> INPUT_CODES = new java.util.concurrent.ConcurrentHashMap<>();
 
     /**
      * Reads an InputConstants code at runtime. The codes differ between Minecraft versions (26.3 moved
      * from GLFW to SDL), and javac would inline a direct reference, so one jar works on both this way.
      */
     public static int inputCode(String name) {
-        try {
-            return InputConstants.class.getField(name).getInt(null);
-        } catch (ReflectiveOperationException e) {
-            throw new IllegalStateException("Missing InputConstants." + name, e);
-        }
+        // Looked up once per name: callers ask on every click.
+        return INPUT_CODES.computeIfAbsent(name, n -> {
+            try {
+                return InputConstants.class.getField(n).getInt(null);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Missing InputConstants." + n, e);
+            }
+        });
     }
 
     @Override
@@ -72,7 +84,7 @@ public class ShoppingListClient implements ClientModInitializer {
             }
             if ((moveHudKey.consumeClick() && onSkyblock) || shouldOpenMoveHud) {
                 shouldOpenMoveHud = false;
-                client.gui.setScreen(new HudPositionScreen(null));
+                SandboxWidget.openMoveHud(null);
             }
             if (toggleWidgetKey.consumeClick() && onSkyblock) {
                 SandboxWidget widget = SandboxWidget.getInstance();
@@ -100,6 +112,9 @@ public class ShoppingListClient implements ClientModInitializer {
         resources.registerReloadListener(fontsReloaded,
             (ResourceManagerReloadListener) manager -> HudStyle.fontsChanged());
         resources.addListenerOrdering(ResourceReloaderKeys.Client.FONTS, fontsReloaded);
+        // Frame art read from a chosen pack is reloaded on next draw.
+        resources.registerReloadListener(Identifier.fromNamespaceAndPath(ShoppingList.MOD_ID, "pack_frames"),
+            (ResourceManagerReloadListener) manager -> PackFrames.reloaded());
         CoinTracker.register();
         PowderTracker.register();
         KillTracker.register();
@@ -123,6 +138,7 @@ public class ShoppingListClient implements ClientModInitializer {
     /** Forgets the remembered inventory (after a reset deleted the file). */
     public static void clearInventorySnapshot() {
         lastInventory = null;
+        lastStacks = new ItemStack[0];
     }
 
     /** The inventory as last counted (what its changes so far have been passed on against). */
@@ -139,8 +155,35 @@ public class ShoppingListClient implements ClientModInitializer {
         return lastInventory;
     }
 
+    /**
+     * True when every slot holds the same stack object with the same count as at the last check (Hypixel sends a new
+     * stack when an item's data changes) and the item names are the same; otherwise remembers the slots for next time.
+     */
+    private static boolean unchanged(Inventory inventory) {
+        int size = inventory.getContainerSize();
+        long names = ItemIds.getVersion();
+        boolean same = lastStacks.length == size && names == lastNamesVersion;
+        for (int i = 0; same && i < size; i++) {
+            ItemStack stack = inventory.getItem(i);
+            same = stack == lastStacks[i] && stack.getCount() == lastCounts[i];
+        }
+        if (same) return true;
+        if (lastStacks.length != size) {
+            lastStacks = new ItemStack[size];
+            lastCounts = new int[size];
+        }
+        for (int i = 0; i < size; i++) {
+            ItemStack stack = inventory.getItem(i);
+            lastStacks[i] = stack;
+            lastCounts[i] = stack.getCount();
+        }
+        lastNamesVersion = names;
+        return false;
+    }
+
     private static void checkInventory(Minecraft client) {
         Inventory inventory = client.player.getInventory();
+        if (unchanged(inventory)) return;
         Map<String, Integer> current = new HashMap<>();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);

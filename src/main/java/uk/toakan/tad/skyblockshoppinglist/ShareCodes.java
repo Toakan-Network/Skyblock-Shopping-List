@@ -34,7 +34,8 @@ public final class ShareCodes {
         code = code.trim();
         if (!code.startsWith(prefix) || code.length() - prefix.length() > maxChars) return null;
         try {
-            byte[] packed = Base64.getDecoder().decode(code.substring(prefix.length()));
+            // MIME decoding skips line breaks and spaces, which Discord and chat put into long pasted codes.
+            byte[] packed = Base64.getMimeDecoder().decode(code.substring(prefix.length()));
             try (GZIPInputStream gzip = new GZIPInputStream(new ByteArrayInputStream(packed))) {
                 // One byte over the limit tells an oversized code from one that just fits.
                 byte[] raw = gzip.readNBytes(maxJsonBytes + 1);

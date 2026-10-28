@@ -23,6 +23,25 @@ public final class HudStyle {
     public enum Align { LEFT, CENTRE, RIGHT }
     /** Where the Craftable / Forging sections go. */
     public enum Placement { MAIN_PANEL, OWN_PANEL }
+    /**
+     * What a panel's frame is drawn from: our own fills (colours, border, radius), or a vanilla nine-slice GUI sprite,
+     * so a resource pack's tooltip / popup / button art shows ({@link PackFrames}). {@code inset} keeps content off
+     * the sprite's edge art.
+     */
+    public enum Frame {
+        DRAWN(null),
+        TOOLTIP(PackFrames.Kind.TOOLTIP),
+        POPUP(PackFrames.Kind.POPUP),
+        BUTTON(PackFrames.Kind.BUTTON);
+
+        public final PackFrames.Kind kind;
+        public final int inset;
+
+        Frame(PackFrames.Kind kind) {
+            this.kind = kind;
+            this.inset = kind == null ? 0 : kind.inset;
+        }
+    }
 
     public static final String DEFAULT_FONT = "minecraft:default";
 
@@ -88,6 +107,9 @@ public final class HudStyle {
     /** Corner rounding in pixels (0 = square). */
     public int panelRadius = 0;
     public int rowRadius = 0;
+    public Frame frame = Frame.DRAWN;
+    /** The resource pack whose frame art is used ("" = the top pack, as the rest of the game shows it). */
+    public String framePack = "";
 
     // Text.
     public String font = DEFAULT_FONT;
@@ -129,6 +151,8 @@ public final class HudStyle {
     /** Progress bars on the recipe trees, and separately on the Total. */
     public ProgressBars progressBars = ProgressBars.OFF;
     public ProgressBars totalProgressBars = ProgressBars.OFF;
+    /** Item icons in front of the names, on the same levels as the progress bars. */
+    public ProgressBars itemIcons = ProgressBars.OFF;
     /** Kills-left estimates for list items that drop from mobs. */
     public boolean showMobDrops = false;
     public KillCases killCases = KillCases.ALL;
@@ -266,6 +290,7 @@ public final class HudStyle {
         hideFinished = from.hideFinished;
         progressBars = from.progressBars;
         totalProgressBars = from.totalProgressBars;
+        itemIcons = from.itemIcons;
         showMobDrops = from.showMobDrops;
         killCases = from.killCases;
         magicFind = from.magicFind;
@@ -305,9 +330,12 @@ public final class HudStyle {
         if (eventDrops == null) eventDrops = EventDrops.EVENT_RUNNING;
         if (font == null || Identifier.tryParse(font) == null) font = DEFAULT_FONT;
         if (amountFormat == null) amountFormat = AmountFormat.REMAINING;
+        if (frame == null) frame = Frame.DRAWN;
+        if (framePack == null) framePack = "";
         if (forgeTimes == null) forgeTimes = ForgeTimes.ALL;
         if (progressBars == null) progressBars = ProgressBars.OFF;
         if (totalProgressBars == null) totalProgressBars = ProgressBars.OFF;
+        if (itemIcons == null) itemIcons = ProgressBars.OFF;
         // Files from before HUD sizing: Follow GUI Scale ON keeps following it, OFF gets the new default.
         if (followGuiScale != null) {
             if (Boolean.TRUE.equals(followGuiScale)) sizing = Sizing.GUI_SCALE;
@@ -328,6 +356,11 @@ public final class HudStyle {
 
     private static float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    /** How far outside the panel its frame reaches (the drawn border rings grow outward; sprites stay inside). */
+    public int outerInset() {
+        return (frame == Frame.DRAWN ? panelBorderWidth : 0) + 1;
     }
 
     /** Text in the chosen font and colour. Unknown font ids fall back to Minecraft's default font. */

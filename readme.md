@@ -38,7 +38,7 @@ Nothing in the mod is limited to Ironman profiles. On a regular profile it works
 - [Fully customisable look](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
 - [Presets and share codes](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Appearance)
 - [Menu tabs](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Menu)
-- [Works with SkyBlock Item List and Mod Menu (optional)](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Other-Mods)
+- [Works with SkyBlock Item List, Huddable and Mod Menu (optional)](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Other-Mods)
 
 How each one works is in the [wiki](https://github.com/Toakan/Skyblock-Shopping-List/wiki).
 
@@ -56,7 +56,7 @@ Skyblock Shopping List grew out of [Inventory Reader](https://github.com/Scholib
 - YetAnotherConfigLib 3.9.7 or newer, built for your Minecraft version (already installed if you use Skyblocker)
 - [Hypixel Mod API](https://modrinth.com/mod/hypixel-mod-api) 1.0.2 or newer (official; used to know when you are on SkyBlock)
 - Java 25
-- Optional: [SkyBlock Item List](https://modrinth.com/mod/skyblock-item-list) and [Mod Menu](https://modrinth.com/mod/modmenu) (see [Other Mods](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Other-Mods))
+- Optional: [SkyBlock Item List](https://modrinth.com/mod/skyblock-item-list), [Huddable](https://github.com/Toakan-Network/Huddable) (0.4.4+) and [Mod Menu](https://modrinth.com/mod/modmenu) (see [Other Mods](https://github.com/Toakan/Skyblock-Shopping-List/wiki/Other-Mods))
 
 ## Installation
 1. Install Fabric Loader for Minecraft 26.2 or 26.3.
@@ -89,7 +89,7 @@ The mod only runs on Hypixel SkyBlock. It uses the official Hypixel Mod API's lo
 
 ## Hypixel rules
 Skyblock Shopping List is designed to stay within the [Hypixel Allowed Modifications](https://support.hypixel.net/hc/en-us/articles/6472550754962-Hypixel-Allowed-Modifications) guidelines:
-- It is read-only. It looks at screens you open and chat messages you receive (only Hypixel's own `[Sacks]` summaries and `Profile ID` line, matched exactly so player chat can't trigger them), and never sends packets or chat messages to the server. The one command it sends is `/recipe <item>`, once, when you click the **R** button on a shopping list entry, and only on SkyBlock. It never hides or changes a message.
+- It is read-only. It looks at screens you open and chat messages you receive (only Hypixel's own `[Sacks]` summaries and `Profile ID` line, matched exactly so player chat can't trigger them), and never sends packets or chat messages to the server. The one command it sends is `/viewrecipe <item ID>` (or `/recipe <item>` when the ID isn't known, and for pets), once, when you click the **R** button on a shopping list entry, and only on SkyBlock. It never hides or changes a message.
 - It does not automate anything: no clicking, crafting, moving items or opening menus for you.
 - The HUD only shows your own items and recipe arithmetic.
 
@@ -121,6 +121,7 @@ Each SkyBlock profile keeps its own data in `profiles/<account>/<profile>/`, so 
 - `npc_buy_prices.json`, `npc_sell_prices.json`: coins per item to buy from NPC shops (NEU repository) and that NPCs pay (Hypixel's item list)
 - `forge_times.json`: base forge time of each forge item, from the NEU repository
 - `item_lore.json`: item descriptions shown when you hover a recipe in the menu, from the NEU repository
+- `item_icons.json`: the look of each recipe item (item, head texture, dye colour, glint) for the HUD's item icons, from the NEU repository
 - `remote_sources.json`, `remote_sources_meta.json`: recipe source list and download cache state
 - `neu-repo-extracted/`: the unpacked NEU repository, only while it is being parsed (deleted afterwards)
 

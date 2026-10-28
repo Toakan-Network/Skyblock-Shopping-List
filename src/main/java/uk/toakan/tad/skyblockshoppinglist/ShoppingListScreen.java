@@ -40,6 +40,9 @@ public class ShoppingListScreen extends Screen {
     private static final int PANEL_TOP = 58;
     private static final int PANEL_ROW = 22;
     private static final int PANEL_MAX_ROWS = 5;
+    private static final int MOUSE_BUTTON_RIGHT = ShoppingListClient.inputCode("MOUSE_BUTTON_RIGHT");
+    /** First shopping list row shown; the wheel over the rows scrolls them. */
+    private int listScroll = 0;
     private int treeViewX = 300;
     private int treeViewY = 80;
     private int treeViewWidth = 400;
@@ -63,6 +66,7 @@ public class ShoppingListScreen extends Screen {
         super(Component.literal(ShoppingList.NAME));
         this.widget = SandboxWidget.getInstance();
         this.recipeManager = RecipeManager.getInstance();
+        this.saveName = widget.getCurrentSavedList();
     }
 
     @Override
@@ -101,9 +105,10 @@ public class ShoppingListScreen extends Screen {
         listNameWidth = treeViewWidth - controlsLeft - 8;
         boolean onSkyblock = SkyblockDetector.isOnSkyblock();
         int rows = Math.min(list.size(), PANEL_MAX_ROWS);
-        for (int i = 0; i < rows; i++) {
+        listScroll = Math.max(0, Math.min(listScroll, list.size() - rows));
+        for (int i = listScroll; i < listScroll + rows; i++) {
             ShoppingListEntry entry = list.get(i);
-            int y = PANEL_TOP + i * PANEL_ROW;
+            int y = PANEL_TOP + (i - listScroll) * PANEL_ROW;
             EditBox amount = new EditBox(font, treeViewX + treeViewWidth - 70, y, 40, 18,
                 Component.translatable("skyblock-shopping-list.screen.amount"));
             amount.setMaxLength(6);
@@ -112,13 +117,14 @@ public class ShoppingListScreen extends Screen {
             savedAmounts.put(entry.recipe, amount.getValue());
             addRenderableWidget(amount);
             // One command per click the player makes, only on SkyBlock: opens Hypixel's own recipe menu.
+            String command = ItemIds.recipeCommand(entry.recipe);
             Button recipe = Button.builder(Component.literal("R"), button -> {
                 Minecraft client = Minecraft.getInstance();
                 if (client.player == null || !SkyblockDetector.isOnSkyblock()) return;
-                client.player.connection.sendCommand("recipe " + entry.recipe);
+                client.player.connection.sendCommand(command);
             }).bounds(treeViewX + treeViewWidth - controlsLeft, y, 16, 18)
               .tooltip(Tooltip.create(onSkyblock
-                  ? Component.translatable("skyblock-shopping-list.screen.list.recipe", entry.recipe)
+                  ? Component.translatable("skyblock-shopping-list.screen.list.recipe", command)
                   : Component.translatable("skyblock-shopping-list.screen.list.recipe.off")))
               .build();
             recipe.active = onSkyblock;
@@ -132,8 +138,11 @@ public class ShoppingListScreen extends Screen {
                   ? "skyblock-shopping-list.screen.list.have_total" : "skyblock-shopping-list.screen.list.add_more")))
               .build());
             if (moveWidth > 0) {
+                int index = i;
                 Button up = Button.builder(Component.literal("▲"), button -> {
                     widget.moveEntry(entry.recipe, -1);
+                    // Keep the moved row in view.
+                    if (index - 1 < listScroll) listScroll--;
                     rebuildWidgets();
                 }).bounds(treeViewX + treeViewWidth - moveLeft, y, moveWidth, 18)
                   .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.screen.list.move_up")))
@@ -142,6 +151,7 @@ public class ShoppingListScreen extends Screen {
                 addRenderableWidget(up);
                 Button down = Button.builder(Component.literal("▼"), button -> {
                     widget.moveEntry(entry.recipe, 1);
+                    if (index + 1 >= listScroll + PANEL_MAX_ROWS) listScroll++;
                     rebuildWidgets();
                 }).bounds(treeViewX + treeViewWidth + modeX - 2 - moveWidth, y, moveWidth, 18)
                   .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.screen.list.move_down")))
@@ -188,6 +198,7 @@ public class ShoppingListScreen extends Screen {
             List<ShoppingListEntry> current = widget.getShoppingList();
             if (name.isEmpty() || current.isEmpty()) return;
             SavedLists.save(name, current);
+            widget.setCurrentSavedList(name);
             pendingDelete = null;
             rebuildWidgets();
         }).bounds(savedX + savedWidth - 84, 55, 40, 20)
@@ -225,7 +236,9 @@ public class ShoppingListScreen extends Screen {
         for (int i = savedScroll; i < end; i++) {
             String name = names.get(i);
             int y = SAVED_TOP + (i - savedScroll) * PANEL_ROW;
-            addRenderableWidget(Button.builder(fitPlain(name, savedWidth - 70, 0xFFFFFFFF), button -> loadSaved(name))
+            // The list last loaded or saved, which Save writes back to.
+            int color = name.equals(widget.getCurrentSavedList()) ? GOLD : 0xFFFFFFFF;
+            addRenderableWidget(Button.builder(fitPlain(name, savedWidth - 70, color), button -> loadSaved(name))
                 .bounds(savedX, y, savedWidth - 60, 18)
                 .tooltip(Tooltip.create(Component.translatable("skyblock-shopping-list.screen.saved.load.tooltip", name)))
                 .build());
@@ -242,6 +255,7 @@ public class ShoppingListScreen extends Screen {
             addRenderableWidget(Button.builder(Component.literal(armed ? "?" : "×"), button -> {
                 if (name.equals(pendingDelete)) {
                     SavedLists.delete(name);
+                    if (name.equals(widget.getCurrentSavedList())) widget.setCurrentSavedList("");
                     pendingDelete = null;
                 } else {
                     pendingDelete = name;
@@ -260,6 +274,7 @@ public class ShoppingListScreen extends Screen {
         SandboxWidget.LoadResult result = widget.replaceList(entries);
         pendingDelete = null;
         saveName = name;
+        widget.setCurrentSavedList(name);
         Minecraft client = Minecraft.getInstance();
         if (result != null && client.player != null) {
             if (result.dropped() > 0) {
@@ -418,14 +433,15 @@ public class ShoppingListScreen extends Screen {
                 MenuTabs.TEXT_DIM, false);
             return;
         }
+        int scroll = Math.max(0, Math.min(listScroll, list.size() - rows));
         for (int i = 0; i < rows; i++) {
             int y = PANEL_TOP + i * PANEL_ROW;
             context.fill(treeViewX, y - 2, treeViewX + treeViewWidth, y + 20, i % 2 == 0 ? MenuTabs.ROW_BG : MenuTabs.ROW_BG_ALT);
-            context.text(font, fitPlain(list.get(i), listNameWidth, MenuTabs.TEXT), treeViewX + 4, y + 5, 0xFFFFFFFF, false);
+            context.text(font, fitPlain(list.get(scroll + i), listNameWidth, MenuTabs.TEXT), treeViewX + 4, y + 5, 0xFFFFFFFF, false);
         }
         if (list.size() > rows) {
-            context.text(font, Component.translatable("skyblock-shopping-list.screen.list.more", list.size() - rows), treeViewX + 4,
-                PANEL_TOP + rows * PANEL_ROW, MenuTabs.TEXT_DIM, false);
+            context.text(font, Component.translatable("skyblock-shopping-list.screen.list.scroll", scroll,
+                list.size() - rows - scroll), treeViewX + 4, PANEL_TOP + rows * PANEL_ROW, MenuTabs.TEXT_DIM, false);
         }
     }
 
@@ -554,6 +570,18 @@ public class ShoppingListScreen extends Screen {
             }
             return true;
         }
+        int listRows = Math.min(builtRows.size(), PANEL_MAX_ROWS);
+        if (builtRows.size() > listRows && verticalAmount != 0 && mouseX >= treeViewX && mouseX <= treeViewX + treeViewWidth
+            && mouseY >= PANEL_TOP - 2 && mouseY <= PANEL_TOP + listRows * PANEL_ROW + 10) {
+            // Wheel down (negative) moves the list down, like vanilla lists.
+            int next = Math.max(0, Math.min(builtRows.size() - listRows, listScroll + (verticalAmount < 0 ? 1 : -1)));
+            if (next != listScroll) {
+                saveAmounts(true);
+                listScroll = next;
+                rebuildWidgets();
+            }
+            return true;
+        }
         if (mouseX >= treeViewX && mouseX <= treeViewX + treeViewWidth &&
             mouseY >= treeViewY && mouseY <= treeViewY + treeViewHeight) {
             if (verticalAmount != 0 && !tops().isEmpty()) {
@@ -591,6 +619,7 @@ public class ShoppingListScreen extends Screen {
         }
         if (!tops().isEmpty() && mouseX >= treeViewX && mouseX <= treeViewX + treeViewWidth &&
             mouseY >= treeViewY && mouseY <= treeViewY + treeViewHeight) {
+            if (ctx.button() == MOUSE_BUTTON_RIGHT) return removeTreeAt(mouseX, mouseY);
             return handleTreeNodeClick(mouseX, mouseY);
         }
         return super.mouseClicked(ctx, doubleClick);
@@ -601,6 +630,23 @@ public class ShoppingListScreen extends Screen {
         int y = treeViewY + 10 - treeScrollOffset;
         for (RecipeManager.RecipeNode top : tops()) {
             if (checkNodeClick(top, mouseX, mouseY, x, y, 0, SandboxWidget.LIST_KEY)) return true;
+            y += getExpandedNodeHeight(top, SandboxWidget.LIST_KEY);
+        }
+        return false;
+    }
+
+    /** Right-click on a recipe's top row in the preview takes that recipe off the list. */
+    private boolean removeTreeAt(double mouseX, double mouseY) {
+        int y = treeViewY + 10 - treeScrollOffset;
+        for (RecipeManager.RecipeNode top : tops()) {
+            if (mouseY >= y && mouseY <= y + 16 && mouseX >= treeViewX + 10 && mouseX <= treeViewX + treeViewWidth - 10) {
+                // Total is not a recipe on the list.
+                if (top == null || !builtRowSet.contains(top.name)) return false;
+                saveAmounts(true);
+                widget.removeFromList(top.name);
+                rebuildWidgets();
+                return true;
+            }
             y += getExpandedNodeHeight(top, SandboxWidget.LIST_KEY);
         }
         return false;
