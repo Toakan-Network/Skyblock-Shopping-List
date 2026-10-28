@@ -29,7 +29,8 @@ import java.util.Set;
 /**
  * Vanilla frame art (tooltip, popup, button) from a chosen resource pack. Vanilla's GUI atlas only holds the top
  * pack's copy of a sprite, so a lower pack's copy is read from that pack and drawn here with the same stretch / tile
- * / nine-slice rules. Only chosen art is loaded, on first draw; a resource reload drops it. Shared copy: Shopping
+ * / nine-slice rules. Plain textures (container screens) can be swapped for a pack's copy too ({@link #packTexture}).
+ * Only chosen art is loaded, on first draw; a resource reload drops it. Shared copy: Shopping
  * List is the reference, Huddable has a copy (package, mod id and logger aside).
  */
 public final class PackFrames {
@@ -41,10 +42,10 @@ public final class PackFrames {
     private record Art(Identifier texture, int textureWidth, int textureHeight, int frameWidth, int frameHeight,
                        GuiSpriteScaling scaling) {}
 
-    private record Key(Identifier sprite, String pack) {}
+    private record Key(Identifier file, String pack) {}
 
     /**
-     * Per sprite and pack, the art, or empty when that pack doesn't have it (or it failed to load). Keyed by pack too,
+     * Per file and pack, the art, or empty when that pack doesn't have it (or it failed to load). Keyed by pack too,
      * so the Appearance preview and the HUD can use different packs without reloading each frame.
      */
     private static final Map<Key, Optional<Art>> LOADED = new HashMap<>();
@@ -89,15 +90,20 @@ public final class PackFrames {
 
     /** Enabled packs that have art for any of {@code kinds}, top of the pack list first. */
     public static List<String> packsWith(Kind... kinds) {
+        List<Identifier> files = new ArrayList<>();
+        for (Kind kind : kinds) {
+            for (Identifier sprite : kind.sprites()) files.add(SPRITES.idToFile(sprite));
+        }
+        return packsWithFiles(files);
+    }
+
+    /** Enabled packs that have any of {@code files} (full paths, such as a container's PNG), top first. */
+    public static List<String> packsWithFiles(List<Identifier> files) {
         Minecraft client = Minecraft.getInstance();
         ResourceManager manager = client.getResourceManager();
         Set<String> found = new LinkedHashSet<>();
-        for (Kind kind : kinds) {
-            for (Identifier sprite : kind.sprites()) {
-                for (Resource resource : manager.getResourceStack(SPRITES.idToFile(sprite))) {
-                    found.add(resource.sourcePackId());
-                }
-            }
+        for (Identifier file : files) {
+            for (Resource resource : manager.getResourceStack(file)) found.add(resource.sourcePackId());
         }
         List<String> packs = new ArrayList<>();
         for (Pack pack : client.getResourcePackRepository().getSelectedPacks()) {
@@ -135,12 +141,7 @@ public final class PackFrames {
 
     /** Draws {@code sprite} from {@code packId} over the box; false when that pack has no such sprite. */
     private static boolean draw(GuiGraphicsExtractor context, Identifier sprite, String packId, int x, int y, int w, int h) {
-        Key key = new Key(sprite, packId);
-        Optional<Art> art = LOADED.get(key);
-        if (art == null) {
-            art = load(sprite, packId, LOADED.size());
-            LOADED.put(key, art);
-        }
+        Optional<Art> art = art(SPRITES.idToFile(sprite), packId);
         if (art.isEmpty()) return false;
         Art a = art.get();
         switch (a.scaling()) {
@@ -160,8 +161,27 @@ public final class PackFrames {
         LOADED.clear();
     }
 
-    private static Optional<Art> load(Identifier sprite, String packId, int number) {
-        for (Resource resource : Minecraft.getInstance().getResourceManager().getResourceStack(SPRITES.idToFile(sprite))) {
+    /**
+     * The texture to draw in place of {@code file} (a full path, such as {@code textures/gui/container/inventory.png}):
+     * {@code packId}'s copy, loaded on first use, or {@code file} itself when that pack doesn't have it.
+     */
+    public static Identifier packTexture(Identifier file, String packId) {
+        return art(file, packId).map(Art::texture).orElse(file);
+    }
+
+    /** {@code packId}'s copy of {@code file}, loaded once; empty when that pack doesn't have it. */
+    private static Optional<Art> art(Identifier file, String packId) {
+        Key key = new Key(file, packId);
+        Optional<Art> art = LOADED.get(key);
+        if (art == null) {
+            art = load(file, packId, LOADED.size());
+            LOADED.put(key, art);
+        }
+        return art;
+    }
+
+    private static Optional<Art> load(Identifier file, String packId, int number) {
+        for (Resource resource : Minecraft.getInstance().getResourceManager().getResourceStack(file)) {
             if (!resource.sourcePackId().equals(packId)) continue;
             try (InputStream in = resource.open()) {
                 NativeImage image = NativeImage.read(in);
@@ -178,7 +198,7 @@ public final class PackFrames {
                 Minecraft.getInstance().getTextureManager().register(id, new DynamicTexture(id::toString, image));
                 return Optional.of(new Art(id, width, height, frame.width(), frame.height(), scaling));
             } catch (IOException | RuntimeException e) {
-                ShoppingList.LOGGER.warn("Couldn't load {} from {}: {}", sprite, packId, e.toString());
+                ShoppingList.LOGGER.warn("Couldn't load {} from {}: {}", file, packId, e.toString());
                 return Optional.empty();
             }
         }
