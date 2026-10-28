@@ -67,7 +67,7 @@ jobs:
         run: echo "v=$(grep '^mod_version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')" >> "$GITHUB_OUTPUT"
       
       - name: publish to modrinth, curseforge and github
-        uses: Kir-Antipov/mc-publish@v3.3
+        uses: Kir-Antipov/mc-publish@c23376546a97f5ba7984e94445da359459b14419 # v3.3
         with:
           modrinth-id: ${{ secrets.MODRINTH_ID }}
           modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
