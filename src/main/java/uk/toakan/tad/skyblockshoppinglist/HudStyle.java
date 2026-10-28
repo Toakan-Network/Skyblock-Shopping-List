@@ -25,19 +25,22 @@ public final class HudStyle {
     public enum Placement { MAIN_PANEL, OWN_PANEL }
     /**
      * What a panel's frame is drawn from: our own fills (colours, border, radius), or a vanilla nine-slice GUI sprite,
-     * so a resource pack's tooltip / popup / button art shows. {@code inset} keeps content off the sprite's edge art.
+     * so a resource pack's tooltip / popup / button art shows. {@code overlay} is drawn over {@code sprite} (the
+     * tooltip's frame); {@code inset} keeps content off the sprite's edge art.
      */
     public enum Frame {
-        DRAWN(null, 0),
-        TOOLTIP(Identifier.withDefaultNamespace("tooltip/background"), 4),
-        POPUP(Identifier.withDefaultNamespace("popup/background"), 6),
-        BUTTON(Identifier.withDefaultNamespace("widget/button"), 3);
+        DRAWN(null, null, 0),
+        TOOLTIP(Identifier.withDefaultNamespace("tooltip/background"), Identifier.withDefaultNamespace("tooltip/frame"), 4),
+        POPUP(Identifier.withDefaultNamespace("popup/background"), null, 6),
+        BUTTON(Identifier.withDefaultNamespace("widget/button"), null, 3);
 
         public final Identifier sprite;
+        public final Identifier overlay;
         public final int inset;
 
-        Frame(Identifier sprite, int inset) {
+        Frame(Identifier sprite, Identifier overlay, int inset) {
             this.sprite = sprite;
+            this.overlay = overlay;
             this.inset = inset;
         }
     }
@@ -107,6 +110,8 @@ public final class HudStyle {
     public int panelRadius = 0;
     public int rowRadius = 0;
     public Frame frame = Frame.DRAWN;
+    /** The resource pack whose frame art is used ("" = the top pack, as the rest of the game shows it). */
+    public String framePack = "";
 
     // Text.
     public String font = DEFAULT_FONT;
@@ -328,6 +333,7 @@ public final class HudStyle {
         if (font == null || Identifier.tryParse(font) == null) font = DEFAULT_FONT;
         if (amountFormat == null) amountFormat = AmountFormat.REMAINING;
         if (frame == null) frame = Frame.DRAWN;
+        if (framePack == null) framePack = "";
         if (forgeTimes == null) forgeTimes = ForgeTimes.ALL;
         if (progressBars == null) progressBars = ProgressBars.OFF;
         if (totalProgressBars == null) totalProgressBars = ProgressBars.OFF;

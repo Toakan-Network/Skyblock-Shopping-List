@@ -9,6 +9,7 @@ import dev.isxander.yacl3.api.OptionGroup;
 import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.ColorControllerBuilder;
+import dev.isxander.yacl3.api.controller.CyclingListControllerBuilder;
 import dev.isxander.yacl3.api.controller.DropdownStringControllerBuilder;
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
 import dev.isxander.yacl3.api.controller.FloatSliderControllerBuilder;
@@ -47,6 +48,11 @@ public final class ConfigScreen {
         HudStyle d = new HudStyle();
         List<String> fonts = HudStyle.availableFonts();
         if (!fonts.contains(style.font)) fonts.add(style.font);
+        // "" = the top pack; a chosen pack that is no longer enabled stays listed so the setting isn't lost.
+        List<String> framePacks = PackFrames.packsWithFrames();
+        framePacks.remove(style.framePack);
+        if (!style.framePack.isEmpty()) framePacks.add(0, style.framePack);
+        framePacks.add(0, "");
         // The preview draws a copy that follows every unsaved change; the real look only changes on Save.
         HudStyle draft = HudStyle.copy();
         previewDraft = draft;
@@ -64,7 +70,7 @@ public final class ConfigScreen {
             return YetAnotherConfigLib.createBuilder()
                 .title(Component.literal(ShoppingList.NAME))
                 .category(settings(widget, d))
-                .category(appearance(parent, d, fonts))
+                .category(appearance(parent, d, fonts, framePacks))
                 .category(advanced(widget))
                 // Widget setters save the widget config themselves; HudStyle values are written here.
                 .save(HudStyle::save)
@@ -239,7 +245,8 @@ public final class ConfigScreen {
     }
 
     /** Settings > Appearance: how the HUD looks, grouped. What it shows is under Settings. */
-    private static ConfigCategory appearance(Screen parent, HudStyle d, List<String> fonts) {
+    private static ConfigCategory appearance(Screen parent, HudStyle d, List<String> fonts,
+                                             List<String> framePacks) {
         return ConfigCategory.createBuilder()
             .name(Component.translatable("skyblock-shopping-list.config.appearance"))
             .option(ButtonOption.createBuilder()
@@ -318,6 +325,14 @@ public final class ConfigScreen {
                             case BUTTON -> "skyblock-shopping-list.config.decoration.frame.button";
                         }))),
                     d.frame, s -> s.frame, (s, v) -> s.frame = v))
+                .option(styled(Option.<String>createBuilder()
+                    .name(Component.translatable("skyblock-shopping-list.config.decoration.frame_pack"))
+                    .description(describe(Component.translatable("skyblock-shopping-list.config.decoration.frame_pack.desc")))
+                    .controller(opt -> CyclingListControllerBuilder.create(opt).values(framePacks)
+                        .formatValue(v -> v.isEmpty()
+                            ? Component.translatable("skyblock-shopping-list.config.decoration.frame_pack.top")
+                            : Component.literal(PackFrames.title(v)))),
+                    d.framePack, s -> s.framePack, (s, v) -> s.framePack = v))
                 .option(toggle("skyblock-shopping-list.config.decoration.marks", d.showMarks,
                     s -> s.showMarks, (s, v) -> s.showMarks = v))
                 .option(toggle("skyblock-shopping-list.config.decoration.row_boxes", d.showRowBoxes,

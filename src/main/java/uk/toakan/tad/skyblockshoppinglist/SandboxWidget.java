@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.language.I18n;
@@ -1579,11 +1578,15 @@ public class SandboxWidget {
         if (drawnFrame) {
             RoundedBox.fill(context, 0, 0, width, panelHeight, style.panelRadius, style.panelBackground);
             RoundedBox.fill(context, 0, 0, width, TITLE_BAR, style.panelRadius, true, false, style.headerBackground);
-        } else if (style.frame == HudStyle.Frame.TOOLTIP) {
-            // Vanilla pads the tooltip sprites 12 px out from the content box; this puts the visible tooltip on the panel.
-            TooltipRenderUtil.extractTooltipBackground(context, 3, 3, width - 6, panelHeight - 6, null);
         } else {
-            context.blitSprite(RenderPipelines.GUI_TEXTURED, style.frame.sprite, 0, 0, width, panelHeight);
+            // Tooltip sprites have a 9 px empty margin (TooltipRenderUtil draws them 9 px out), so the visible
+            // tooltip lands on the panel.
+            int margin = style.frame == HudStyle.Frame.TOOLTIP ? 9 : 0;
+            frameSprite(context, style, style.frame.sprite, -margin, -margin, width + 2 * margin, panelHeight + 2 * margin);
+            if (style.frame.overlay != null) {
+                frameSprite(context, style, style.frame.overlay, -margin, -margin, width + 2 * margin,
+                    panelHeight + 2 * margin);
+            }
         }
         HudStyle.Prepared titleText = style.prepared(title, style.titleText, true);
         int titleWidth = titleText.width();
@@ -1647,6 +1650,14 @@ public class SandboxWidget {
         }
         context.pose().popMatrix();
         return panelHeight;
+    }
+
+    /** One frame sprite: from the chosen pack when it has one, else the atlas copy (the top pack's). */
+    private static void frameSprite(GuiGraphicsExtractor context, HudStyle style, Identifier sprite,
+                                    int x, int y, int w, int h) {
+        if (style.framePack.isEmpty() || !PackFrames.draw(context, sprite, style.framePack, x, y, w, h)) {
+            context.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, w, h);
+        }
     }
 
     /** The Total among the top rows (first, when shown), or null when the Total is off or empty. */

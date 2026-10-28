@@ -112,6 +112,9 @@ public class ShoppingListClient implements ClientModInitializer {
         resources.registerReloadListener(fontsReloaded,
             (ResourceManagerReloadListener) manager -> HudStyle.fontsChanged());
         resources.addListenerOrdering(ResourceReloaderKeys.Client.FONTS, fontsReloaded);
+        // Frame art read from a chosen pack is reloaded on next draw.
+        resources.registerReloadListener(Identifier.fromNamespaceAndPath(ShoppingList.MOD_ID, "pack_frames"),
+            (ResourceManagerReloadListener) manager -> PackFrames.reloaded());
         CoinTracker.register();
         PowderTracker.register();
         KillTracker.register();
