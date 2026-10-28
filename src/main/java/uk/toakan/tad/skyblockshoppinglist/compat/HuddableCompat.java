@@ -1,5 +1,6 @@
 package uk.toakan.tad.skyblockshoppinglist.compat;
 
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import uk.toakan.tad.huddable.api.HuddableApi;
@@ -40,7 +41,18 @@ public final class HuddableCompat implements HuddablePlugin {
             for (SandboxWidget.Panel panel : SandboxWidget.Panel.values()) {
                 HuddableApi.register(ids.get(panel), label(panel), specs.get(panel));
             }
+            boolean frames = hasFrames(ids.get(SandboxWidget.Panel.MAIN));
             SandboxWidget.setPlacer(new SandboxWidget.PanelPlacer() {
+                @Override
+                public int frameInset(SandboxWidget.Panel panel) {
+                    return frames ? HuddableApi.frameInset(ids.get(panel)) : -1;
+                }
+
+                @Override
+                public void drawFrame(GuiGraphicsExtractor context, SandboxWidget.Panel panel, int width, int height) {
+                    if (frames) HuddableApi.drawFrame(context, ids.get(panel), 0, 0, width, height);
+                }
+
                 @Override
                 public SandboxWidget.Placement place(SandboxWidget.Panel panel) {
                     HuddableApi.Placement p = HuddableApi.placement(ids.get(panel));
@@ -54,6 +66,16 @@ public final class HuddableCompat implements HuddablePlugin {
             });
         } catch (LinkageError e) {
             ShoppingList.LOGGER.warn("This Huddable version doesn't offer what Shopping List needs; its own Move HUD places the panels", e);
+        }
+    }
+
+    /** True when this Huddable draws frames (0.5.0 on); older ones only place the panels. */
+    private static boolean hasFrames(Identifier id) {
+        try {
+            HuddableApi.frameInset(id);
+            return true;
+        } catch (LinkageError e) {
+            return false;
         }
     }
 

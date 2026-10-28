@@ -2,12 +2,13 @@ package uk.toakan.tad.huddable.api;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
 /**
- * Compile-only copy of the parts of Huddable's API (Huddable 0.4.4) Shopping List calls; signatures only. Left out
+ * Compile-only copy of the parts of Huddable's API (Huddable 0.5.0) Shopping List calls; signatures only. Left out
  * of the jar (build.gradle); at runtime Huddable's own class is used. Keep in step with Huddable's
  * {@code uk.toakan.tad.huddable.api.HuddableApi}.
  */
@@ -55,6 +56,14 @@ public final class HuddableApi {
     }
 
     public static void openEditor(Screen parent) {
+        throw new UnsupportedOperationException("stub");
+    }
+
+    public static int frameInset(Identifier id) {
+        throw new UnsupportedOperationException("stub");
+    }
+
+    public static boolean drawFrame(GuiGraphicsExtractor graphics, Identifier id, int x, int y, int width, int height) {
         throw new UnsupportedOperationException("stub");
     }
 }

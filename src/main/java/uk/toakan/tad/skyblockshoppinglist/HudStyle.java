@@ -25,23 +25,21 @@ public final class HudStyle {
     public enum Placement { MAIN_PANEL, OWN_PANEL }
     /**
      * What a panel's frame is drawn from: our own fills (colours, border, radius), or a vanilla nine-slice GUI sprite,
-     * so a resource pack's tooltip / popup / button art shows. {@code overlay} is drawn over {@code sprite} (the
-     * tooltip's frame); {@code inset} keeps content off the sprite's edge art.
+     * so a resource pack's tooltip / popup / button art shows ({@link PackFrames}). {@code inset} keeps content off
+     * the sprite's edge art.
      */
     public enum Frame {
-        DRAWN(null, null, 0),
-        TOOLTIP(Identifier.withDefaultNamespace("tooltip/background"), Identifier.withDefaultNamespace("tooltip/frame"), 4),
-        POPUP(Identifier.withDefaultNamespace("popup/background"), null, 6),
-        BUTTON(Identifier.withDefaultNamespace("widget/button"), null, 3);
+        DRAWN(null),
+        TOOLTIP(PackFrames.Kind.TOOLTIP),
+        POPUP(PackFrames.Kind.POPUP),
+        BUTTON(PackFrames.Kind.BUTTON);
 
-        public final Identifier sprite;
-        public final Identifier overlay;
+        public final PackFrames.Kind kind;
         public final int inset;
 
-        Frame(Identifier sprite, Identifier overlay, int inset) {
-            this.sprite = sprite;
-            this.overlay = overlay;
-            this.inset = inset;
+        Frame(PackFrames.Kind kind) {
+            this.kind = kind;
+            this.inset = kind == null ? 0 : kind.inset;
         }
     }
 
@@ -358,11 +356,6 @@ public final class HudStyle {
 
     private static float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
-    }
-
-    /** Space between a panel's side and its content: the padding, but never over a sprite frame's edge art. */
-    public int contentPadding() {
-        return Math.max(padding, frame.inset);
     }
 
     /** How far outside the panel its frame reaches (the drawn border rings grow outward; sprites stay inside). */

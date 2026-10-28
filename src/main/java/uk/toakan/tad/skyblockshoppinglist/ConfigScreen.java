@@ -49,7 +49,7 @@ public final class ConfigScreen {
         List<String> fonts = HudStyle.availableFonts();
         if (!fonts.contains(style.font)) fonts.add(style.font);
         // "" = the top pack; a chosen pack that is no longer enabled stays listed so the setting isn't lost.
-        List<String> framePacks = PackFrames.packsWithFrames();
+        List<String> framePacks = PackFrames.packsWith(PackFrames.Kind.values());
         framePacks.remove(style.framePack);
         if (!style.framePack.isEmpty()) framePacks.add(0, style.framePack);
         framePacks.add(0, "");

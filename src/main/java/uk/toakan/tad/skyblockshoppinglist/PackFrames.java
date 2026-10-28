@@ -27,9 +27,10 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Panel frame art from one chosen resource pack. Vanilla's GUI atlas only holds the top pack's copy of a sprite, so a
- * lower pack's copy is read from that pack and drawn here with the same stretch / tile / nine-slice rules. Only the
- * chosen pack's art is loaded, on first draw; a resource reload drops it.
+ * Vanilla frame art (tooltip, popup, button) from a chosen resource pack. Vanilla's GUI atlas only holds the top
+ * pack's copy of a sprite, so a lower pack's copy is read from that pack and drawn here with the same stretch / tile
+ * / nine-slice rules. Only chosen art is loaded, on first draw; a resource reload drops it. Shared copy: Shopping
+ * List is the reference, Huddable has a copy (package, mod id and logger aside).
  */
 public final class PackFrames {
     private PackFrames() {}
@@ -48,13 +49,51 @@ public final class PackFrames {
      */
     private static final Map<Key, Optional<Art>> LOADED = new HashMap<>();
 
-    /** Enabled packs that have art for any sprite frame, top of the pack list first. */
-    public static List<String> packsWithFrames() {
+    /** The vanilla frames there are: their atlas sprites (bottom first) and where content goes inside them. */
+    public enum Kind {
+        TOOLTIP("tooltip", Identifier.withDefaultNamespace("tooltip/background"),
+            Identifier.withDefaultNamespace("tooltip/frame"), 4, 9),
+        POPUP("popup", Identifier.withDefaultNamespace("popup/background"), null, 6, 0),
+        BUTTON("button", Identifier.withDefaultNamespace("widget/button"), null, 3, 0);
+
+        /** The name saved in settings. */
+        public final String id;
+        public final Identifier sprite;
+        /** Drawn over {@link #sprite} (the tooltip's frame), or null. */
+        public final Identifier overlay;
+        /** Space from the box's edge that keeps content off the edge art. */
+        public final int inset;
+        /** Empty border inside the sprites: tooltips are drawn 9 px out, as vanilla's TooltipRenderUtil does. */
+        public final int margin;
+
+        Kind(String id, Identifier sprite, Identifier overlay, int inset, int margin) {
+            this.id = id;
+            this.sprite = sprite;
+            this.overlay = overlay;
+            this.inset = inset;
+            this.margin = margin;
+        }
+
+        /** The kind saved as {@code id}, or null. */
+        public static Kind byId(String id) {
+            for (Kind kind : values()) {
+                if (kind.id.equals(id)) return kind;
+            }
+            return null;
+        }
+
+        private List<Identifier> sprites() {
+            return overlay == null ? List.of(sprite) : List.of(sprite, overlay);
+        }
+    }
+
+    /** Enabled packs that have art for any of {@code kinds}, top of the pack list first. */
+    public static List<String> packsWith(Kind... kinds) {
         Minecraft client = Minecraft.getInstance();
         ResourceManager manager = client.getResourceManager();
         Set<String> found = new LinkedHashSet<>();
-        for (HudStyle.Frame frame : HudStyle.Frame.values()) {
-            for (Identifier sprite : sprites(frame)) {
+        for (Kind kind : kinds) {
+            for (Identifier sprite : kind.sprites()) {
                 for (Resource resource : manager.getResourceStack(SPRITES.idToFile(sprite))) {
                     found.add(resource.sourcePackId());
                 }
@@ -73,19 +112,29 @@ public final class PackFrames {
         return pack == null ? packId : pack.getTitle().getString();
     }
 
-    /** The atlas sprites a frame is drawn from, bottom first. */
-    private static List<Identifier> sprites(HudStyle.Frame frame) {
-        List<Identifier> sprites = new ArrayList<>(2);
-        if (frame.sprite != null) sprites.add(frame.sprite);
-        if (frame.overlay != null) sprites.add(frame.overlay);
-        return sprites;
+    /** True when {@code packId} is an enabled pack. */
+    public static boolean enabled(String packId) {
+        for (Pack pack : Minecraft.getInstance().getResourcePackRepository().getSelectedPacks()) {
+            if (pack.getId().equals(packId)) return true;
+        }
+        return false;
     }
 
     /**
-     * Draws {@code sprite} from {@code packId} over the box. Returns false when that pack has no such sprite, so the
-     * caller can draw the atlas one instead.
+     * Draws a {@code kind} frame over the box, each sprite from {@code packId} ("" = the top pack) or, when that pack
+     * doesn't have it, the top pack's.
      */
-    public static boolean draw(GuiGraphicsExtractor context, Identifier sprite, String packId, int x, int y, int w, int h) {
+    public static void drawFrame(GuiGraphicsExtractor context, Kind kind, String packId, int x, int y, int w, int h) {
+        int m = kind.margin;
+        for (Identifier sprite : kind.sprites()) {
+            if (packId.isEmpty() || !draw(context, sprite, packId, x - m, y - m, w + 2 * m, h + 2 * m)) {
+                context.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x - m, y - m, w + 2 * m, h + 2 * m);
+            }
+        }
+    }
+
+    /** Draws {@code sprite} from {@code packId} over the box; false when that pack has no such sprite. */
+    private static boolean draw(GuiGraphicsExtractor context, Identifier sprite, String packId, int x, int y, int w, int h) {
         Key key = new Key(sprite, packId);
         Optional<Art> art = LOADED.get(key);
         if (art == null) {
