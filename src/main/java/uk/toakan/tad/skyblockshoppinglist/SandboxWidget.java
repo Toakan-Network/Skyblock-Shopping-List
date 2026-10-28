@@ -8,7 +8,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -1253,7 +1255,7 @@ public class SandboxWidget {
             previewing = true;
             try {
                 // Keep the outward panel border inside the column.
-                int inset = style.panelBorderWidth + 1;
+                int inset = style.outerInset();
                 List<Panel> panels = activePanels();
                 // One scale for every panel: as wide as the column allows, but short enough to leave room for the
                 // description text under it.
@@ -1454,7 +1456,7 @@ public class SandboxWidget {
 
     private void render(GuiGraphicsExtractor context) {
         recordMissingRefs();
-        int inset = HudStyle.get().panelBorderWidth + 1;
+        int inset = HudStyle.get().outerInset();
         List<Rect2i> drawn = new ArrayList<>(4);
         PanelPlacer current = placer;
         for (Panel panel : activePanels()) {
@@ -1549,7 +1551,7 @@ public class SandboxWidget {
 
         Minecraft client = Minecraft.getInstance();
         boolean ownPanel = panel != Panel.MAIN;
-        int contentWidth = width - 2 * style.padding;
+        int contentWidth = width - 2 * style.contentPadding();
         List<List<WrappedLine>> wrapped = new ArrayList<>();
         int sectionsHeight = 0;
         for (Section section : sections) {
@@ -1557,8 +1559,11 @@ public class SandboxWidget {
             wrapped.add(lines);
             sectionsHeight += sectionHeight(section, lines.size(), ownPanel);
         }
-        // With rounded corners wider than the padding, content stops above the bottom corners so it can't cover them.
-        int cornerClip = Math.max(0, style.panelRadius - style.padding) > 0 ? style.panelRadius : 0;
+        // With rounded corners wider than the padding, content stops above the bottom corners so it can't cover them;
+        // a sprite frame keeps it above the bottom edge art.
+        boolean drawnFrame = style.frame == HudStyle.Frame.DRAWN;
+        int cornerClip = !drawnFrame ? style.frame.inset
+            : Math.max(0, style.panelRadius - style.padding) > 0 ? style.panelRadius : 0;
         // Below the content: 4 px under rows, 2 under section lines only, room for the hint when empty.
         int bottom = empty ? 12 : panel == Panel.MAIN || rowsHeight > 0 ? 4 : 2;
         int naturalHeight = TITLE_BAR + style.titleGap + rowsHeight + sectionsHeight + bottom + cornerClip;
@@ -1571,16 +1576,25 @@ public class SandboxWidget {
 
         // Its own stratum, so the panel isn't tested against everything vanilla and other mods drew before it.
         context.nextStratum();
-        RoundedBox.fill(context, 0, 0, width, panelHeight, style.panelRadius, style.panelBackground);
-        RoundedBox.fill(context, 0, 0, width, TITLE_BAR, style.panelRadius, true, false, style.headerBackground);
+        if (drawnFrame) {
+            RoundedBox.fill(context, 0, 0, width, panelHeight, style.panelRadius, style.panelBackground);
+            RoundedBox.fill(context, 0, 0, width, TITLE_BAR, style.panelRadius, true, false, style.headerBackground);
+        } else if (style.frame == HudStyle.Frame.TOOLTIP) {
+            // Vanilla pads the tooltip sprites 12 px out from the content box; this puts the visible tooltip on the panel.
+            TooltipRenderUtil.extractTooltipBackground(context, 3, 3, width - 6, panelHeight - 6, null);
+        } else {
+            context.blitSprite(RenderPipelines.GUI_TEXTURED, style.frame.sprite, 0, 0, width, panelHeight);
+        }
         HudStyle.Prepared titleText = style.prepared(title, style.titleText, true);
         int titleWidth = titleText.width();
         float titleScale = Math.min(style.titleScale, (float) (width - 10) / Math.max(1, titleWidth));
         drawScaled(context, titleText, alignedX(style.titleAlign, width, 5, titleWidth * titleScale),
             (TITLE_BAR - 8 * titleScale) / 2f, titleScale, style.textShadow);
-        context.fill(0, TITLE_BAR - 1, width, TITLE_BAR, style.divider);
+        context.fill(style.frame.inset, TITLE_BAR - 1, width - style.frame.inset, TITLE_BAR, style.divider);
 
-        context.enableScissor(0, TITLE_BAR, width, panelHeight - cornerClip);
+        // A sprite frame can't be covered with a fill when cut off, so the content stops above the "…" line instead.
+        boolean cutOff = naturalHeight > panelHeight;
+        context.enableScissor(0, TITLE_BAR, width, panelHeight - cornerClip - (cutOff && !drawnFrame ? 9 : 0));
         int cursorY = TITLE_BAR + style.titleGap;
         currentPanelWidth = width;
         currentNodeLineHeight = style.rowHeight;
@@ -1588,7 +1602,7 @@ public class SandboxWidget {
         currentTreeScale = style.rowHeight / 16.0f;
         if (panel == Panel.MAIN) {
             for (RecipeManager.RecipeNode top : root.ingredients) {
-                if (top != ownTotal) cursorY = renderRecipeTree(context, top, style.padding, cursorY, 0, LIST_KEY);
+                if (top != ownTotal) cursorY = renderRecipeTree(context, top, style.contentPadding(), cursorY, 0, LIST_KEY);
             }
         } else if (panel == Panel.TOTAL && ownTotal != null) {
             // Its rows are drawn like ingredients (level 1), but from the left edge with no line up to a parent.
@@ -1596,7 +1610,7 @@ public class SandboxWidget {
             currentBaseLevel = 1;
             try {
                 for (RecipeManager.RecipeNode child : ownTotal.ingredients) {
-                    cursorY = renderRecipeTree(context, child, style.padding, cursorY, 1, key);
+                    cursorY = renderRecipeTree(context, child, style.contentPadding(), cursorY, 1, key);
                 }
             } finally {
                 currentBaseLevel = 0;
@@ -1611,19 +1625,22 @@ public class SandboxWidget {
         }
         context.disableScissor();
 
-        if (naturalHeight > panelHeight) {
+        if (cutOff) {
             // Cut off: tell the player there is more (raise the max height in Move HUD, or collapse rows).
             context.nextStratum();
             HudStyle.Prepared more = style.prepared("…", style.itemText, true);
-            // At least twice the radius tall, or RoundedBox clamps the curve and the bottom corners change shape.
-            int coverHeight = Math.max(9, style.panelRadius * 2);
-            RoundedBox.fill(context, 0, panelHeight - coverHeight, width, coverHeight, style.panelRadius, false, true,
-                style.panelBackground);
-            drawScaled(context, more, (width - more.width()) / 2f, panelHeight - 9, 1f, style.textShadow);
+            if (drawnFrame) {
+                // At least twice the radius tall, or RoundedBox clamps the curve and the bottom corners change shape.
+                int coverHeight = Math.max(9, style.panelRadius * 2);
+                RoundedBox.fill(context, 0, panelHeight - coverHeight, width, coverHeight, style.panelRadius, false, true,
+                    style.panelBackground);
+            }
+            int moreY = drawnFrame ? panelHeight - 9 : panelHeight - cornerClip - 9;
+            drawScaled(context, more, (width - more.width()) / 2f, moreY, 1f, style.textShadow);
         }
         // The border goes on last, so dividers and the cut-off cover can't paint over its inner ring.
         context.nextStratum();
-        for (int i = 0; i < style.panelBorderWidth; i++) {
+        for (int i = 0; drawnFrame && i < style.panelBorderWidth; i++) {
             // Outer border rings grow outward, so their radius grows with them to stay parallel.
             RoundedBox.outline(context, -i, -i, width + i * 2, panelHeight + i * 2,
                 style.panelRadius > 0 ? style.panelRadius + i : 0, style.panelBorder);
@@ -1755,7 +1772,7 @@ public class SandboxWidget {
             context.fill(0, y, width, y + 1, style.divider);
             y += 5;
             HudStyle.Prepared header = style.prepared(section.header() + " -", section.headerColor(), true);
-            drawScaled(context, header, alignedX(section.align(), width, style.padding, header.width() * scale),
+            drawScaled(context, header, alignedX(section.align(), width, style.contentPadding(), header.width() * scale),
                 y, scale, style.textShadow);
             y += Math.round(13 * scale);
         }
@@ -1768,7 +1785,7 @@ public class SandboxWidget {
                 case DONE -> style.done;
             };
             HudStyle.Prepared text = style.prepared(line.text(), color, false);
-            drawScaled(context, text, alignedX(section.align(), width, style.padding, text.width() * scale),
+            drawScaled(context, text, alignedX(section.align(), width, style.contentPadding(), text.width() * scale),
                 y, scale, style.textShadow);
             y += lineHeight;
         }
@@ -1829,7 +1846,7 @@ public class SandboxWidget {
         boolean hasChildren = hasVisibleChildren(node, level);
         boolean showRemaining = isShowRemaining();
         int nodeHeight = currentNodeLineHeight;
-        int nodeWidth = Math.max(100, currentPanelWidth - 2 * style.padding) - indent;
+        int nodeWidth = Math.max(100, currentPanelWidth - 2 * style.contentPadding()) - indent;
         boolean uncertain = isUncertain(node);
         int statusColor = uncertain ? UNCERTAIN_COLOR : progressColor(node, showRemaining);
 

@@ -23,6 +23,24 @@ public final class HudStyle {
     public enum Align { LEFT, CENTRE, RIGHT }
     /** Where the Craftable / Forging sections go. */
     public enum Placement { MAIN_PANEL, OWN_PANEL }
+    /**
+     * What a panel's frame is drawn from: our own fills (colours, border, radius), or a vanilla nine-slice GUI sprite,
+     * so a resource pack's tooltip / popup / button art shows. {@code inset} keeps content off the sprite's edge art.
+     */
+    public enum Frame {
+        DRAWN(null, 0),
+        TOOLTIP(Identifier.withDefaultNamespace("tooltip/background"), 4),
+        POPUP(Identifier.withDefaultNamespace("popup/background"), 6),
+        BUTTON(Identifier.withDefaultNamespace("widget/button"), 3);
+
+        public final Identifier sprite;
+        public final int inset;
+
+        Frame(Identifier sprite, int inset) {
+            this.sprite = sprite;
+            this.inset = inset;
+        }
+    }
 
     public static final String DEFAULT_FONT = "minecraft:default";
 
@@ -88,6 +106,7 @@ public final class HudStyle {
     /** Corner rounding in pixels (0 = square). */
     public int panelRadius = 0;
     public int rowRadius = 0;
+    public Frame frame = Frame.DRAWN;
 
     // Text.
     public String font = DEFAULT_FONT;
@@ -308,6 +327,7 @@ public final class HudStyle {
         if (eventDrops == null) eventDrops = EventDrops.EVENT_RUNNING;
         if (font == null || Identifier.tryParse(font) == null) font = DEFAULT_FONT;
         if (amountFormat == null) amountFormat = AmountFormat.REMAINING;
+        if (frame == null) frame = Frame.DRAWN;
         if (forgeTimes == null) forgeTimes = ForgeTimes.ALL;
         if (progressBars == null) progressBars = ProgressBars.OFF;
         if (totalProgressBars == null) totalProgressBars = ProgressBars.OFF;
@@ -332,6 +352,16 @@ public final class HudStyle {
 
     private static float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    /** Space between a panel's side and its content: the padding, but never over a sprite frame's edge art. */
+    public int contentPadding() {
+        return Math.max(padding, frame.inset);
+    }
+
+    /** How far outside the panel its frame reaches (the drawn border rings grow outward; sprites stay inside). */
+    public int outerInset() {
+        return (frame == Frame.DRAWN ? panelBorderWidth : 0) + 1;
     }
 
     /** Text in the chosen font and colour. Unknown font ids fall back to Minecraft's default font. */

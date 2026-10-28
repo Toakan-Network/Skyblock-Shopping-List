@@ -307,6 +307,17 @@ public final class ConfigScreen {
                 .build())
             .group(OptionGroup.createBuilder()
                 .name(Component.translatable("skyblock-shopping-list.config.decoration"))
+                .option(styled(Option.<HudStyle.Frame>createBuilder()
+                    .name(Component.translatable("skyblock-shopping-list.config.decoration.frame"))
+                    .description(describe(Component.translatable("skyblock-shopping-list.config.decoration.frame.desc")))
+                    .controller(opt -> EnumControllerBuilder.create(opt).enumClass(HudStyle.Frame.class)
+                        .formatValue(v -> Component.translatable(switch (v) {
+                            case DRAWN -> "skyblock-shopping-list.config.decoration.frame.drawn";
+                            case TOOLTIP -> "skyblock-shopping-list.config.decoration.frame.tooltip";
+                            case POPUP -> "skyblock-shopping-list.config.decoration.frame.popup";
+                            case BUTTON -> "skyblock-shopping-list.config.decoration.frame.button";
+                        }))),
+                    d.frame, s -> s.frame, (s, v) -> s.frame = v))
                 .option(toggle("skyblock-shopping-list.config.decoration.marks", d.showMarks,
                     s -> s.showMarks, (s, v) -> s.showMarks = v))
                 .option(toggle("skyblock-shopping-list.config.decoration.row_boxes", d.showRowBoxes,
