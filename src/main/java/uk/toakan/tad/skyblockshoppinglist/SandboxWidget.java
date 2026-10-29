@@ -348,11 +348,18 @@ public class SandboxWidget {
         saveConfiguration();
         saveShoppingList();
     }
-    /** Forgets which rows were expanded under recipes no longer on the list, so widget_config.json doesn't grow forever. */
+    /**
+     * Forgets which rows were expanded under recipes no longer on the list, so widget_config.json doesn't grow
+     * forever. Recipes on a saved list are kept, so loading that list back shows the rows as they were left.
+     */
     private void pruneExpandedNodes() {
         Set<String> roots = new HashSet<>();
         roots.add("Total");
         for (ShoppingListEntry e : shoppingList) roots.add(e.recipe);
+        for (String name : SavedLists.names()) {
+            List<ShoppingListEntry> saved = SavedLists.get(name);
+            if (saved != null) for (ShoppingListEntry e : saved) roots.add(e.recipe);
+        }
         String prefix = LIST_KEY + ">";
         expandedNodes.keySet().removeIf(key -> {
             if (!key.startsWith(prefix)) return false;
