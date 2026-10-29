@@ -211,7 +211,6 @@ public class SandboxWidget {
         }
         if (shoppingList.size() >= maxRecipes) return AddResult.FULL;
         shoppingList.add(new ShoppingListEntry(recipe, amount, resourcesManager.getResourceByName(recipe)));
-        expandedNodes.putIfAbsent(makePathKey(LIST_KEY, recipe), true);
         sackPromptDue = true;
         listChanged();
         return AddResult.ADDED;
@@ -316,7 +315,6 @@ public class SandboxWidget {
                 continue;
             }
             shoppingList.add(new ShoppingListEntry(e.recipe, amount, held, e.isHaveTotal()));
-            expandedNodes.putIfAbsent(makePathKey(LIST_KEY, e.recipe), true);
         }
         lastPromptedSacks = List.of();
         sackPromptDue = true;
@@ -762,10 +760,8 @@ public class SandboxWidget {
             tops.add(total);
             expandedNodes.putIfAbsent(makePathKey(LIST_KEY, total.name), true);
         }
-        for (RecipeManager.RecipeNode tree : response.trees) {
-            tops.add(tree);
-            expandedNodes.putIfAbsent(makePathKey(LIST_KEY, tree.name), true);
-        }
+        // Recipes start collapsed (no key means collapsed); the player expands the ones they want to see.
+        tops.addAll(response.trees);
         SackReader sacks = SackReader.getInstance();
         for (RecipeManager.RecipeNode top : tops) setUncertain(top, sacks, 0);
         for (RecipeManager.RecipeNode top : tops) setProgress(top, 0);
