@@ -69,13 +69,18 @@ public final class HuddableCompat implements HuddablePlugin {
         }
     }
 
-    /** True when this Huddable draws frames (0.5.0 on); older ones only place the panels. */
+    /**
+     * True when this Huddable draws frames (0.5.0 on); older ones only place the panels. This runs during start-up, so
+     * the call itself can fail for want of a window once a frame is set: that still means the method is there.
+     */
     private static boolean hasFrames(Identifier id) {
         try {
             HuddableApi.frameInset(id);
             return true;
         } catch (LinkageError e) {
             return false;
+        } catch (RuntimeException e) {
+            return true;
         }
     }
 
